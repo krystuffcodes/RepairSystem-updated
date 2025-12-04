@@ -20,11 +20,435 @@ $userSession = $auth->requireAuth('admin');
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
     <style>
+                /* Print styles */
+                @media print {
+                    body {
+                        visibility: hidden;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        color: #000000 !important;
+                    }
+                    
+                    .wrapper,
+                    .xp-menubar,
+                    .body-overlay,
+                    #sidebar,
+                    #content .main-content .row .col-md-12 .card,
+                    .modal-header,
+                    .modal-footer,
+                    #serviceReportListModal,
+                    .modal-header button,
+                    .ms-auto,
+                    .d-flex {
+                        display: none !important;
+                    }
+                    
+                    #printReportModal {
+                        position: static !important;
+                        display: block !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        background: white !important;
+                        border: none !important;
+                        opacity: 1 !important;
+                    }
+                    
+                    #printReportModal .modal-dialog {
+                        position: static !important;
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        max-width: 100% !important;
+                    }
+                    
+                    #printReportModal .modal-content {
+                        border: none !important;
+                        box-shadow: none !important;
+                        margin: 0 !important;
+                        height: auto !important;
+                        background: white !important;
+                        opacity: 1 !important;
+                    }
+                    
+                    #printReportModal .modal-body {
+                        padding: 0 !important;
+                        display: block !important;
+                        height: auto !important;
+                        background: white !important;
+                        opacity: 1 !important;
+                    }
+                    
+                    #print-report-body {
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        background: white !important;
+                        page-break-inside: avoid !important;
+                        opacity: 1 !important;
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
+                    
+                    /* Force ALL text to be pure black - not gray */
+                    #print-report-body,
+                    #print-report-body * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                    }
+                    
+                    /* Specific text elements - force pure black */
+                    #print-report-body h1,
+                    #print-report-body h2,
+                    #print-report-body h3,
+                    #print-report-body h4,
+                    #print-report-body h5,
+                    #print-report-body h6 {
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        text-shadow: none !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    #print-report-body p,
+                    #print-report-body span,
+                    #print-report-body strong,
+                    #print-report-body b,
+                    #print-report-body em,
+                    #print-report-body i {
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        text-shadow: none !important;
+                        -webkit-text-fill-color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    /* Force table text to pure black */
+                    #print-report-body table {
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    #print-report-body tbody,
+                    #print-report-body thead,
+                    #print-report-body tfoot {
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    #print-report-body tr {
+                        page-break-inside: avoid !important;
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    #print-report-body td,
+                    #print-report-body th {
+                        color: #000000 !important;
+                        border-color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    /* Force div and section text to black */
+                    #print-report-body div {
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    /* Remove any background colors and shadows when printing so text remains visible */
+                    #print-report-body,
+                    #print-report-body * {
+                        background: transparent !important;
+                        background-color: transparent !important;
+                        box-shadow: none !important;
+                        -webkit-box-shadow: none !important;
+                        filter: none !important;
+                    }
+                    
+                    @page {
+                        size: A4;
+                        margin: 0.3in;
+                    }
+                }
+
+        .print-content {
+            margin: 0;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.4;
+            background: transparent;
+        }
+
+        // Render staff suggestions for a given input (native, clickable list)
+        function renderStaffSuggestions($input, filterText) {
+            const inputId = $input.attr('id');
+            if (!inputId) return;
+            const selectId = $input.data('target') ? $($input.data('target')).attr('id') : (inputId.replace('-input', '-select'));
+            try {
+                console.debug && console.debug('renderStaffSuggestions called for', inputId, '->', selectId, 'filter="' + (filterText || '') + '"');
+            } catch (e) { }
+            const suggestionsId = `${inputId}-suggestions`;
+            const $suggestions = $(`#${suggestionsId}`);
+            if (!$suggestions.length) return;
+
+            const list = (window.staffLists && window.staffLists[selectId]) ? window.staffLists[selectId] : [];
+            const text = (filterText || '').toLowerCase().trim();
+
+            try {
+                console.debug && console.debug('staff list length for', selectId, '=', (list && list.length) || 0);
+            } catch (e) { }
+
+            let matches = [];
+            if (!text) {
+                matches = list.slice(0, 20);
+            } else {
+                // start-with first
+                matches = list.filter(s => s.text && s.text.toLowerCase().startsWith(text));
+                if (matches.length === 0) {
+                    matches = list.filter(s => s.text && s.text.toLowerCase().includes(text));
+                }
+                matches = matches.slice(0, 20);
+            }
+
+            if (!matches || matches.length === 0) {
+                try {
+                    console.debug && console.debug('renderStaffSuggestions - no matches for', text, 'in', selectId);
+                } catch (e) { }
+                $suggestions.hide();
+                return;
+            }
+
+            $suggestions.empty();
+            matches.forEach(s => {
+                const $item = $(`<button type="button" class="list-group-item list-group-item-action">${s.text}</button>`);
+                $item.data('id', s.id);
+                $item.data('text', s.text);
+                $item.on('click', function() {
+                    setStaffFromSuggestion(s.id, s.text, `#${inputId}`, `#${selectId}`);
+                });
+                $suggestions.append($item);
+            });
+
+            // position and size
+            const $wrapper = $input.parent();
+            const width = $wrapper.length ? $wrapper.innerWidth() : $input.outerWidth();
+            $suggestions.css({
+                display: 'block',
+                width: width + 'px'
+            });
+        }
+
+        function setStaffFromSuggestion(id, text, inputSelector, selectSelector) {
+            const $input = $(inputSelector);
+            const $select = $(selectSelector);
+            if ($input.length) $input.val(text);
+            if ($select.length) {
+                let $opt = $select.find(`option[value="${id}"]`);
+                if ($opt.length === 0) {
+                    $opt = $(`<option></option>`).val(id).text(text);
+                    $select.append($opt);
+                }
+                $select.val(id).trigger('change');
+            }
+            const suggestionsId = `${$input.attr('id')}-suggestions`;
+            $(`#${suggestionsId}`).hide();
+        }
+
+                // Reusable searchable input initializer
+                // inputSelector: jQuery selector for the visible input
+                // getItemsFn: function that returns array of items {id, text} or array of strings
+                // options: { selectSelector: '#hidden-select', maxItems: 20 }
+                function createSearchableInput(inputSelector, getItemsFn, options = {}) {
+                    const $input = $(inputSelector);
+                    if (!$input.length) return;
+
+                    const inputId = $input.attr('id');
+                    const suggestionsId = `${inputId}-suggestions`;
+                    const $parent = $input.parent();
+
+                    // ensure parent positioned so absolute suggestions position correctly
+                    if ($parent.length && $parent.css('position') === 'static') {
+                        $parent.css('position', 'relative');
+                    }
+
+                    // create suggestions container if missing
+                    if ($parent.length && $(`#${suggestionsId}`).length === 0) {
+                        $parent.append(`<div id="${suggestionsId}" class="staff-suggestions list-group" style="display:none; max-height:220px; overflow-y:auto; position:absolute; left:0; top:calc(100% + 6px); z-index:2000; width:100%;"></div>`);
+                    }
+
+                    const $suggestions = $(`#${suggestionsId}`);
+                    const selectSelector = options.selectSelector || $input.data('target') || null;
+                    const maxItems = options.maxItems || 1000;
+
+                    // If the staff list is loaded later, re-render suggestions when available
+                    $(document).off(`staffListLoaded.${inputId}`).on(`staffListLoaded.${inputId}`, function(e, loadedSelectId, loadedArray) {
+                        try {
+                            const selId = (selectSelector || '').replace('#','');
+                            if (selId && selId === loadedSelectId) {
+                                // if input is focused, show suggestions; otherwise keep list ready
+                                if (document.activeElement && document.activeElement.id === inputId) {
+                                    render($input.val() || '');
+                                }
+                            }
+                        } catch (err) { /* ignore */ }
+                    });
+
+                    function normalize(items) {
+                        if (!items) return [];
+                        return items.map(it => {
+                            if (typeof it === 'string') return { id: null, text: it };
+                            if (it && typeof it === 'object') return { id: it.id || it.value || null, text: it.text || it.name || it.full_name || '' };
+                            return { id: null, text: String(it) };
+                        }).filter(i => i.text && i.text.trim());
+                    }
+
+                    function render(filterText) {
+                        const raw = (typeof getItemsFn === 'function') ? getItemsFn() : (getItemsFn || []);
+                        const list = normalize(raw || []);
+                        const text = (filterText || '').toString().toLowerCase().trim();
+
+                        let matches = [];
+                        if (!text) {
+                            matches = list.slice(0, maxItems);
+                        } else {
+                            // start-with priority
+                            matches = list.filter(i => i.text.toLowerCase().startsWith(text));
+                            if (matches.length === 0) {
+                                matches = list.filter(i => i.text.toLowerCase().includes(text));
+                            }
+                            matches = matches.slice(0, maxItems);
+                        }
+
+                        if (!matches || matches.length === 0) {
+                            $suggestions.hide();
+                            return;
+                        }
+
+                        $suggestions.empty();
+                        matches.forEach(m => {
+                            const $item = $(`<button type="button" class="list-group-item list-group-item-action">${m.text}</button>`);
+                            $item.data('id', m.id);
+                            $item.data('text', m.text);
+                            $item.on('click', function() {
+                                // set visible input
+                                $input.val(m.text);
+                                // sync hidden select if available
+                                if (selectSelector) {
+                                    const $select = $(selectSelector);
+                                    if ($select.length) {
+                                        let $opt = $select.find(`option[value="${m.id}"]`);
+                                        if ($opt.length === 0 && m.id != null) {
+                                            $opt = $(`<option></option>`).val(m.id).text(m.text);
+                                            $select.append($opt);
+                                        }
+                                        if (m.id != null) $select.val(m.id).trigger('change');
+                                        else {
+                                            // if no id, attempt to find option by text and set its value
+                                            const $byText = $select.find('option').filter((i,el) => $(el).text().trim() === m.text.trim());
+                                            if ($byText.length) $select.val($byText.first().val()).trigger('change');
+                                        }
+                                    }
+                                }
+                                $suggestions.hide();
+                            });
+                            $suggestions.append($item);
+                        });
+
+                        // size and show
+                        const wrapperWidth = $parent.length ? $parent.innerWidth() : $input.outerWidth();
+                        $suggestions.css({ display: 'block', width: wrapperWidth + 'px' });
+                    }
+
+                    // events
+                    $input.off('.searchable').on('input.searchable', function() {
+                        render($(this).val() || '');
+                    });
+
+                    // show full list on focus/click
+                    $input.off('.searchable-focus').on('focus.searchable', function() {
+                        render('');
+                    });
+
+                    // keyboard: Enter selects first suggestion
+                    $input.off('.searchable-key').on('keydown.searchable', function(e) {
+                        if (e.key === 'Enter') {
+                            const first = $suggestions.find('.list-group-item').first();
+                            if (first.length) {
+                                e.preventDefault();
+                                first.trigger('click');
+                            }
+                        }
+                    });
+
+                    // hide on blur (allow clicks)
+                    $input.off('.searchable-blur').on('blur.searchable', function() {
+                        setTimeout(() => $suggestions.hide(), 150);
+                    });
+                }
+
+        // Hide staff suggestions on outside click
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.staff-input, .staff-suggestions').length) {
+                $('.staff-suggestions').hide();
+            }
+        });
+
+        // Show suggestions when input focused (if user interacted)
+        $(document).on('focus', '.staff-input', function(e) {
+            const $input = $(this);
+            // small delay to allow click events (if any)
+            setTimeout(() => renderStaffSuggestions($input, $input.val() || ''), 50);
+        });
+
+        // Hide suggestions on blur (allow click)
+        $(document).on('blur', '.staff-input', function() {
+            const $input = $(this);
+            setTimeout(() => {
+                const id = $input.attr('id');
+                if (id) $(`#${id}-suggestions`).hide();
+            }, 150);
+        });
+
+        /* Removed conflicting print styles - using inline styles instead */
+
         .icon-btn {
             background: #ececec;
             border: 1.5px solid #ececec;
             border-radius: 8px;
             transition: background 0.2s, border 0.2s, box-shadow 0.2s;
+        }
+
+        // Staff inputs use plain dropdown selects; no autocomplete initialization required
+
+        /* Keep the print modal visually white on-screen (restore default white background) */
+        #printReportModal .modal-content,
+        #printReportModal .modal-body,
+        #printReportModal .modal-header,
+        #printReportModal .modal-footer {
+            background: #ffffff !important;
+            border: none !important;
+            box-shadow: none !important;
         }
 
         .icon-btn:hover,
@@ -207,6 +631,30 @@ $userSession = $auth->requireAuth('admin');
             max-height: 70vh;
             overflow-y: auto;
         }
+        /* Service Report List Modal Header Styles */
+        #serviceReportListModal .modal-header {
+            background-color: #0066e6 !important;
+        }
+
+        #serviceReportListModal .modal-title {
+            color: white !important;
+        }
+
+        /* support both bootstrap .close and our custom close-modal-report */
+        #serviceReportListModal .close,
+        #serviceReportListModal .close-modal-report {
+            color: white !important;
+            opacity: 1 !important;
+            font-size: 1.8rem;
+            background: none;
+            border: none;
+        }
+
+        #serviceReportListModal .close:hover,
+        #serviceReportListModal .close-modal-report:hover {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
         /* Customer search suggestion styles */
         .customer-search-wrapper {
             position: relative;
@@ -295,6 +743,9 @@ $userSession = $auth->requireAuth('admin');
                                                 <select class="form-control" name="status" required>
                                                     <option value="">Select Status</option>
                                                     <option value="Pending">Pending</option>
+                                                    <option value="Under Repair">Under Repair</option>
+                                                    <option value="Unrepairable">Unrepairable</option>
+                                                    <option value="Release Out">Release Out</option>
                                                     <option value="Completed">Completed</option>
                                                 </select>
                                             </div>
@@ -389,36 +840,23 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                         </div>
                                         
-                                        <!-- Total Amount and Date Repaired Row -->
-                                        <div class="row mb-2">
-                                            <div class="col-md-8 pe-1">
-                                                <label>Total Service Charge</label>
-                                                <div class="input-group mb-0">
-                                                    <span class="input-group-text">₱</span>
-                                                    <input type="text" class="form-control" name="total_serviceCharge" id="total-serviceCharge" readonly>
+                                        <!-- Complaint with Date Repaired & Date Delivered (single responsive row) -->
+                                        <div class="row mb-2 align-items-start">
+                                            <div class="col-md-8 pe-1 d-flex flex-column">
+                                                <!-- Total Amount (hidden, not used for form submission) -->
+                                                <input type="hidden" id="total-amount" readonly>
+                                                <label class="mb-1">Complaint</label>
+                                                <textarea class="form-control" name="complaint" id="complaint" style="height:calc(2 * 38px + 8px);" aria-label="complaint"></textarea>
+                                            </div>
+                                            <div class="col-md-4 ps-1 d-flex flex-column" style="gap:8px;">
+                                                <div>
+                                                    <label class="mb-1">Date Repaired</label>
+                                                    <input type="date" class="form-control" name="date_repaired">
                                                 </div>
-                                            </div>
-                                            <div class="col-md-8 pe-1">
-                                                <label>Total Amount</label>
-                                                <div class="input-group mb-0">
-                                                    <span class="input-group-text">₱</span>
-                                                    <input type="text" class="form-control" name="total_amount" id="total-amount" readonly>
+                                                <div>
+                                                    <label class="mb-1">Date Delivered</label>
+                                                    <input type="date" class="form-control" name="date_delivered">
                                                 </div>
-                                            </div>
-                                            <div class="col-md-4 ps-1">
-                                                <label>Date Repaired</label>
-                                                <input type="date" class="form-control" name="date_repaired">
-                                            </div>
-                                        </div>
-                                        <!-- Complaint and Date Delivered Row -->
-                                        <div class="row mb-2">
-                                            <div class="col-md-8 pe-1">
-                                                <label>Complaint</label>
-                                                <textarea class="form-control" name="complaint" id="complaint" rows="2"></textarea>
-                                            </div>
-                                            <div class="col-md-4 ps-1">
-                                                <label>Date Delivered</label>
-                                                <input type="date" class="form-control" name="date_delivered">
                                             </div>
                                         </div>
                                         <!-- Charged Details Section Header -->
@@ -444,11 +882,8 @@ $userSession = $auth->requireAuth('admin');
                                                 </div>
                                             </div>
                                             <div class="col-md-3 px-1">
-                                                <label class="mb-1">Total:</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">₱</span>
-                                                    <input type="number" class="form-control" name="total_amount" id="total-amount-2" readonly>
-                                                </div>
+                                                <!-- Total (hidden) -->
+                                                <input type="hidden" name="total_amount" id="total-amount-2" readonly>
                                             </div>
                                             <div class="col-md-3 ps-1">
                                                 <label class="mb-1">Parts Charge:</label>
@@ -462,21 +897,18 @@ $userSession = $auth->requireAuth('admin');
                                         <div class="row mb-2">
 
                                             <div class="col-md-3 pe-1 d-flex flex-column justify-content-end">
-                                               
+                                                <label class="mb-1">Cashier:</label>
                                                 <select name="receptionist" id="receptionist-select" class="form-control staff-select" data-role="Cashier">
                                                     <option value="">Receptionist</option>
                                                 </select>
-
                                             </div>
                                             <div class="col-md-3 px-1 d-flex flex-column justify-content-end">
-                                               
                                                 <label class="mb-1">Manager:</label>
                                                 <select name="manager" id="manager-select" class="form-control staff-select" data-role="Manager">
                                                     <option value="">Manager</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3 px-1 d-flex flex-column justify-content-end">
-                                                
                                                 <label class="mb-1">Technician:</label>
                                                 <select name="technician" id="technician-select" class="form-control staff-select" data-role="Technician">
                                                     <option value="">Technician</option>
@@ -519,6 +951,9 @@ $userSession = $auth->requireAuth('admin');
                                                 <select name="status" id="edit_status" class="form-control" required>
                                                     <option value="">Select Status</option>
                                                     <option value="Pending">Pending</option>
+                                                    <option value="Under Repair">Under Repair</option>
+                                                    <option value="Unrepairable">Unrepairable</option>
+                                                    <option value="Release Out">Release Out</option>
                                                     <option value="Completed">Completed</option>
                                                 </select>
                                             </div>
@@ -558,24 +993,34 @@ $userSession = $auth->requireAuth('admin');
                 <div class="modal fade" id="serviceReportListModal" tabindex="-1" aria-labelledby="serviceReportListModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1200px; width: 95%;">
                         <div class="modal-content" style="border-radius: 18px;">
-                            <div class="modal-header justify-content-center">
-                                <h4 class="modal-title w-100 text-center" id="serviceReportListModalLabel">Service Report List</h4>
-                                <button type="button" class="close position-absolute" style="right: 20px; top: 18px;" data-dismiss="modal" aria-label="Close">
+                            <div class="modal-header justify-content-center" style="background-color: #0066e6;">
+                                <h4 class="modal-title w-100 text-center text-white" id="serviceReportListModalLabel">Service Report List</h4>
+                                <button type="button" class="close-modal-report position-absolute" style="right: 20px; top: 18px; color: white; background: none; border: none; cursor: pointer; font-size: 1.8rem; font-weight: 300; padding: 0;" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body p-0">
                                 <div class="px-3 py-2 border-bottom">
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="input-group input-group-sm">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text" id="serviceReportSearchIcon">🔍</span>
+                                            <div class="col-md-6 d-flex align-items-center">
+                                                <div class="input-group input-group-sm me-2" style="min-width: 240px;">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text" id="serviceReportSearchIcon">🔍</span>
+                                                    </div>
+                                                    <input type="text" class="form-control form-control-sm" id="service-report-search" placeholder="Search reports by ID, customer, appliance, or type" aria-label="Search reports" aria-describedby="serviceReportSearchIcon" autocomplete="off">
                                                 </div>
-                                                <input type="text" class="form-control form-control-sm" id="service-report-search" placeholder="Search reports by ID, customer, appliance, or type" aria-label="Search reports" aria-describedby="serviceReportSearchIcon" autocomplete="off">
+                                                <div>
+                                                    <select id="service-report-filter" class="form-control form-control-sm" style="width: 160px;">
+                                                        <option value="All">All</option>
+                                                        <option value="Completed">Completed</option>
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Under Repair">Under Repair</option>
+                                                        <option value="Unrepairable">Unrepairable</option>
+                                                        <option value="Release Out">Release Out</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table mb-0" style="font-family: 'Poppins', sans-serif;">
@@ -604,10 +1049,31 @@ $userSession = $auth->requireAuth('admin');
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Print Report Modal -->
+    <div class="modal fade" id="printReportModal" tabindex="-1" aria-labelledby="printReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="max-width: 900px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="printReportModalLabel">Print Service Report</h5>
+                    <div class="ms-auto d-flex gap-2">
+                        <button class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="print-report-btn" class="btn btn-primary">Print</button>
+                    </div>
+                </div>
+                <div class="modal-body" style="max-height: 85vh; overflow-y: auto; padding: 0; background: #ffffff;">
+                    <div id="print-report-body" class="print-section" style="background: #ffffff;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/jquery-3.3.1.min.js"></script>
     <script src="../js/popper.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+    <!-- Select2 for searchable selects -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script type="text/javascript">
         const API_BASE_URL = '../backend/api/';
@@ -633,16 +1099,28 @@ $userSession = $auth->requireAuth('admin');
                 $('#sidebar,.body-overlay').toggleClass('show-nav');
             });
 
-            // Use event delegation for edit and delete buttons to prevent duplication
+            // allow custom close button to hide the service report list modal
+            $(document).on('click', '.close-modal-report', function(e) {
+                e.preventDefault();
+                $('#serviceReportListModal').modal('hide');
+                setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 200);
+            });
+
+            // Use event delegation for action buttons; hide the list modal when an action is clicked
             $(document).on('click', '.edit-report', function(e) {
                 e.preventDefault();
                 const reportId = $(this).data('id');
+                // hide the list modal immediately
+                $('#serviceReportListModal').modal('hide');
+                setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 300);
                 loadReportForEditing(reportId);
             });
 
             $(document).on('click', '.delete-report', function(e) {
                 e.preventDefault();
                 const reportId = $(this).data('id');
+                $('#serviceReportListModal').modal('hide');
+                setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 300);
                 deleteReport(reportId);
             });
         });
@@ -686,6 +1164,7 @@ $userSession = $auth->requireAuth('admin');
                 await loadServicePrices();
                 bindEventHandlers();
                 initCustomerSearch();
+                initStaffSearch();
                 await loadInitialData();
             } catch (error) {
                 console.error("Initialization failed: ", error);
@@ -730,6 +1209,35 @@ $userSession = $auth->requireAuth('admin');
                 filterServiceReports($(this).val());
             });
 
+            $('#service-report-filter').on('change', function() {
+                // Re-render based on the selected status filter and current search query
+                const q = $('#service-report-search').val();
+                applyStatusAndSearch();
+                if (q) {
+                    filterServiceReports(q);
+                }
+            });
+
+            // Print report button within the list - hide list then load and show print modal
+            $(document).on('click', '.print-report', async function(e) {
+                e.preventDefault();
+                const reportId = $(this).data('id');
+                if (!reportId) return;
+                // hide the list modal immediately
+                $('#serviceReportListModal').modal('hide');
+                setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 300);
+                await renderPrintModal(reportId);
+                $('#printReportModal').modal('show');
+            });
+
+            // Print button inside modal
+            $(document).on('click', '#print-report-btn', function() {
+                window.print();
+            });
+
+                // Modal on-screen transparency handlers removed - keep modal white on-screen
+                // (Previously saved/restored styles to force transparency; no longer needed.)
+
             $('select[name="status"]').on('change', function() {
                 const reportId = $('#report_id').val();
                 if (reportId) {
@@ -744,6 +1252,38 @@ $userSession = $auth->requireAuth('admin');
                 // Clear search input and re-render full list
                 $('#service-report-search').val('');
                 filterServiceReports('');
+            });
+
+            // Staff input: listen for typing and sync to hidden select
+            $(document).on('input', '.staff-input', function() {
+                const $input = $(this);
+                const targetSelector = $input.data('target');
+                if (!targetSelector) return;
+                const $select = $(targetSelector);
+                const val = ($input.val() || '').trim();
+
+                if (!val) {
+                    $select.val('');
+                    return;
+                }
+
+                // Do NOT auto-select any name on input
+                // Only show suggestions, selection happens on click or Enter
+                $select.val('');
+                try {
+                    renderStaffSuggestions($input, val);
+                } catch (err) {
+                    // no-op
+                }
+            });
+
+            // Sync select -> input so programmatic setDropdownValue updates visible input
+            $(document).on('change', '.staff-select', function() {
+                const $sel = $(this);
+                const selId = $sel.attr('id') || '';
+                const inputSelector = `#${selId.replace('-select', '-input')}`;
+                const text = $sel.find('option:selected').text() || '';
+                $(inputSelector).val(text);
             });
         }
 
@@ -858,8 +1398,6 @@ $userSession = $auth->requireAuth('admin');
                 date_in: formatDateForPHP($('#date-in').val()),
                 status: $('select[name="status"]').val(),
                 dealer: $('input[name="dealer"]').val(),
-                dop: formatDateForPHP($('input[name="dop"]').val()),
-                date_pulled_out: formatDateForPHP($('input[name="date_pulled_out"]').val()),
                 findings: $('input[name="findings"]').val(),
                 remarks: $('input[name="remarks"]').val(),
                 location: [],
@@ -872,12 +1410,12 @@ $userSession = $auth->requireAuth('admin');
                 labor: parseFloat($('#labor-amount').val()) || 0,
                 pullout_delivery: parseFloat($('#pullout-delivery').val()) || 0,
                 parts_total_charge: parseFloat($('input[name="parts_charge"]').val()) || 0,
-                service_charge: parseFloat($('#total-serviceCharge').val()) || 0,
+                service_charge: 0,
                 total_amount: parseFloat($('#total-amount-2').val()) || 0,
-                receptionist: $('#receptionist-select option:selected').text(),
-                manager: $('#manager-select option:selected').text(),
-                technician: $('#technician-select option:selected').text(),
-                released_by: $('#released-by-select option:selected').text(),
+                receptionist: ($('#receptionist-input').length && $('#receptionist-input').is(':visible') ? $('#receptionist-input').val().trim() : ($('#receptionist-select option:selected').text() || '')),
+                manager: ($('#manager-input').length && $('#manager-input').is(':visible') ? $('#manager-input').val().trim() : ($('#manager-select option:selected').text() || '')),
+                technician: ($('#technician-input').length && $('#technician-input').is(':visible') ? $('#technician-input').val().trim() : ($('#technician-select option:selected').text() || '')),
+                released_by: ($('#released-by-input').length && $('#released-by-input').is(':visible') ? $('#released-by-input').val().trim() : ($('#released-by-select option:selected').text() || '')),
 
                 parts: []
             };
@@ -915,6 +1453,12 @@ $userSession = $auth->requireAuth('admin');
             if (reportId) {
                 formData.report_id = reportId;
             }
+
+            // Add optional date fields only if provided (prevent sending empty/null keys)
+            const dopVal = formatDateForPHP($('input[name="dop"]').val());
+            const datePulledVal = formatDateForPHP($('input[name="date_pulled_out"]').val());
+            if (dopVal) formData.dop = dopVal;
+            if (datePulledVal) formData.date_pulled_out = datePulledVal;
             return formData;
         }
 
@@ -952,8 +1496,8 @@ $userSession = $auth->requireAuth('admin');
                     throw new Error(response?.message || 'Failed to process report');
                 }
 
-                if(!reportId && response.data?.report_id) {
-                    $('#report_id').val(response.data.report_id);
+                if(!reportId && (response.data?.report_id || response.data?.ReportID)) {
+                    $('#report_id').val(response.data.report_id || response.data.ReportID);
                 }
 
                 updateSubmitButton(formData.status, $('#report_id').val());
@@ -968,8 +1512,13 @@ $userSession = $auth->requireAuth('admin');
                 }
                 
                 // Refresh the badge status after form submission
+                // After creating/updating, set the current filter to include this report's status and refresh the list
+                // Set the filter to this report's status so it will be visible, then fetch up-to-date data
+                $('#service-report-filter').val(formData.status || 'All');
                 await loadServiceReportsOnInit();
                 await loadServiceReports();
+                // open modal so the user can see the created report list
+                $('#serviceReportListModal').modal('show');
 
             } catch (error) {
                 console.error('Form submission error:', error);
@@ -1169,6 +1718,72 @@ $userSession = $auth->requireAuth('admin');
                                 return true;
                             });
                         }
+
+                        // If loading staff dropdown, also populate the matching datalist and suggestion data for the visible input
+                        if (type === 'staff') {
+                            try {
+                                const selectId = $dropdown.attr('id') || '';
+                                const inputId = selectId.replace('-select', '-input');
+                                const listId = inputId ? `${inputId}-list` : '';
+
+                                // Ensure datalist exists in DOM (some were added server-side in HTML); create near the input if missing
+                                if (inputId && !$(`#${listId}`).length) {
+                                    const $input = $(`#${inputId}`);
+                                    if ($input.length) {
+                                        $input.after(`<datalist id="${listId}"></datalist>`);
+                                    }
+                                }
+
+                                const $dlist = listId ? $(`#${listId}`) : $();
+                                // Build an in-memory staff list for richer suggestions (per select)
+                                window.staffLists = window.staffLists || {};
+                                const staffArray = items.map(item => {
+                                    const optionData = transformFn(item);
+                                    return {
+                                        id: optionData.value,
+                                        text: optionData.text,
+                                        role: item.role || ''
+                                    };
+                                });
+                                if (selectId) {
+                                    window.staffLists[selectId] = staffArray;
+
+                                    // Debug: log loaded staff list summary for troubleshooting
+                                    try {
+                                        console.debug && console.debug('Loaded staff list for', selectId, 'count=', (staffArray && staffArray.length) || 0, staffArray && staffArray.slice ? staffArray.slice(0,5) : staffArray);
+                                    } catch (e) {
+                                        /* ignore logging errors */
+                                    }
+
+                                    // Trigger a global event so any searchable input can re-render suggestions
+                                    try {
+                                        $(document).trigger('staffListLoaded', [selectId, staffArray]);
+                                    } catch (e) { /* ignore */ }
+                                }
+
+                                if ($dlist.length) {
+                                    $dlist.empty();
+                                    staffArray.forEach(st => {
+                                        $dlist.append(`<option value="${st.text}"></option>`);
+                                    });
+                                }
+
+                                // Ensure a suggestion container exists inside the input's parent for richer UI
+                                if (inputId) {
+                                    const suggestionsId = `${inputId}-suggestions`;
+                                    const $input = $(`#${inputId}`);
+                                    const $parent = $input.parent();
+                                    if ($parent.length && $parent.css('position') === 'static') {
+                                        $parent.css('position', 'relative');
+                                    }
+                                    if ($input.length && $(`#${suggestionsId}`).length === 0) {
+                                        $parent.append(`<div id="${suggestionsId}" class="staff-suggestions list-group" style="display:none; max-height:220px; overflow-y:auto; position:absolute; left:0; top:calc(100% + 6px); z-index:2000; width:100%;"></div>`);
+                                    }
+                                }
+                            } catch (err) {
+                                console.warn('Failed to populate staff datalist/suggestions:', err);
+                            }
+                        }
                         }
 
                         //enable/disable based on dependency and content
@@ -1262,7 +1877,7 @@ $userSession = $auth->requireAuth('admin');
                 //numeric fields
                 $('#labor-amount').val(report.labor || '0.00');
                 $('#pullout-delivery').val(report.pullout_delivery || '0.00');
-                $('#total-serviceCharge').val(report.service_charge || '0.00');
+                // total service charge UI removed - skipping service_charge display
                 $('#total-amount').val(report.total_amount || '0.00');
                 $('#total-amount-2').val(report.total_amount || '0.00');
                 $('input[name="parts_charge"]').val(report.parts_total_charge || '0.00');
@@ -1298,9 +1913,13 @@ $userSession = $auth->requireAuth('admin');
                 $('#appliance-select').trigger('change');
 
                 setDropdownValue('#receptionist-select', report.receptionist);
+                $('#receptionist-select').trigger('change');
                 setDropdownValue('#manager-select', report.manager);
+                $('#manager-select').trigger('change');
                 setDropdownValue('#technician-select', report.technician);
+                $('#technician-select').trigger('change');
                 setDropdownValue('#released-by-select', report.released_by);
+                $('#released-by-select').trigger('change');
 
                 if (report.parts && report.parts.length > 0) {
                     $('#parts-container .parts-row:not(:first)').remove();
@@ -1463,6 +2082,60 @@ $userSession = $auth->requireAuth('admin');
             });
         }
 
+        // Initialize staff search behavior (same UX as customer suggestions)
+        function initStaffSearch() {
+                const $inputs = $('.staff-input');
+                if (!$inputs.length) return;
+
+                $inputs.each(function() {
+                    const $input = $(this);
+                    const selectSelector = $input.data('target') || (`#${$input.attr('id').replace('-input','-select')}`);
+                    const $hiddenSelect = $(selectSelector);
+
+                    // Ensure suggestion container exists
+                    const suggestionsId = `${$input.attr('id')}-suggestions`;
+                    if ($input.parent().find(`#${suggestionsId}`).length === 0) {
+                        $input.parent().append(`<div id="${suggestionsId}" class="list-group staff-suggestions" style="display:none; max-height:220px; overflow-y:auto; position:absolute; left:0; top:calc(100% + 6px); z-index:2000; width:100%;"></div>`);
+                    }
+
+                    $input.on('input', function() {
+                        const text = $(this).val().trim();
+                        renderStaffSuggestions($(this), text);
+                    });
+
+                    $input.on('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const sugg = $(`#${suggestionsId}`).find('.list-group-item').first();
+                            if (sugg.length) sugg.trigger('click');
+                        }
+                    });
+
+                    // Always show suggestions on focus
+                    $input.on('focus', function() {
+                        renderStaffSuggestions($input, $input.val() || '');
+                    });
+
+                    $hiddenSelect.on('change', function() {
+                        const text = $(this).find('option:selected').text();
+                        if (text && text !== 'Select staff') {
+                            $input.val(text);
+                        }
+                    });
+
+                    $input.on('blur', function() {
+                        setTimeout(() => $(`#${suggestionsId}`).hide(), 150);
+                    });
+                });
+
+                // Ensure suggestions hide when clicking outside
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest('.staff-input, .staff-suggestions').length) {
+                        $('.staff-suggestions').hide();
+                    }
+                });
+        }
+
         function renderCustomerSuggestions(filterText) {
             const $suggestions = $('#customer-suggestions');
             const $input = $('#customer-search');
@@ -1541,6 +2214,8 @@ $userSession = $auth->requireAuth('admin');
 
         function renderServiceReportsRows(reports) {
             const $tbody = $('#serviceReportListModal tbody').empty();
+            // store the currently displayed reports in a global variable for search
+            window.currentServiceReports = reports;
             if (!reports || !Array.isArray(reports)) return;
 
             reports.forEach(report => {
@@ -1552,9 +2227,26 @@ $userSession = $auth->requireAuth('admin');
                 }
 
                 const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
-                const statusBadge = report.status === 'Completed' ?
-                    '<span class="badge badge-success">Completed</span>' :
-                    '<span class="badge badge-warning">Pending</span>';
+                let statusBadge = '';
+                switch ((report.status || '').toString()) {
+                    case 'Completed':
+                        statusBadge = '<span class="badge badge-success">Completed</span>';
+                        break;
+                    case 'Pending':
+                        statusBadge = '<span class="badge badge-warning">Pending</span>';
+                        break;
+                    case 'Under Repair':
+                        statusBadge = '<span class="badge badge-primary">Under Repair</span>';
+                        break;
+                    case 'Unrepairable':
+                        statusBadge = '<span class="badge badge-danger">Unrepairable</span>';
+                        break;
+                    case 'Release Out':
+                        statusBadge = '<span class="badge badge-secondary">Release Out</span>';
+                        break;
+                    default:
+                        statusBadge = `<span class="badge badge-light">${report.status || 'N/A'}</span>`;
+                }
 
                 const totalAmount = parseFloat(report.total_amount || 0);
 
@@ -1574,6 +2266,9 @@ $userSession = $auth->requireAuth('admin');
                             <a href="#" class="delete-report" data-id="${report.report_id}">
                                 <i class="material-icons text-danger">delete</i>
                             </a>
+                            <a href="#" class="print-report" data-id="${report.report_id}" title="Print Report">
+                                <i class="material-icons text-secondary">print</i>
+                            </a>
                         </td>
                     </tr>
                 `);
@@ -1591,7 +2286,8 @@ $userSession = $auth->requireAuth('admin');
 
                 // Store the reports data globally for local filtering/search
                 window.serviceReportsData = response.data;
-                renderServiceReportsRows(window.serviceReportsData);
+                // Render according to the selected status filter (default: All)
+                applyStatusAndSearch();
                 updateBadgeStatus(window.serviceReportsData);
             } catch (error) {
                 console.error("Failed to load service reports: ", error);
@@ -1603,14 +2299,13 @@ $userSession = $auth->requireAuth('admin');
 
         function filterServiceReports(query) {
             query = (query || '').toString().toLowerCase().trim();
-            if (!window.serviceReportsData || !Array.isArray(window.serviceReportsData)) return;
-
+            const baseList = Array.isArray(window.currentServiceReports) ? window.currentServiceReports : (Array.isArray(window.serviceReportsData) ? window.serviceReportsData : []);
             if (!query) {
-                renderServiceReportsRows(window.serviceReportsData);
+                renderServiceReportsRows(baseList);
                 return;
             }
 
-            const filtered = window.serviceReportsData.filter(report => {
+            const filtered = baseList.filter(report => {
                 const q = query;
                 return (report.report_id && report.report_id.toString().includes(q)) ||
                     (report.customer_name && report.customer_name.toLowerCase().includes(q)) ||
@@ -1619,6 +2314,16 @@ $userSession = $auth->requireAuth('admin');
             });
 
             renderServiceReportsRows(filtered);
+        }
+
+        function applyStatusAndSearch() {
+            const status = $('#service-report-filter').val() || 'All';
+            if (!status || status === 'All') {
+                window.currentServiceReports = Array.isArray(window.serviceReportsData) ? window.serviceReportsData.slice() : [];
+            } else {
+                window.currentServiceReports = Array.isArray(window.serviceReportsData) ? window.serviceReportsData.filter(r => r.status === status) : [];
+            }
+            renderServiceReportsRows(window.currentServiceReports);
         }
 
         function updateSubmitButton(status, reportId = '') {
@@ -1740,18 +2445,18 @@ $userSession = $auth->requireAuth('admin');
         function calculateTotals() {
             const laborCharge = parseFloat($('#labor-amount').val()) || 0;
             const deliveryCharge = parseFloat($('#pullout-delivery').val()) || 0;
-            const serviceCharge = calculateServiceCharge();
+            // serviceCharge removed from totals (not calculated/displayed)
             const partsTotal = calculatePartsTotal();
 
             const grandTotal = (
                 parseFloat(laborCharge.toFixed(2)) +
                 parseFloat(deliveryCharge.toFixed(2)) +
-                parseFloat(serviceCharge.toFixed(2)) +
+                // service charge is no longer part of grand total
                 parseFloat(partsTotal.toFixed(2))
             ).toFixed(2);
 
             $('input[name="parts_charge"]').val(partsTotal.toFixed(2));
-            $('#total-serviceCharge').val(serviceCharge.toFixed(2));
+            // service_charge display removed; no UI to update
             $('#total-amount').val(grandTotal);
             $('#total-amount-2').val(grandTotal);
         }
@@ -1819,21 +2524,13 @@ $userSession = $auth->requireAuth('admin');
                 const checkboxHtml = `
                     <div class="form-check mr-3 mb-1">
                         <input class="form-check-input service-type-checkbox" type="checkbox" id="${id}" value="${name}" data-price="${price}">
-                        <label class="form-check-label" for="${id}">${label} (₱${price.toFixed(2)})</label>
+                        <label class="form-check-label" for="${id}">${label}</label>
                     </div>`;
                 $container.append(checkboxHtml);
             });
         }
 
-        function calculateServiceCharge() {
-            let total = 0;
-            $('.service-type-checkbox:checked').each(function() {
-                const serviceName = $(this).val();
-                const price = parseFloat($(this).data('price')) || parseFloat(servicePrices[serviceName] || 0);
-                total += price;
-            });
-            return parseFloat(total.toFixed(2));
-        }
+                // calculateServiceCharge removed - service charges are no longer part of the report totals
 
         function calculatePartsTotal() {
             let total = 0;
@@ -2069,6 +2766,218 @@ $userSession = $auth->requireAuth('admin');
                 console.error('Transaction creation payload:', JSON.stringify(transactionData));
             } finally {
                 showLoading(false, '#serviceReportListModal .modal-body');
+            }
+        }
+
+        // Render print modal with report details as a screenshot
+        async function renderPrintModal(reportId) {
+            try {
+                showLoading(true, '#printReportModal');
+                
+                const response = await callServiceAPI('getById', null, reportId);
+                
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to load report');
+                }
+
+                const report = response.data;
+                
+                // Create a temporary container to build the formatted report
+                const tempContainer = document.createElement('div');
+                tempContainer.id = 'temp-screenshot-container';
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '-9999px';
+                tempContainer.style.width = '900px';
+                tempContainer.style.background = '#ffffff';
+                tempContainer.style.padding = '25px';
+                tempContainer.style.fontSize = '13px';
+                tempContainer.style.lineHeight = '1.8';
+                tempContainer.style.fontFamily = 'Arial, sans-serif';
+                tempContainer.style.color = '#000';
+                
+                // Format dates
+                const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
+                const dop = report.dop ? new Date(report.dop).toLocaleDateString() : 'N/A';
+                const datePulledOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : 'N/A';
+                const dateRepaired = report.date_repaired ? new Date(report.date_repaired).toLocaleDateString() : 'N/A';
+
+                // Format service types
+                let serviceTypes = 'N/A';
+                if (report.service_types && Array.isArray(report.service_types)) {
+                    serviceTypes = report.service_types.join(', ');
+                } else if (typeof report.service_types === 'string') {
+                    serviceTypes = report.service_types;
+                }
+
+                // Build parts list with table
+                let partsHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #000;"><tr style="border-bottom: 2px solid #000;"><th style="text-align: left; padding: 6px; color: #000; font-weight: bold;">Part Name</th><th style="text-align: center; padding: 6px; color: #000; font-weight: bold;">Qty</th></tr>';
+                if (report.parts && Array.isArray(report.parts)) {
+                    report.parts.forEach(part => {
+                        partsHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">${part.part_name || 'N/A'}</td><td style="text-align: center; padding: 6px; color: #000;">${part.quantity || 0}</td></tr>`;
+                    });
+                } else {
+                    partsHtml += '<tr><td colspan="2" style="padding: 6px; color: #000;">N/A</td></tr>';
+                }
+                partsHtml += '</table>';
+
+                // Build charges breakdown with table
+                let chargesHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #000;"><tr style="border-bottom: 2px solid #000;"><th style="text-align: left; padding: 6px; color: #000; font-weight: bold;">Description</th><th style="text-align: right; padding: 6px; color: #000; font-weight: bold;">Amount</th></tr>';
+                chargesHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">Labor</td><td style="text-align: right; padding: 6px; color: #000;">₱${parseFloat(report.labor || 0).toFixed(2)}</td></tr>`;
+                chargesHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">Pull-Out/Delivery</td><td style="text-align: right; padding: 6px; color: #000;">₱${parseFloat(report.pullout_delivery || 0).toFixed(2)}</td></tr>`;
+                chargesHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">Parts Charge</td><td style="text-align: right; padding: 6px; color: #000;">₱${parseFloat(report.parts_total_charge || 0).toFixed(2)}</td></tr>`;
+                chargesHtml += '</table>';
+
+                const printContentHtml = `
+                    <div style="padding: 25px; font-size: 13px; line-height: 1.8; font-family: Arial, sans-serif; color: #000;">
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom: 10px;">
+                            <h2 style="margin: 0 0 8px 0; font-size: 24px; font-weight: bold; color: #000;">SERVICE REPAIR REPORT</h2>
+                            <p style="margin: 0; font-size: 12px; color: #000; font-weight: 600;">Service Report ID: #${report.report_id}</p>
+                        </div>
+                        
+                        <!-- First Row: Info -->
+                        <div style="margin-bottom: 15px; display: table; width: 100%; border-collapse: collapse;">
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Date In:</strong><br><span style="font-size: 12px; color: #000;">${dateIn}</span>
+                            </div>
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Status:</strong><br><span style="font-size: 12px; color: #000;">${report.status || 'N/A'}</span>
+                            </div>
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Dealer:</strong><br><span style="font-size: 12px; color: #000;">${report.dealer || 'N/A'}</span>
+                            </div>
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Staff:</strong><br><span style="font-size: 12px; color: #000;">${report.staff_name || 'N/A'}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer & Appliance -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">CUSTOMER INFORMATION</h4>
+                            <div style="display: table; width: 100%; border-collapse: collapse;">
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Name:</strong> <span style="font-size: 12px; color: #000;">${report.customer_name || 'N/A'}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Contact:</strong> <span style="font-size: 12px; color: #000;">${report.customer_contact || 'N/A'}</span>
+                                </div>
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Appliance:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_name || 'N/A'}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Model:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_model || 'N/A'}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Serial:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_serial || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Service Details -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">SERVICE INFORMATION</h4>
+                            <div style="display: table; width: 100%; border-collapse: collapse;">
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Service Type:</strong> <span style="font-size: 12px; color: #000;">${serviceTypes}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Findings:</strong> <span style="font-size: 12px; color: #000;">${report.findings || 'N/A'}</span>
+                                </div>
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Date of Problem:</strong> <span style="font-size: 12px; color: #000;">${dop}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Date Pulled Out:</strong> <span style="font-size: 12px; color: #000;">${datePulledOut}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Date Repaired:</strong> <span style="font-size: 12px; color: #000;">${dateRepaired}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Complaint -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">COMPLAINT</h4>
+                            <div style="padding: 10px; border: 1px solid #000; min-height: 40px; background: #ffffff; font-size: 12px; color: #000;">
+                                ${report.complaint || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <!-- Parts Used -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">PARTS USED</h4>
+                            <div style="padding: 10px; border: 1px solid #000; background: #ffffff;">
+                                ${partsHtml}
+                            </div>
+                        </div>
+                        
+                        <!-- Charges -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">CHARGES BREAKDOWN</h4>
+                            <div style="padding: 10px; border: 1px solid #000; background: #ffffff;">
+                                ${chargesHtml}
+                            </div>
+                        </div>
+                        
+                        <!-- Total Amount -->
+                        <div style="margin-bottom: 15px; background-color: #ffffff; padding: 15px; border: 3px solid #000; font-weight: bold; font-size: 16px; text-align: right; color: #000;">
+                            TOTAL AMOUNT: ₱${parseFloat(report.total_amount || 0).toFixed(2)}
+                        </div>
+                        
+                        <!-- Remarks -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">REMARKS</h4>
+                            <div style="padding: 10px; border: 1px solid #000; min-height: 40px; background: #ffffff; font-size: 12px; color: #000;">
+                                ${report.remarks || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <!-- Signature Area -->
+                        <div style="margin-top: 20px; border-top: 2px solid #000; padding-top: 15px;">
+                            <div style="display: table; width: 100%; border-collapse: collapse;">
+                                <div style="display: table-cell; width: 33%; padding: 0 8px 0 0; text-align: center;">
+                                    <div style="height: 60px; border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                                    <strong style="font-size: 12px; display: block;">Technician</strong>
+                                    <span style="font-size: 11px;">Date: _____________</span>
+                                </div>
+                                <div style="display: table-cell; width: 33%; padding: 0 8px; text-align: center;">
+                                    <div style="height: 60px; border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                                    <strong style="font-size: 12px; display: block;">Manager</strong>
+                                    <span style="font-size: 11px;">Date: _____________</span>
+                                </div>
+                                <div style="display: table-cell; width: 33%; padding: 0 0 0 8px; text-align: center;">
+                                    <div style="height: 60px; border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                                    <strong style="font-size: 12px; display: block;">Released By</strong>
+                                    <span style="font-size: 11px;">Date: _____________</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                tempContainer.innerHTML = printContentHtml;
+                document.body.appendChild(tempContainer);
+
+                // Wait for images/content to load
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Capture the formatted report as a screenshot
+                const canvas = await html2canvas(tempContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+                
+                // Convert canvas to image
+                const screenshotImage = canvas.toDataURL('image/png');
+                
+                // Remove temporary container
+                document.body.removeChild(tempContainer);
+                
+                // Inject the screenshot image into the print body
+                const screenshotHtml = `
+                    <div style="text-align: center; width: 100%; height: auto;">
+                        <img src="${screenshotImage}" style="max-width: 100%; height: auto; border: none; display: block;" />
+                    </div>
+                `;
+                
+                $('#print-report-body').html(screenshotHtml);
+                showLoading(false, '#printReportModal');
+
+            } catch (error) {
+                console.error('Error rendering print modal:', error);
+                showLoading(false, '#printReportModal');
+                showAlert('danger', error.message || 'Failed to load report for printing');
             }
         }
     </script>

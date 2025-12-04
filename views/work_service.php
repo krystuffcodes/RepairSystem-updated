@@ -104,7 +104,6 @@ $userSession = $auth->requireAuth('admin');
                                             <tr>
                                                 <th>ID</th>
                                                 <th>Service Name</th>
-                                                <th>Service Price</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
@@ -311,14 +310,14 @@ $userSession = $auth->requireAuth('admin');
                             renderWsPagination(payload.totalPages || 1);
                         } else {
                             $('#workServiceTableBody').html(
-                                '<tr><td colspan="4" class="text-center">Error loading service prices</td></tr>'
+                                '<tr><td colspan="3" class="text-center">Error loading service prices</td></tr>'
                             );
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error("AJAX Error: ", status, error);
                         $('#workServiceTableBody').html(
-                            '<tr><td colspan="4" class="text-center">Failed to load data</td></tr>'
+                            '<tr><td colspan="3" class="text-center">Failed to load data</td></tr>'
                         );
                     }
                 });
@@ -329,7 +328,7 @@ $userSession = $auth->requireAuth('admin');
                 $tableBody.empty();
 
                 if (!Array.isArray(services) || services.length === 0) {
-                    $tableBody.html('<tr><td colspan="4" class="text-center">No service prices found</td></tr>');
+                    $tableBody.html('<tr><td colspan="3" class="text-center">No service prices found</td></tr>');
                     return;
                 }
 
@@ -338,7 +337,7 @@ $userSession = $auth->requireAuth('admin');
                     <tr>
                         <td>${service.service_id}</td>
                         <td>${service.service_name.charAt(0).toUpperCase() + service.service_name.slice(1)}</td>
-                        <td>₱${parseFloat(service.service_price).toFixed(2)}</td>
+                        
                         <td class="actions-col">
                             <span class='d-inline-flex'>
                                 <a href='#' class='edit-work-service mr-2'

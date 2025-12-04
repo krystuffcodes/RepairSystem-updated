@@ -22,6 +22,10 @@ class ApplianceHandler {
         $query = "INSERT INTO " . $this->table_name . " 
                 (CustomerID, Brand, Product, Model_No, Serial_No, Warranty_end, Category, Status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // normalize empty values to null
+        $model_no = $model_no ? $model_no : null;
+        $serial_no = $serial_no ? $serial_no : null;
+        $warranty_end = $warranty_end ? $warranty_end : null;
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("isssssss", $customer_id, $brand, $product, $model_no, $serial_no, $warranty_end, $category, $status);
         
@@ -35,6 +39,10 @@ class ApplianceHandler {
         $query = "UPDATE " . $this->table_name . " 
                 SET Brand=?, Product=?, Model_No=?, Serial_No=?, Warranty_end=?, Category=?, Status=? 
                 WHERE ApplianceID=?";
+        // normalize empty values to null for update
+        $model_no = $model_no ? $model_no : null;
+        $serial_no = $serial_no ? $serial_no : null;
+        $warranty_end = $warranty_end ? $warranty_end : null;
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("sssssssi", $brand, $product, $model_no, $serial_no, $warranty_end, $category, $status, $id);
         

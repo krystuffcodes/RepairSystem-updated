@@ -131,11 +131,15 @@ $userSession = $auth->requireAuth('admin');
     @media print {
         body * {
             visibility: hidden;
+            color: #000000 !important;
         }
 
         .print-section,
         .print-section * {
             visibility: visible;
+            color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .print-section {
@@ -145,6 +149,7 @@ $userSession = $auth->requireAuth('admin');
             width: 100%;
             padding: 20px;
             background: white;
+            color: #000000 !important;
         }
 
         .no-print {
@@ -164,23 +169,27 @@ $userSession = $auth->requireAuth('admin');
 
         .modal-header {
             border-bottom: 2px solid #333 !important;
+            color: #000000 !important;
         }
 
         .table {
             border-collapse: collapse;
             width: 100%;
             font-size: 12px;
+            color: #000000 !important;
         }
 
         .table th,
         .table td {
             border: 1px solid #ddd;
             padding: 6px;
+            color: #000000 !important;
         }
 
         .table th {
             background-color: #f2f2f2;
             font-weight: bold;
+            color: #000000 !important;
         }
 
         .findings-section {
@@ -200,6 +209,7 @@ $userSession = $auth->requireAuth('admin');
         .card-header {
             background: white !important;
             border-bottom: 2px solid #333 !important;
+            color: #000000 !important;
         }
 
         .card-title {
@@ -209,6 +219,14 @@ $userSession = $auth->requireAuth('admin');
         }
         
         .modal-title {
+            color: #000000 !important;
+        }
+
+        h5 {
+            color: #000000 !important;
+        }
+
+        p, span, td, th, div {
             color: #000000 !important;
         }
     }
@@ -481,10 +499,13 @@ $userSession = $auth->requireAuth('admin');
                                         <div class="col-md-3">
                                             <label>Status</label>
                                             <!-- <input type="text" class="form-control" name="status" readonly>  -->
-                                             <select name="status" id="status-field" class="form-control" readonly>
-                                                <option value="Pending">Pending</option>
-                                                <option value="Completed">Completed</option>
-                                             </select>
+                                                            <select name="status" id="status-field" class="form-control" readonly>
+                                                                <option value="Pending">Pending</option>
+                                                                <option value="Under Repair">Under Repair</option>
+                                                                <option value="Unrepairable">Unrepairable</option>
+                                                                <option value="Release Out">Release Out</option>
+                                                                <option value="Completed">Completed</option>
+                                                            </select>
                                         </div>
                                     </div>
                                     <div class="row mb-2">

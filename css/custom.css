@@ -11,17 +11,8 @@ html {
 /*==========================================================
   material-icon font-style
   ================================*/
-
-@font-face {
-  font-family: "Material Icons";
-  font-style: normal;
-  font-weight: 400;
-  src: url(https://example.com/MaterialIcons-Regular.eot); /* For IE6-8 */
-  src: local("Material Icons"), local("MaterialIcons-Regular"),
-    url(https://example.com/MaterialIcons-Regular.woff2) format("woff2"),
-    url(https://example.com/MaterialIcons-Regular.woff) format("woff"),
-    url(https://example.com/MaterialIcons-Regular.ttf) format("truetype");
-}
+/* Material Icons are loaded via Google-hosted stylesheet; remove custom @font-face to avoid CORS.
+   If you prefer to self-host the font, add a local @font-face pointing to files on this server. */
 
 .material-icons {
   font-family: "Material Icons";

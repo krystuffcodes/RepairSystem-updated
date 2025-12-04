@@ -541,32 +541,6 @@ $userSession = $auth->requireAuth('staff');
             color: #000000 !important;
         }
     }
-    /* Customer search suggestion styles */
-    .customer-search-wrapper {
-        position: relative;
-    }
-    .customer-suggestions {
-        position: absolute;
-        left: 0;
-        top: calc(100% + 6px);
-        width: 100%;
-        z-index: 2000;
-        box-shadow: 0 10px 30px rgba(50,50,93,0.12);
-        border-radius: 8px;
-        overflow: auto;
-    }
-    .customer-suggestions .list-group-item { 
-        cursor: pointer; 
-        background-color: #ffffff !important; /* enforce white */
-        color: #212529 !important; /* readable text */
-        border: none; 
-    }
-    .customer-suggestions .list-group-item:hover,
-    .customer-suggestions .list-group-item:focus,
-    .customer-suggestions .list-group-item.active {
-        background-color: #f8f9fa !important; /* subtle hover */
-        color: #212529 !important;
-    }
     
     /* Ensure all form elements are readonly by default */
     #transactionForm input,
@@ -668,13 +642,9 @@ $userSession = $auth->requireAuth('staff');
                                     <div class="row mb-2">
                                         <div class="col-md-3">
                                             <label>Customer</label>
-                                            <div class="customer-search-wrapper" style="position: relative;">
-                                                <input type="text" id="customer-search" class="form-control" placeholder="Search customer by name" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
-                                                <select class="form-control customer-select d-none" name="customer" id="customer-select" aria-hidden="true" tabindex="-1">
-                                                    <option value="">Select Customer</option>
-                                                </select>
-                                                <div id="customer-suggestions" class="list-group customer-suggestions" style="display:none; max-height: 260px; overflow-y: auto; position: absolute; left: 0; top: calc(100% + 6px); width: 100%; z-index: 2000;"></div>
-                                            </div>
+                                            <select class="form-control customer-select" name="customer" id="customer-select">
+                                                <option value="">Select Customer</option>
+                                            </select>
                                         </div>
                                         <div class="col-md-3">
                                             <label>Appliance</label>
@@ -1058,18 +1028,6 @@ $userSession = $auth->requireAuth('staff');
                         </button>
                     </div>
                     <div class="modal-body p-0">
-                        <div class="px-3 py-2 border-bottom">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group input-group-sm">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text" id="serviceReportSearchIcon">🔍</span>
-                                        </div>
-                                        <input type="text" class="form-control form-control-sm" id="service-report-search" placeholder="Search reports by ID, customer, appliance, or type" aria-label="Search reports" aria-describedby="serviceReportSearchIcon" autocomplete="off">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="table-responsive">
                             <table class="table mb-0" style="font-family: 'Poppins', sans-serif;">
                                 <thead class="thead-light">
@@ -1439,6 +1397,11 @@ $userSession = $auth->requireAuth('staff');
     <script src="../js/jquery-3.3.1.min.js"></script>
     <script src="../js/popper.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+    <!-- Select2 for searchable selects (admin parity) -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- html2canvas for print screenshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script type="text/javascript">
         // Minimal tab toggling; the heavy transaction logic lives in the external
         // `script_for_transaction.js`. This avoids redefining functions and keeps

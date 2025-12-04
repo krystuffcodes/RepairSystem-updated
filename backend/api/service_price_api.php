@@ -1,4 +1,5 @@
 <?php
+require __DIR__ . "/../../backend/handlers/Database.php";
 require __DIR__ . "/../../backend/handlers/servicePriceHandler.php";
 
 header("Content-Type: application/json");

@@ -1,5 +1,6 @@
 <?php 
 
+require __DIR__.'/../handlers/Database.php';
 require __DIR__.'/../handlers/customersHandler.php';
 require __DIR__.'/../handlers/appliancesHandler.php';
 
@@ -160,7 +161,7 @@ try {
 
         case 'addAppliance':
             $required = [
-                'customer_id', 'brand', 'product', 'model_no', 'serial_no', 'date_in', 'category', 'status'
+                'customer_id', 'brand', 'product', 'category', 'status'
             ];
             foreach ($required as $field) {
                 if (empty($input[$field])) {
@@ -194,7 +195,7 @@ try {
         
         case 'updateAppliance': 
             $required = [
-                'appliance_id', 'brand', 'product', 'model_no', 'serial_no', 'date_in', 'category', 'status'
+                'appliance_id', 'brand', 'product', 'category', 'status'
             ];
             foreach ($required as $field) {
                 if (empty($input[$field])) {

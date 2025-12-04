@@ -40,6 +40,12 @@ class ApplianceHandler {
                   (customer_id, brand, product, model_no, serial_no, date_in, warranty_end, category, status) 
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
+        // Normalize empty values to null so DB fields can be NULL
+        $modelNo = $modelNo ? $modelNo : null;
+        $serialNo = $serialNo ? $serialNo : null;
+        $dateIn = $dateIn ? $dateIn : null;
+        $warrantyEnd = $warrantyEnd ? $warrantyEnd : null;
+
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param(
             "issssssss", 
@@ -84,6 +90,12 @@ class ApplianceHandler {
                       category = ?, status = ?, date_in = ?
                   WHERE appliance_id = ?";
         
+        // Normalize empty values to null for update
+        $modelNo = $modelNo ? $modelNo : null;
+        $serialNo = $serialNo ? $serialNo : null;
+        $dateIn = $dateIn ? $dateIn : null;
+        $warrantyEnd = $warrantyEnd ? $warrantyEnd : null;
+
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param(
             "ssssssssi",

@@ -1,5 +1,6 @@
 <?php
 
+require __DIR__ . '/../../backend/handlers/Database.php';
 require __DIR__ . '/../../backend/handlers/serviceHandler.php';
 require __DIR__ . '/../../backend/handlers/partsHandler.php';
 
@@ -8,8 +9,16 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
+// Prevent PHP notices/warnings from being sent to the client as HTML
+ini_set('display_errors', '0');
+error_reporting(E_ALL);
+
 function sendResponse($success, $data = null, $message = '', $httpCode = 200)
 {
+    // Clear any accidental output (warnings/notices) so client receives valid JSON
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     http_response_code($httpCode);
     echo json_encode([
         'success' => $success,
@@ -17,6 +26,28 @@ function sendResponse($success, $data = null, $message = '', $httpCode = 200)
         'message' => $message
     ]);
     exit;
+}
+
+/**
+ * Safely parse a date string into a DateTime object or return null.
+ * Accepts 'Y-m-d' or other parseable formats; returns null on failure.
+ */
+function safeParseDate($value) {
+    if (empty($value)) return null;
+    // If already a DateTime, return as-is
+    if ($value instanceof DateTime) return $value;
+
+    // Try strict Y-m-d first
+    $dt = DateTime::createFromFormat('Y-m-d', $value);
+    if ($dt !== false) return $dt;
+
+    // Fallback to flexible parsing with exception handling
+    try {
+        return new DateTime($value);
+    } catch (Exception $e) {
+        error_log('safeParseDate: failed to parse date "' . $value . '": ' . $e->getMessage());
+        return null;
+    }
 }
 
 $database = new Database();
@@ -29,7 +60,17 @@ $serviceHandler = new ServiceHandler($db);
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-$input = json_decode(file_get_contents('php://input'), true);
+$rawBody = file_get_contents('php://input');
+$input = json_decode($rawBody, true);
+
+// DEBUG: Log raw input for create action only
+if ($_GET['action'] === 'create' && $method === 'POST') {
+    error_log("====== CREATE API DEBUG START ======");
+    error_log("Raw php://input body: " . $rawBody);
+    error_log("Decoded JSON: " . print_r($input, true));
+    error_log("====== CREATE API DEBUG END ======");
+}
+
 if (($method === 'POST' || $method === 'PUT') && json_last_error() !== JSON_ERROR_NONE) {
     sendResponse(false, null, 'Invalid JSON input', 400);
 }
@@ -79,7 +120,6 @@ try {
                 sendResponse(false, null, 'Method is incorrect', 405);
             }
 
-            $db->autocommit(false); 
             try {
 
                 error_log("Received input data: " . print_r($input, true));
@@ -99,47 +139,74 @@ try {
                     foreach ($input['parts'] as $part) {
                         $partId = isset($part['part_id']) ? $part['part_id'] : null;
                         if (!$partId) {
-                            $db->rollback(); 
                             sendResponse(false, null, "Part ID not found for {$part['part_name']}", 400);
                         }
                         
                         $partDetails = $partsHandler->getPartsById($partId);
                         if (!$partDetails) {
-                            $db->rollback(); 
                             sendResponse(false, null, "Part not found with ID: {$partId}", 400);
                         }
                         
                         if ($partDetails['quantity_stock'] < $part['quantity']) {
-                            $db->rollback(); 
                             sendResponse(false, null, "Insufficient quantity for part {$part['part_name']}. Available: {$partDetails['quantity_stock']}", 400);
                         }
                     }
                 }
 
+                $dopVal = isset($input['dop']) ? $input['dop'] : null;
+                $datePulledVal = isset($input['date_pulled_out']) ? $input['date_pulled_out'] : null;
+
+                // Treat empty or "null" string as null explicitly
+                $dopVal = ($dopVal === '' || $dopVal === 'null') ? null : $dopVal;
+                $datePulledVal = ($datePulledVal === '' || $datePulledVal === 'null') ? null : $datePulledVal;
+
+                // Defensive parsing of required date_in
+                $dateInObj = safeParseDate($input['date_in'] ?? null);
+                if (!$dateInObj) {
+                    sendResponse(false, null, 'Invalid or missing date_in (expected Y-m-d)', 400);
+                }
+
+                // Parse optional dates defensively using helper
+                $dopObj = safeParseDate($dopVal);
+                $datePulledObj = safeParseDate($datePulledVal);
+
                 $report = new Service_report(
                     $input['customer_name'],
                     $input['appliance_name'],
-                    new DateTime($input['date_in']),
+                    $dateInObj,
                     $input['status'],
                     $input['dealer'] ?? '',
-                    new DateTime($input['dop']),
-                    !empty($input['date_pulled_out']) ? new DateTime($input['date_pulled_out']) : null,
+                    $dopObj,
+                    $datePulledObj,
                     $input['findings'] ?? '',
                     $input['remarks'] ?? '',
                     $input['location'] ?? ['shop']
                 );
                 error_log("Service report object created");
 
+                $service_types_list = (!empty($input['service_types']) && is_array($input['service_types'])) ? $input['service_types'] : ['repair'];
+                // Defensive numeric defaults
+                $service_charge_val = isset($input['service_charge']) ? floatval($input['service_charge']) : 0.0;
+                $labor_val = isset($input['labor']) ? floatval($input['labor']) : 0.0;
+                $pullout_val = isset($input['pullout_delivery']) ? floatval($input['pullout_delivery']) : 0.0;
+                $parts_total_val = isset($input['parts_total_charge']) ? floatval($input['parts_total_charge']) : 0.0;
+                $total_amount_val = isset($input['total_amount']) ? floatval($input['total_amount']) : 0.0;
+
+                // Parse optional detail dates defensively
+                $dateRepairedObj = null;
+                $dateRepairedObj = safeParseDate($input['date_repaired'] ?? null);
+                $dateDeliveredObj = safeParseDate($input['date_delivered'] ?? null);
+
                 $detail = new Service_detail(
-                    $input['service_types'] ?? ['repair'], //default to repair if nor specified
-                    (float)($input['service_charge'] ?? 0),
-                    !empty($input['date_repaired']) ? new DateTime($input['date_repaired']) : null,
-                    !empty($input['date_delivered']) ? new DateTime($input['date_delivered']) : null,
+                    $service_types_list, // default to ['repair'] if missing or empty
+                    $service_charge_val,
+                    $dateRepairedObj,
+                    $dateDeliveredObj,
                     $input['complaint'] ?? '',
-                    (float)($input['labor'] ?? 0),
-                    (float)($input['pullout_delivery'] ?? 0),
-                    (float)($input['parts_total_charge'] ?? 0),
-                    (float)($input['total_amount'] ?? 0),
+                    $labor_val,
+                    $pullout_val,
+                    $parts_total_val,
+                    $total_amount_val,
                     $input['receptionist'] ?? '',
                     $input['manager'] ?? '',
                     $input['technician'] ?? '',
@@ -162,9 +229,8 @@ try {
                 $result = $serviceHandler->createCompleteServiceReport($report, $detail, $partsUsed);
                 error_log("Create result: " . print_r($result, true));
 
-                if (!$report || !$detail || !$partsUsed) {
-                    $db->rollback(); 
-                    sendResponse(false, null, 'Failed to create service objects', 400);
+                if (!$result || !$result['success']) {
+                    sendResponse(false, null, $result['message'] ?? 'Failed to create service report', 400);
                 }
 
                 // Deduct parts quantities after successful service report creation
@@ -179,14 +245,13 @@ try {
                             }
                             $partsHandler->deductQuantity($partId, $part['quantity']);
                         } catch (Exception $e) {
-                            $db->rollback(); 
                             sendResponse(false, null, "Failed to update quantity for part {$part['part_name']}: " . $e->getMessage(), 500);
                         }
                     }
                 }
 
-                $db->commit(); 
-                sendResponse(true, ['ReportID' => $result['data']], 'Service report created successfully', 201);
+                // Return a consistent report_id key for client consumption
+                sendResponse(true, ['report_id' => $result['data']], 'Service report created successfully', 201);
             } catch (Exception $e) {
                 error_log("Create API Error: " . $e->getMessage());
                 error_log("Stack trace: " . $e->getTraceAsString());
@@ -195,7 +260,6 @@ try {
             break;
 
         case 'update':
-            // $db->autocommit(false); 
             try {
 
                 if ($method !== 'PUT') {
@@ -212,20 +276,36 @@ try {
                 $required = ['customer_name', 'appliance_name', 'date_in', 'status'];
                 foreach ($required as $field) {
                     if (empty($input[$field])) {
-                        // $db->rollback(); 
                         sendResponse(false, null, "Missing required field: $field", 400);
                     }
                 }
+
+                // Normalize date inputs for update
+                $dopVal = isset($input['dop']) ? $input['dop'] : null;
+                $datePulledVal = isset($input['date_pulled_out']) ? $input['date_pulled_out'] : null;
+                $dopVal = ($dopVal === '' || $dopVal === 'null') ? null : $dopVal;
+                $datePulledVal = ($datePulledVal === '' || $datePulledVal === 'null') ? null : $datePulledVal;
+
+                // Defensive parsing for required date_in on update
+                $dateInObj = null;
+                $dateInObj = safeParseDate($input['date_in'] ?? null);
+                if (!$dateInObj) {
+                    // fallback to current date to prevent invalid DateTime on update
+                    $dateInObj = new DateTime();
+                }
+
+                $dopObj = safeParseDate($dopVal);
+                $datePulledObj = safeParseDate($datePulledVal);
 
                 //update service report
                 $report = new Service_report(
                     $input['customer_name'] ?? '',
                     $input['appliance_name'] ?? '',
-                    !empty($input['date_in']) ? new DateTime($input['date_in']) : new DateTime(),
+                    $dateInObj,
                     $input['status'] ?? '',
                     $input['dealer'] ?? '',
-                    !empty($input['dop']) ? new DateTime($input['dop']) : new DateTime(),
-                    !empty($input['date_pulled_out']) ? new DateTime($input['date_pulled_out']) : null,
+                    $dopObj,
+                    $datePulledObj,
                     $input['findings'] ?? '',
                     $input['remarks'] ?? '',
                     $input['location'] ?? ['shop']
@@ -238,16 +318,29 @@ try {
                 }
 
                 //update service details
+                $service_types_list = (!empty($input['service_types']) && is_array($input['service_types'])) ? $input['service_types'] : ['repair'];
+
+                // Defensive numeric/parsing defaults for update
+                $service_charge_val = isset($input['service_charge']) ? floatval($input['service_charge']) : 0.0;
+                $labor_val = isset($input['labor']) ? floatval($input['labor']) : 0.0;
+                $pullout_val = isset($input['pullout_delivery']) ? floatval($input['pullout_delivery']) : 0.0;
+                $parts_total_val = isset($input['parts_total_charge']) ? floatval($input['parts_total_charge']) : 0.0;
+                $total_amount_val = isset($input['total_amount']) ? floatval($input['total_amount']) : 0.0;
+
+                $dateRepairedObj = null;
+                $dateRepairedObj = safeParseDate($input['date_repaired'] ?? null);
+                $dateDeliveredObj = safeParseDate($input['date_delivered'] ?? null);
+
                 $detail = new Service_detail(
-                    $input['service_types'] ?? ['repair'],
-                    (float)($input['service_charge'] ?? 0),
-                    !empty($input['date_repaired']) ? new DateTime($input['date_repaired']) : null,
-                    !empty($input['date_delivered']) ? new DateTime($input['date_delivered']) : null,
+                    $service_types_list,
+                    $service_charge_val,
+                    $dateRepairedObj,
+                    $dateDeliveredObj,
                     $input['complaint'] ?? '',
-                    (float)($input['labor'] ?? 0),
-                    (float)($input['pullout_delivery'] ?? 0),
-                    (float)($input['parts_total_charge'] ?? 0),
-                    (float)($input['total_amount'] ?? 0),
+                    $labor_val,
+                    $pullout_val,
+                    $parts_total_val,
+                    $total_amount_val,
                     $input['receptionist'] ?? '',
                     $input['manager'] ?? '',
                     $input['technician'] ?? '',

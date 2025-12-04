@@ -213,7 +213,10 @@ class TransactionHandler
     public function getWeeklyCustomers()
     {
         try {
-            $query = "SELECT COUNT(DISTINCT sr.customer_name) as total 
+            // Normalize customer names (trim + lower) before distinct count so
+            // small differences (case, trailing spaces) don't prevent counting.
+            // Also keeps the same date_in filter so NULL dop/date_pulled_out won't affect this.
+            $query = "SELECT COUNT(DISTINCT LOWER(TRIM(sr.customer_name))) as total 
                      FROM service_reports sr
                      WHERE sr.date_in >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)";
             $result = $this->conn->query($query);

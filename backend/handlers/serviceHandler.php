@@ -84,18 +84,25 @@ class Service_detail {
         }
 
         $calculatedTotal = $this->labor + $this->pullout_delivery + $this->service_charge + $this->parts_total_charge;
-        $diff = abs(round($this->total_amount, 2) - round($calculatedTotal, 2)); 
+        // If client didn't provide a total (0 or null), compute it server-side.
+        $providedTotal = round(floatval($this->total_amount), 2);
+        $calculatedRounded = round($calculatedTotal, 2);
 
-        if($diff > 0.01) {
-            throw new InvalidArgumentException(
-                "Total amount mismatch. Expected: ".round($calculatedTotal, 2).
-                " | Actual: ".round($this->total_amount, 2).
-                " | Components: labor (".$this->labor."), ".
-                "pullout deliery (".$this->pullout_delivery."), ".
-                "service_charge (".$this->service_charge."), ".
-                "parts (".$this->parts_total_charge.")" 
-            );
-            return $diff;
+        if ($providedTotal <= 0) {
+            // Populate total_amount so downstream code and DB store a consistent value
+            $this->total_amount = $calculatedRounded;
+        } else {
+            $diff = abs($providedTotal - $calculatedRounded);
+            if ($diff > 0.01) {
+                throw new InvalidArgumentException(
+                    "Total amount mismatch. Expected: " . $calculatedRounded .
+                    " | Actual: " . $providedTotal .
+                    " | Components: labor (" . $this->labor . "), " .
+                    "pullout delivery (" . $this->pullout_delivery . "), " .
+                    "service_charge (" . $this->service_charge . "), " .
+                    "parts (" . $this->parts_total_charge . ")"
+                );
+            }
         }
 
         $this->complaint = htmlspecialchars($this->complaint, ENT_QUOTES, 'UTF-8');
@@ -290,7 +297,7 @@ class ServiceHandler {
             $stmt = $this->conn->prepare("
                 INSERT INTO {$this->servicereport_table} 
                 (customer_name, appliance_name, date_in, status, dealer, dop, date_pulled_out, findings, remarks, location)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?)
             ");
 
             $customer_name = $report->customer_name;
@@ -438,6 +445,50 @@ class ServiceHandler {
             $data['location'] = !empty($data['location']) ? json_decode($data['location'], true) : [];
             $data['service_types'] = !empty($data['service_types']) ? json_decode($data['service_types'], true) : [];
 
+            // Enrich response: try to fetch customer contact if available in customers table
+            $data['customer_contact'] = null;
+            if (!empty($data['customer_name'])) {
+                try {
+                    $customerStmt = $this->conn->prepare("SELECT phone_no FROM customers WHERE CONCAT(TRIM(first_name), ' ', TRIM(last_name)) = ? LIMIT 1");
+                    $customerStmt->bind_param('s', $data['customer_name']);
+                    $customerStmt->execute();
+                    $custRow = $customerStmt->get_result()->fetch_assoc();
+                    if ($custRow && !empty($custRow['phone_no'])) {
+                        $data['customer_contact'] = $custRow['phone_no'];
+                    } else {
+                        // Fallback: try a LIKE match to handle minor name variations
+                        $likeStmt = $this->conn->prepare("SELECT phone_no FROM customers WHERE CONCAT(TRIM(first_name), ' ', TRIM(last_name)) LIKE ? LIMIT 1");
+                        $likeParam = '%' . $data['customer_name'] . '%';
+                        $likeStmt->bind_param('s', $likeParam);
+                        $likeStmt->execute();
+                        $likeRow = $likeStmt->get_result()->fetch_assoc();
+                        if ($likeRow && !empty($likeRow['phone_no'])) {
+                            $data['customer_contact'] = $likeRow['phone_no'];
+                        }
+                    }
+                } catch (Exception $e) {
+                    error_log('Failed to lookup customer contact: ' . $e->getMessage());
+                }
+            }
+
+            // Provide a convenient staff_name field for UI (prefer technician, then manager, receptionist, released_by)
+            $data['staff_name'] = null;
+            $possibleStaff = [];
+            if (!empty($data['technician'])) $possibleStaff[] = $data['technician'];
+            if (!empty($data['manager'])) $possibleStaff[] = $data['manager'];
+            if (!empty($data['receptionist'])) $possibleStaff[] = $data['receptionist'];
+            if (!empty($data['released_by'])) $possibleStaff[] = $data['released_by'];
+            if (!empty($possibleStaff)) {
+                // pick first non-empty
+                foreach ($possibleStaff as $s) {
+                    if (!empty($s)) { $data['staff_name'] = $s; break; }
+                }
+            }
+
+            // Normalize keys: ensure appliance_model and appliance_serial exist (fallback to null)
+            $data['appliance_model'] = $data['appliance_model'] ?? null;
+            $data['appliance_serial'] = $data['appliance_serial'] ?? null;
+
             return $this->formatResponse(true, $data);
         } catch(Exception $e) {
             return $this->formatResponse(false, null, 'Failed to retrieve report: ' . $e->getMessage());
@@ -542,17 +593,16 @@ class ServiceHandler {
             $stmt = $this->conn->prepare("
                 UPDATE {$this->servicereport_table}
                 SET customer_name = ?, appliance_name = ?, date_in = ?, status = ?,
-                dealer = ?, dop = ?, date_pulled_out = ?, findings = ?, remarks = ?, location = ?
-                WHERE report_id = ?
+                dealer = ?, dop = NULLIF(?, ''), date_pulled_out = NULLIF(?, ''), findings = ?, remarks = ?, location = ?
+                 WHERE report_id = ?
             ");
-
             $customer_name = $report->customer_name ? $report->customer_name : null;
             $appliance_name = $report->appliance_name ? $report->appliance_name : null; 
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status ? $report->status : null;
             $dealer = $report->dealer ? $report->dealer : null;
-            $dop = $report->dop ? $report->dop->format('Y-m-d') : null;
-            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : null;
+                        $dop = $report->dop ? $report->dop->format('Y-m-d') : null;
+                        $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : null;
             $findings = $report->findings ? $report->findings : null;
             $remarks = $report->remarks ? $report->remarks : null;
             $locationJson = json_encode($report->location);

@@ -211,7 +211,7 @@ CREATE TABLE `service_reports` (
   `date_in` date NOT NULL,
   `status` varchar(50) NOT NULL DEFAULT 'Pending',
   `dealer` varchar(50) DEFAULT NULL,
-  `dop` date NOT NULL,
+  `dop` date DEFAULT NULL,
   `date_pulled_out` date DEFAULT NULL,
   `findings` text,
   `remarks` text,
