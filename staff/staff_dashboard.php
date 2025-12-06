@@ -536,8 +536,18 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
             </div>
         </div>
             <div class="content-area">
+                <div class="d-flex justify-content-end mb-3 dashboard-controls" style="gap:8px; align-items:center;">
+                    <button id="dashboard-refresh-btn" class="btn btn-outline-primary btn-sm">
+                        <i class="material-icons" style="font-size:18px; vertical-align:middle;">refresh</i>
+                        <span style="vertical-align:middle; margin-left:6px;">Refresh</span>
+                    </button>
+                    <div id="dashboard-loading" style="display:none; align-items:center;">
+                        <div class="spinner-border text-primary" role="status" style="width:1.4rem; height:1.4rem;"></div>
+                    </div>
+                    <div id="dashboard-last-updated" style="font-size:12px; color:#6c757d; margin-left:8px;">Last updated: -</div>
+                </div>
                <div class="stats-container">
-                    <div class="card-box">
+                    <div class="card-box" data-card="assigned">
                         <div class="card-content-center">
                             <div class="card-with-icon">
                                 <span class="material-icons card-icon">assignment</span>
@@ -548,7 +558,7 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                         </div>
                     </div>
                     
-                    <div class="card-box">
+                    <div class="card-box" data-card="pending">
                         <div class="card-content-center">
                             <div class="card-with-icon">
                                 <span class="material-icons card-icon">pending_actions</span>
@@ -559,14 +569,14 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                         </div>
                     </div>
                     
-                    <div class="card-box">
+                    <div class="card-box" data-card="completed">
                         <div class="card-content-center">
                             <div class="card-with-icon">
                                 <span class="material-icons card-icon">check_circle</span>
                             </div>
                             <h5>Completed Services</h5>
                             <h2><?php echo $completedServices['total'] ?? 0; ?></h2>
-                            <div class="growth"><?php echo ($completedServices['daily_change'] ?? 0) >= 0 ? '+' : ''; ?><?php echo $completedServices['daily_change'] ?? 0; ?> today</div>
+                            <div class="growth"><?php echo ($completedServices['daily_change'] ?? 0) >= 0 ? '+' : ''; ?><?php echo $completedServices['daily_change'] ?? 0; ?> this week</div>
                         </div>
                     </div>
                 </div>
@@ -611,6 +621,54 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                 $('#sidebar,.body-overlay').removeClass('show-nav');
             });
             initializeCharts();
+
+            // wire manual refresh button
+            $('#dashboard-refresh-btn').on('click', function() {
+                fetchDashboardData();
+            });
+
+            // BroadcastChannel for cross-tab communication (better than localStorage)
+            let dashboardChannel = null;
+            if ('BroadcastChannel' in window) {
+                dashboardChannel = new BroadcastChannel('dashboard-refresh');
+                dashboardChannel.onmessage = function(event) {
+                    console.log('Dashboard refresh signal received via BroadcastChannel:', event.data);
+                    fetchDashboardData();
+                };
+            }
+
+            // Fallback: Listen for localStorage signal (for older browsers)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'dashboardRefreshNeeded') {
+                    console.log('Dashboard refresh triggered from localStorage event');
+                    fetchDashboardData();
+                }
+            });
+
+            // Refresh when tab becomes visible (user switches back to dashboard)
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    console.log('Tab became visible - refreshing dashboard');
+                    fetchDashboardData();
+                }
+            });
+
+            // Refresh when window gains focus
+            window.addEventListener('focus', function() {
+                console.log('Window gained focus - refreshing dashboard');
+                fetchDashboardData();
+            });
+
+            // Auto-refresh dashboard every 5 seconds (reduced from 30 for real-time feel)
+            setInterval(function() {
+                // Only auto-refresh if tab is visible to save resources
+                if (!document.hidden) {
+                    fetchDashboardData();
+                }
+            }, 5000);
+
+            // Initial load immediately
+            fetchDashboardData();
         });
 
         function initializeCharts() {
@@ -622,7 +680,8 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
             // Daily Service Trends Chart
             const ctxServiceReport = document.getElementById('serviceReportChart');
             if (ctxServiceReport) {
-                new Chart(ctxServiceReport, {
+                // create instance and store globally for later updates
+                window.serviceReportChartInstance = new Chart(ctxServiceReport, {
                     type: 'line',
                     data: {
                         labels: <?php echo json_encode($dailyTrends['labels'] ?? []); ?>,
@@ -639,43 +698,13 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: {
-                                display: false
-                            }
+                            legend: { display: false }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    display: true,
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    maxTicksLimit: 5,
-                                    font: {
-                                        size: 10
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    font: {
-                                        size: 10
-                                    }
-                                }
-                            }
+                            y: { beginAtZero: true, grid: { display: true, drawBorder: false }, ticks: { maxTicksLimit: 5, font: { size: 10 } } },
+                            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                         },
-                        layout: {
-                            padding: {
-                                top: 10,
-                                right: 10,
-                                bottom: 10,
-                                left: 10
-                            }
-                        }
+                        layout: { padding: { top: 10, right: 10, bottom: 10, left: 10 } }
                     }
                 });
             }
@@ -685,19 +714,19 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
             if (ctxWorkOrder) {
                 const workOrderData = <?php echo json_encode(array_values($workStatusData['data'] ?? [])); ?>;
                 const workOrderLabels = <?php echo json_encode(array_keys($workStatusData['data'] ?? [])); ?>;
-                const total = workOrderData.reduce((sum, value) => sum + value, 0);
-                
-                new Chart(ctxWorkOrder, {
+
+                // create and store instance for updates
+                window.workOrderChartInstance = new Chart(ctxWorkOrder, {
                     type: 'doughnut',
                     data: {
                         labels: workOrderLabels,
                         datasets: [{
                             data: workOrderData,
                             backgroundColor: [
-                                'rgba(75, 192, 192, 0.8)', // Completed (green)
-                                'rgba(255, 206, 86, 0.8)', // Pending (yellow)
-                                'rgba(255, 99, 132, 0.8)', // Cancelled/Other (red)
-                                'rgba(108, 117, 125, 0.8)' // Other statuses (gray)
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(255, 206, 86, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(108, 117, 125, 0.8)'
                             ],
                             borderWidth: 2,
                             borderColor: '#ffffff'
@@ -707,41 +736,29 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '60%',
-                        plugins: { 
-                            legend: { 
-                                position: 'bottom',
-                                labels: {
-                                    padding: 20,
-                                    usePointStyle: true,
-                                    pointStyle: 'circle'
-                                }
-                            },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } },
                             datalabels: {
-                                formatter: (value, ctx) => {
+                                formatter: function(value, ctx) {
+                                    const total = ctx.chart.data.datasets[0].data.reduce((s, v) => s + v, 0);
                                     const percentage = total > 0 ? (value * 100 / total).toFixed(1) + '%' : '0.0%';
                                     return value + '\n(' + percentage + ')';
                                 },
-                                color: '#fff',
-                                font: {
-                                    weight: 'bold',
-                                    size: 11
-                                }
+                                color: '#fff', font: { weight: 'bold', size: 11 }
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
                                         const label = context.label || '';
                                         const value = context.parsed;
+                                        const total = context.chart.data.datasets[0].data.reduce((s, v) => s + v, 0);
                                         const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
                                         return `${label}: ${value} (${percentage}%)`;
                                     }
                                 }
                             }
                         },
-                        animation: {
-                            animateScale: true,
-                            animateRotate: true
-                        }
+                        animation: { animateScale: true, animateRotate: true }
                     },
                     plugins: [{
                         id: 'centerText',
@@ -749,7 +766,8 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                             const ctx = chart.ctx;
                             const centerX = chart.width / 2;
                             const centerY = chart.height / 2;
-                            
+                            const total = chart.data.datasets[0].data.reduce((s, v) => s + v, 0);
+
                             ctx.save();
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
@@ -763,6 +781,117 @@ $workStatusData = $serviceHandler->getWorkStatusForStaff($currentStaff);
                         }
                     }]
                 });
+            }
+        }
+
+        // Fetch latest dashboard data and update UI in-place
+        function fetchDashboardData() {
+            console.log('Fetching staff dashboard data...');
+            // show loading indicator and disable refresh button
+            $('#dashboard-loading').show();
+            $('#dashboard-refresh-btn').prop('disabled', true);
+
+            $.ajax({
+                url: '../backend/api/dashboard_api.php?action=getAll',
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    console.log('Dashboard API Response:', res);
+                    if (res.success && res.data) {
+                        updateDashboardUI(res.data);
+                        // update last-updated timestamp on successful refresh
+                        try {
+                            const now = new Date();
+                            const fmt = now.toLocaleString();
+                            $('#dashboard-last-updated').text('Last updated: ' + fmt);
+                        } catch (e) { /* ignore */ }
+                    } else {
+                        console.warn('Empty dashboard data or failed response', res);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Failed to fetch dashboard data:', xhr);
+                    console.error('Response Text:', xhr.responseText);
+                    console.error('Status:', xhr.status, xhr.statusText);
+                },
+                complete: function() {
+                    // hide loading indicator and re-enable button
+                    $('#dashboard-loading').hide();
+                    $('#dashboard-refresh-btn').prop('disabled', false);
+                }
+            });
+        }
+
+        // Update cards and charts with new dashboard payload
+        function updateDashboardUI(data) {
+            console.log('Updating dashboard UI with data:', data);
+            try {
+                // Update cards
+                const assigned = data.assignedReports || {};
+                const pending = data.pendingOrders || {};
+                const completed = data.completedServices || {};
+
+                console.log('Assigned:', assigned, 'Pending:', pending, 'Completed:', completed);
+
+                const assignedCard = document.querySelector('[data-card="assigned"]');
+                if (assignedCard) {
+                    const h2 = assignedCard.querySelector('h2');
+                    const growth = assignedCard.querySelector('.growth');
+                    console.log('Updating assigned card - h2:', h2, 'total:', assigned.total);
+                    if (h2) h2.textContent = assigned.total || 0;
+                    if (growth) growth.textContent = ((assigned.weekly_change >= 0) ? '+' : '') + (assigned.weekly_change || 0) + ' this week';
+                }
+
+                const pendingCard = document.querySelector('[data-card="pending"]');
+                if (pendingCard) {
+                    const h2 = pendingCard.querySelector('h2');
+                    const growth = pendingCard.querySelector('.growth');
+                    const unassigned = data.pendingUnassigned || 0;
+                    let pendingGrowthText = ((pending.daily_change >= 0) ? '+' : '') + (pending.daily_change || 0) + ' today';
+                    if (unassigned > 0) {
+                        pendingGrowthText += ' • +' + unassigned + ' unassigned';
+                    }
+                    console.log('Updating pending card - h2:', h2, 'total:', pending.total);
+                    if (h2) h2.textContent = pending.total || 0;
+                    if (growth) growth.textContent = pendingGrowthText;
+                }
+
+                const completedCard = document.querySelector('[data-card="completed"]');
+                if (completedCard) {
+                    const h2 = completedCard.querySelector('h2');
+                    const growth = completedCard.querySelector('.growth');
+                    console.log('Updating completed card - h2:', h2, 'total:', completed.total);
+                    if (h2) h2.textContent = completed.total || 0;
+                    if (growth) growth.textContent = ((completed.daily_change >= 0) ? '+' : '') + (completed.daily_change || 0) + ' this week';
+                }
+
+                // Update Daily Trends chart
+                const daily = data.dailyTrends || { labels: [], data: [] };
+                if (window.serviceReportChartInstance) {
+                    const chart = window.serviceReportChartInstance;
+                    chart.data.labels = daily.labels || [];
+                    if (chart.data.datasets && chart.data.datasets[0]) {
+                        chart.data.datasets[0].data = daily.data || [];
+                    }
+                    chart.update();
+                }
+
+                // Update Work Order (breakdown) chart
+                const work = data.workStatus || { data: {} };
+                const labels = Object.keys(work.data || {});
+                const values = labels.map(l => work.data[l] || 0);
+                if (window.workOrderChartInstance) {
+                    const wchart = window.workOrderChartInstance;
+                    wchart.data.labels = labels;
+                    if (wchart.data.datasets && wchart.data.datasets[0]) {
+                        wchart.data.datasets[0].data = values;
+                    }
+                    wchart.update();
+                }
+                
+                console.log('Dashboard UI updated successfully');
+            } catch (err) {
+                console.error('Error updating dashboard UI:', err);
             }
         }
     </script>

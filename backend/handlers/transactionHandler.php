@@ -340,21 +340,17 @@ class TransactionHandler
         try {
             $cleanStaffName = trim(str_replace([' (Technician)', ' (Manager)'], '', $staffName));
             
+            // Show all service reports regardless of technician assignment
             $query = "SELECT 
                         DATE(sr.date_in) as service_date,
                         COUNT(*) as service_count
                      FROM service_reports sr
-                     JOIN service_details sd ON sr.report_id = sd.report_id
                      WHERE sr.date_in >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-                     AND sd.technician LIKE ?
-                     AND sd.technician IS NOT NULL 
-                     AND sd.technician != ''
                      GROUP BY DATE(sr.date_in)
                      ORDER BY service_date ASC";
 
             $stmt = $this->conn->prepare($query);
-            $searchPattern = '%' . $cleanStaffName . '%';
-            $stmt->bind_param('is', $days, $searchPattern);
+            $stmt->bind_param('i', $days);
             $stmt->execute();
             $result = $stmt->get_result();
 

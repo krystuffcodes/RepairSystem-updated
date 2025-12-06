@@ -134,21 +134,35 @@ try {
                 // Create new parts handler for quantity management
                 $partsHandler = new PartsHandler($db);
 
-                // Verify parts quantities before proceeding
-                if (!empty($input['parts'])) {
+                // Verify parts quantities before proceeding (only if parts are provided)
+                if (!empty($input['parts']) && is_array($input['parts'])) {
                     foreach ($input['parts'] as $part) {
+                        // Skip empty parts
+                        if (empty($part['part_name']) || empty($part['quantity']) || $part['quantity'] <= 0) {
+                            continue;
+                        }
+                        
                         $partId = isset($part['part_id']) ? $part['part_id'] : null;
                         if (!$partId) {
+                            error_log("Part ID missing for part: " . print_r($part, true));
                             sendResponse(false, null, "Part ID not found for {$part['part_name']}", 400);
                         }
                         
+                        error_log("Checking stock for part ID: {$partId}, requested quantity: {$part['quantity']}");
                         $partDetails = $partsHandler->getPartsById($partId);
+                        error_log("Part details: " . print_r($partDetails, true));
+                        
                         if (!$partDetails) {
                             sendResponse(false, null, "Part not found with ID: {$partId}", 400);
                         }
                         
-                        if ($partDetails['quantity_stock'] < $part['quantity']) {
-                            sendResponse(false, null, "Insufficient quantity for part {$part['part_name']}. Available: {$partDetails['quantity_stock']}", 400);
+                        $availableStock = intval($partDetails['quantity_stock'] ?? 0);
+                        $requestedQty = intval($part['quantity']);
+                        
+                        error_log("Stock check - Available: {$availableStock}, Requested: {$requestedQty}");
+                        
+                        if ($availableStock < $requestedQty) {
+                            sendResponse(false, null, "Insufficient stock for part '{$part['part_name']}'. Requested: {$requestedQty}, Available: {$availableStock}", 400);
                         }
                     }
                 }
@@ -180,7 +194,9 @@ try {
                     $datePulledObj,
                     $input['findings'] ?? '',
                     $input['remarks'] ?? '',
-                    $input['location'] ?? ['shop']
+                    $input['location'] ?? ['shop'],
+                    isset($input['customer_id']) ? intval($input['customer_id']) : null,
+                    isset($input['appliance_id']) ? intval($input['appliance_id']) : null
                 );
                 error_log("Service report object created");
 
@@ -234,8 +250,13 @@ try {
                 }
 
                 // Deduct parts quantities after successful service report creation
-                if (!empty($input['parts'])) {
+                if (!empty($input['parts']) && is_array($input['parts'])) {
                     foreach ($input['parts'] as $part) {
+                        // Skip empty parts
+                        if (empty($part['part_name']) || empty($part['quantity']) || $part['quantity'] <= 0) {
+                            continue;
+                        }
+                        
                         try {
                             // Get the part ID from the selected option value
                             $partId = isset($part['part_id']) ? $part['part_id'] : null;
@@ -245,6 +266,7 @@ try {
                             }
                             $partsHandler->deductQuantity($partId, $part['quantity']);
                         } catch (Exception $e) {
+                            error_log("Failed to deduct part quantity: " . $e->getMessage());
                             sendResponse(false, null, "Failed to update quantity for part {$part['part_name']}: " . $e->getMessage(), 500);
                         }
                     }
@@ -266,7 +288,10 @@ try {
                     sendResponse(false, null, 'Method is incorrect', 405);
                 }
 
+                error_log("====== UPDATE API DEBUG START ======");
                 error_log("Received input data: " . print_r($input, true));
+                error_log("Status value received: '" . ($input['status'] ?? 'MISSING') . "' (type: " . gettype($input['status'] ?? null) . ")");
+                error_log("====== UPDATE API DEBUG END ======");
 
                 $id = $_GET['id'] ?? null;
                 if (!$id) {
@@ -377,6 +402,38 @@ try {
                 error_log("Update API Error: " . $e->getMessage());
                 error_log("Stack trace: " . $e->getTraceAsString());
                 sendResponse(false, null, 'Update failed: ' . $e->getMessage(), 500);
+            }
+
+            break;
+
+        case 'assign':
+            // Allows updating/claiming assignment fields (technician, manager, receptionist, released_by)
+            if ($method !== 'POST') {
+                sendResponse(false, null, 'Method is incorrect', 405);
+            }
+
+            try {
+                $reportId = $input['report_id'] ?? $_GET['id'] ?? null;
+                if (!$reportId || !is_numeric($reportId)) {
+                    sendResponse(false, null, 'Valid Report ID required', 400);
+                }
+
+                $assignments = [];
+                foreach (['receptionist', 'manager', 'technician', 'released_by'] as $field) {
+                    if (array_key_exists($field, $input)) {
+                        $assignments[$field] = $input[$field];
+                    }
+                }
+
+                if (empty($assignments)) {
+                    sendResponse(false, null, 'No assignment fields provided', 400);
+                }
+
+                $result = $serviceHandler->updateAssignment((int)$reportId, $assignments);
+                sendResponse($result['success'], $result['data'] ?? null, $result['message'] ?? '');
+            } catch (Exception $e) {
+                error_log('Assign API Error: ' . $e->getMessage());
+                sendResponse(false, null, 'Assign failed: ' . $e->getMessage(), 500);
             }
 
             break;

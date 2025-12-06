@@ -2,18 +2,46 @@
 require_once __DIR__ . '/auditLogger.php';
 
 class Service_report {
+    public $customer_name = '';
+    public $appliance_name = '';
+    public $date_in = null; // DateTime or null
+    public $status = '';
+    public $dealer = '';
+    public $dop = null; // DateTime or null
+    public $date_pulled_out = null; // DateTime or null
+    public $findings = '';
+    public $remarks = '';
+    public $location = ['shop', 'field', 'out_wty'];
+    public $customer_id = null;
+    public $appliance_id = null;
+
     public function __construct(
-        public string $customer_name = '',
-        public string $appliance_name = '',
-        public ?DateTime $date_in = null,
-        public string $status = '',
-        public string $dealer = '',
-        public ?DateTime $dop = null,
-        public ?DateTime $date_pulled_out = null,
-        public string $findings = '',
-        public string $remarks = '',
-        public array $location = ['shop', 'field', 'out_wty']
+        $customer_name = '',
+        $appliance_name = '',
+        $date_in = null,
+        $status = '',
+        $dealer = '',
+        $dop = null,
+        $date_pulled_out = null,
+        $findings = '',
+        $remarks = '',
+        $location = ['shop', 'field', 'out_wty'],
+        $customer_id = null,
+        $appliance_id = null
     ) {
+        $this->customer_name = $customer_name;
+        $this->appliance_name = $appliance_name;
+        $this->date_in = $date_in;
+        $this->status = $status;
+        $this->dealer = $dealer;
+        $this->dop = $dop;
+        $this->date_pulled_out = $date_pulled_out;
+        $this->findings = $findings;
+        $this->remarks = $remarks;
+        $this->location = $location;
+        $this->customer_id = $customer_id;
+        $this->appliance_id = $appliance_id;
+
         $this->validate();
     }
 
@@ -53,25 +81,54 @@ class Service_report {
 }
 
 class Service_detail {
+    public $service_types = ['installation', 'repair', 'cleaning', 'checkup'];
+    public $service_charge = 0.00;
+    public $date_repaired = null; // DateTime or null
+    public $date_delivered = null; // DateTime or null
+    public $complaint = '';
+    public $labor = 0.00;
+    public $pullout_delivery = 0.00;
+    public $parts_total_charge = 0.00;
+    public $total_amount = 0.00;
+    public $receptionist = '';
+    public $manager = '';
+    public $technician = '';
+    public $released_by = '';
+    public $date_in = null;
+
     public function __construct(
-        public array $service_types = ['installation', 'repair', 'cleaning', 'checkup'],
-        public float $service_charge = 0.00,
-        public ?DateTime $date_repaired = null,
-        public ?DateTime $date_delivered = null,
-        public string $complaint = '',
-        public float $labor = 0.00,
-        public float $pullout_delivery = 0.00,
-        public float $parts_total_charge = 0.00,
-        public float $total_amount = 0.00,
-        public string $receptionist = '',
-        public string $manager = '',
-        public string $technician = '',
-        public string $released_by = '',
-        public ?DateTime $date_in = null
+        $service_types = ['installation', 'repair', 'cleaning', 'checkup'],
+        $service_charge = 0.00,
+        $date_repaired = null,
+        $date_delivered = null,
+        $complaint = '',
+        $labor = 0.00,
+        $pullout_delivery = 0.00,
+        $parts_total_charge = 0.00,
+        $total_amount = 0.00,
+        $receptionist = '',
+        $manager = '',
+        $technician = '',
+        $released_by = '',
+        $date_in = null
     ) {
+        $this->service_types = $service_types;
+        $this->service_charge = $service_charge;
+        $this->date_repaired = $date_repaired;
+        $this->date_delivered = $date_delivered;
+        $this->complaint = $complaint;
+        $this->labor = $labor;
+        $this->pullout_delivery = $pullout_delivery;
+        $this->parts_total_charge = $parts_total_charge;
+        $this->total_amount = $total_amount;
+        $this->receptionist = $receptionist;
+        $this->manager = $manager;
+        $this->technician = $technician;
+        $this->released_by = $released_by;
+        $this->date_in = $date_in;
+
         $this->validateBasic();
         $this->validate();
-        
     }
 
     private function validateBasic() {
@@ -138,14 +195,15 @@ class Service_detail {
 }
 
 class Parts_used {
-    public function __construct(
-        public array $parts = []
-    ) {
+    public $parts = [];
+
+    public function __construct($parts = []) {
+        $this->parts = $parts;
         $this->normalizePartsArray();
         $this->validate();
     }
 
-    public function addPart(string $part_name, int $quantity, float $unit_price) {
+    public function addPart($part_name, $quantity, $unit_price) {
         $this->parts[] = [
             'part_name' => htmlspecialchars($part_name, ENT_QUOTES, 'UTF-8'),
             'quantity' => $quantity,
@@ -296,12 +354,14 @@ class ServiceHandler {
 
             $stmt = $this->conn->prepare("
                 INSERT INTO {$this->servicereport_table} 
-                (customer_name, appliance_name, date_in, status, dealer, dop, date_pulled_out, findings, remarks, location)
-                    VALUES (?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?)
+                (customer_name, customer_id, appliance_name, appliance_id, date_in, status, dealer, dop, date_pulled_out, findings, remarks, location)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?)
             ");
 
             $customer_name = $report->customer_name;
+            $customer_id = $report->customer_id;
             $appliance_name = $report->appliance_name;
+            $appliance_id = $report->appliance_id;
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status;
             $dealer = $report->dealer ? $report->dealer : null;
@@ -312,9 +372,11 @@ class ServiceHandler {
             $locationJson = json_encode($report->location);
 
             $stmt->bind_param(
-                "ssssssssss",
+                "sisissssssss",
                 $customer_name,
+                $customer_id,
                 $appliance_name,
+                $appliance_id,
                 $dateIn,
                 $status,
                 $dealer,
@@ -444,6 +506,30 @@ class ServiceHandler {
             //decode JSON fields
             $data['location'] = !empty($data['location']) ? json_decode($data['location'], true) : [];
             $data['service_types'] = !empty($data['service_types']) ? json_decode($data['service_types'], true) : [];
+
+            // Fetch staff usernames/names for receptionist, manager, technician, released_by
+            // These fields might contain staff_id or username, so we need to fetch the full details
+            $staffFields = ['receptionist', 'manager', 'technician', 'released_by'];
+            foreach ($staffFields as $field) {
+                if (!empty($data[$field])) {
+                    $staffValue = $data[$field];
+                    // Try to fetch staff by ID first (if it's numeric)
+                    if (is_numeric($staffValue)) {
+                        $staffStmt = $this->conn->prepare("SELECT username, full_name, role FROM staffs WHERE staff_id = ?");
+                        $staffStmt->bind_param('i', $staffValue);
+                    } else {
+                        // If not numeric, it's already a username/name
+                        continue;
+                    }
+                    
+                    $staffStmt->execute();
+                    $staffRow = $staffStmt->get_result()->fetch_assoc();
+                    if ($staffRow) {
+                        // Store as "username (Role)" format to match dropdown display
+                        $data[$field] = $staffRow['username'] . ' (' . $staffRow['role'] . ')';
+                    }
+                }
+            }
 
             // Enrich response: try to fetch customer contact if available in customers table
             $data['customer_contact'] = null;
@@ -592,12 +678,14 @@ class ServiceHandler {
 
             $stmt = $this->conn->prepare("
                 UPDATE {$this->servicereport_table}
-                SET customer_name = ?, appliance_name = ?, date_in = ?, status = ?,
+                SET customer_name = ?, customer_id = ?, appliance_name = ?, appliance_id = ?, date_in = ?, status = ?,
                 dealer = ?, dop = NULLIF(?, ''), date_pulled_out = NULLIF(?, ''), findings = ?, remarks = ?, location = ?
                  WHERE report_id = ?
             ");
             $customer_name = $report->customer_name ? $report->customer_name : null;
-            $appliance_name = $report->appliance_name ? $report->appliance_name : null; 
+            $customer_id = $report->customer_id;
+            $appliance_name = $report->appliance_name ? $report->appliance_name : null;
+            $appliance_id = $report->appliance_id;
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status ? $report->status : null;
             $dealer = $report->dealer ? $report->dealer : null;
@@ -608,9 +696,11 @@ class ServiceHandler {
             $locationJson = json_encode($report->location);
 
             $stmt->bind_param(
-                "ssssssssssi",
+                "sisisissssssi",
                 $customer_name,
+                $customer_id,
                 $appliance_name,
+                $appliance_id,
                 $dateIn,
                 $status,
                 $dealer,
@@ -759,6 +849,89 @@ class ServiceHandler {
         } catch(Exception $e) {
             $this->conn->rollback();
             return $this->formatResponse(false, null, 'Failed to update details: ' . $e->getMessage());
+        }
+    }
+
+
+    /**
+     * Update assignment fields (receptionist, manager, technician, released_by)
+     * If a service_details row exists for the report, update only the provided fields.
+     * If no row exists, insert a minimal service_details row with the provided staff fields.
+     */
+    public function updateAssignment($reportId, array $assignments) {
+        $this->conn->begin_transaction();
+        try {
+            // Check if details row exists
+            $stmt = $this->conn->prepare("SELECT report_id FROM {$this->servicedetail_table} WHERE report_id = ? LIMIT 1");
+            $stmt->bind_param("i", $reportId);
+            $stmt->execute();
+            $res = $stmt->get_result()->fetch_assoc();
+            $exists = !empty($res);
+
+            $receptionist = isset($assignments['receptionist']) ? $assignments['receptionist'] : null;
+            $manager = isset($assignments['manager']) ? $assignments['manager'] : null;
+            $technician = isset($assignments['technician']) ? $assignments['technician'] : null;
+            $released_by = isset($assignments['released_by']) ? $assignments['released_by'] : null;
+
+            if ($exists) {
+                $stmt = $this->conn->prepare(
+                    "UPDATE {$this->servicedetail_table} SET 
+                        receptionist = COALESCE(NULLIF(?,''), receptionist),
+                        manager = COALESCE(NULLIF(?,''), manager),
+                        technician = COALESCE(NULLIF(?,''), technician),
+                        released_by = COALESCE(NULLIF(?,''), released_by)
+                     WHERE report_id = ?"
+                );
+                $stmt->bind_param("ssssi", $receptionist, $manager, $technician, $released_by, $reportId);
+                if (!$stmt->execute()) {
+                    throw new RuntimeException('Failed to update assignment: ' . $stmt->error);
+                }
+            } else {
+                // Insert a minimal details row. Use empty JSON array for service_types and NULLs for numeric/date fields
+                $serviceTypesJson = json_encode([]);
+                $service_charge = null;
+                $dateRepaired = null;
+                $dateDelivered = null;
+                $complaint = null;
+                $labor = null;
+                $pullout_delivery = null;
+                $parts_total_charge = null;
+                $total_amount = null;
+
+                $stmt = $this->conn->prepare(
+                    "INSERT INTO {$this->servicedetail_table} 
+                    (report_id, service_types, service_charge, date_repaired, date_delivered, complaint, labor, pullout_delivery, parts_total_charge, total_amount, receptionist, manager, technician, released_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                );
+
+                $stmt->bind_param(
+                    "isdsssddddssss",
+                    $reportId,
+                    $serviceTypesJson,
+                    $service_charge,
+                    $dateRepaired,
+                    $dateDelivered,
+                    $complaint,
+                    $labor,
+                    $pullout_delivery,
+                    $parts_total_charge,
+                    $total_amount,
+                    $receptionist,
+                    $manager,
+                    $technician,
+                    $released_by
+                );
+
+                if (!$stmt->execute()) {
+                    throw new RuntimeException('Failed to insert minimal service detail: ' . $stmt->error);
+                }
+            }
+
+            $this->conn->commit();
+            return $this->formatResponse(true, null, 'Assignment updated successfully');
+        } catch (Exception $e) {
+            $this->conn->rollback();
+            return $this->formatResponse(false, null, 'Failed to update assignment: ' . $e->getMessage());
         }
     }
 
@@ -953,50 +1126,34 @@ class ServiceHandler {
     // Staff Dashboard Methods
     public function getAssignedReportsForStaff($staffName) {
         try {
-            // Clean staff name to match database format
-            $cleanStaffName = trim(str_replace([' (Technician)', ' (Manager)'], '', $staffName));
-            
-            // Get total assigned reports
+            // Get total service reports (show all)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as total 
-                FROM {$this->servicedetail_table} sd
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
+                FROM {$this->servicereport_table} sr
             ");
-            $searchPattern = '%' . $cleanStaffName . '%';
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
             $total = intval($row['total'] ?? 0);
 
-            // Get weekly change
+            // Get weekly change (show all reports from this week)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as weekly_count 
-                FROM {$this->servicedetail_table} sd
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sd.date_repaired >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)
+                FROM {$this->servicereport_table} sr
+                WHERE sr.date_in >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)
             ");
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
             $weeklyCount = intval($row['weekly_count'] ?? 0);
 
-            // Get previous week count for comparison
+            // Get previous week count for comparison (show all from previous week)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as prev_weekly_count 
-                FROM {$this->servicedetail_table} sd
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sd.date_repaired >= DATE_SUB(CURDATE(), INTERVAL 2 WEEK)
-                AND sd.date_repaired < DATE_SUB(CURDATE(), INTERVAL 1 WEEK)
+                FROM {$this->servicereport_table} sr
+                WHERE sr.date_in >= DATE_SUB(CURDATE(), INTERVAL 2 WEEK)
+                AND sr.date_in < DATE_SUB(CURDATE(), INTERVAL 1 WEEK)
             ");
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
@@ -1018,53 +1175,37 @@ class ServiceHandler {
         try {
             $cleanStaffName = trim(str_replace([' (Technician)', ' (Manager)'], '', $staffName));
             
-            // Get total pending orders
+            // Get total pending orders (show all pending)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as total 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sr.status IN ('Pending', 'In Progress')
+                FROM {$this->servicereport_table} sr
+                WHERE sr.status IN ('Pending', 'Under Repair')
             ");
-            $searchPattern = '%' . $cleanStaffName . '%';
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
             $total = intval($row['total'] ?? 0);
 
-            // Get daily change
+            // Get daily change (show all pending today)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as daily_count 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sr.status IN ('Pending', 'In Progress')
+                FROM {$this->servicereport_table} sr
+                WHERE sr.status IN ('Pending', 'Under Repair')
                 AND sr.date_in >= CURDATE()
             ");
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
             $dailyCount = intval($row['daily_count'] ?? 0);
 
-            // Get yesterday count for comparison
+            // Get yesterday count for comparison (show all pending yesterday)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as yesterday_count 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sr.status IN ('Pending', 'In Progress')
+                FROM {$this->servicereport_table} sr
+                WHERE sr.status IN ('Pending', 'Under Repair')
                 AND sr.date_in >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
                 AND sr.date_in < CURDATE()
             ");
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
@@ -1086,59 +1227,31 @@ class ServiceHandler {
         try {
             $cleanStaffName = trim(str_replace([' (Technician)', ' (Manager)'], '', $staffName));
             
-            // Get total completed services
+            // Get total completed services (show all, not just assigned)
             $stmt = $this->conn->prepare("
                 SELECT COUNT(*) as total 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sr.status = 'Completed'
+                FROM {$this->servicereport_table} sr
+                WHERE sr.status = 'Completed'
             ");
-            $searchPattern = '%' . $cleanStaffName . '%';
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
             $total = intval($row['total'] ?? 0);
 
-            // Get daily change
+            // Count completed reports from this week for the growth indicator
             $stmt = $this->conn->prepare("
-                SELECT COUNT(*) as daily_count 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sr.status = 'Completed'
-                AND sr.date_in >= CURDATE()
+                SELECT COUNT(*) as weekly_count 
+                FROM {$this->servicereport_table} sr
+                WHERE sr.status = 'Completed'
+                AND DATE(sr.date_in) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
             ");
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
             $row = $result->fetch_assoc();
-            $dailyCount = intval($row['daily_count'] ?? 0);
+            $weeklyCount = intval($row['weekly_count'] ?? 0);
 
-            // Get yesterday count for comparison
-            $stmt = $this->conn->prepare("
-                SELECT COUNT(*) as yesterday_count 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
-                AND sr.status = 'Completed'
-                AND sr.date_in >= DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-                AND sr.date_in < CURDATE()
-            ");
-            $stmt->bind_param("s", $searchPattern);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $row = $result->fetch_assoc();
-            $yesterdayCount = intval($row['yesterday_count'] ?? 0);
-
-            $dailyChange = $dailyCount - $yesterdayCount;
+            // Use weekly count as the change indicator
+            $dailyChange = $weeklyCount;
 
             return [
                 'total' => $total,
@@ -1192,25 +1305,33 @@ class ServiceHandler {
 
     public function getWorkStatusForStaff($staffName) {
         try {
-            $cleanStaffName = trim(str_replace([' (Technician)', ' (Manager)'], '', $staffName));
-            
+            // Show all service reports grouped by status (not filtered by staff)
             $stmt = $this->conn->prepare("
                 SELECT sr.status, COUNT(*) as count 
-                FROM {$this->servicedetail_table} sd
-                JOIN {$this->servicereport_table} sr ON sd.report_id = sr.report_id
-                WHERE sd.technician LIKE ? 
-                AND sd.technician IS NOT NULL 
-                AND sd.technician != ''
+                FROM {$this->servicereport_table} sr
                 GROUP BY sr.status
             ");
-            $searchPattern = '%' . $cleanStaffName . '%';
-            $stmt->bind_param("s", $searchPattern);
             $stmt->execute();
             $result = $stmt->get_result();
 
             $data = [];
             while ($row = $result->fetch_assoc()) {
-                $data[$row['status']] = intval($row['count']);
+                $status = $row['status'];
+                $count = intval($row['count']);
+                
+                // Map numeric status codes to text if needed
+                if (is_numeric($status)) {
+                    $statusMap = [
+                        '0' => 'Completed',
+                        '1' => 'Pending',
+                        '2' => 'Under Repair',
+                        '3' => 'Unrepairable',
+                        '4' => 'Release Out'
+                    ];
+                    $status = $statusMap[$status] ?? $status;
+                }
+                
+                $data[$status] = $count;
             }
 
             return [

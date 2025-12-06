@@ -982,8 +982,92 @@ try {
             }]
         });
 
-        // Low Stock Alert functionality can be added here if needed
-        // For example, auto-refresh or sorting functionality
+        // Auto-refresh dashboard functionality
+        function fetchDashboardData() {
+            $.ajax({
+                url: '../backend/api/admin_dashboard_api.php?action=getAll',
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    if (res.success && res.data) {
+                        updateDashboardUI(res.data);
+                        console.log('Admin dashboard updated successfully');
+                    } else {
+                        console.warn('Failed to fetch dashboard data', res);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Failed to fetch dashboard data:', xhr.responseText || xhr.statusText);
+                }
+            });
+        }
+
+        function updateDashboardUI(data) {
+            try {
+                // Update weekly cards
+                const weeklyCustomersCard = document.querySelector('.div14 h2');
+                if (weeklyCustomersCard && data.weeklyCustomers !== undefined) {
+                    weeklyCustomersCard.textContent = data.weeklyCustomers;
+                }
+
+                const weeklyIncomeCard = document.querySelector('.div7 h2');
+                if (weeklyIncomeCard && data.weeklyIncome !== undefined) {
+                    weeklyIncomeCard.textContent = '₱' + parseFloat(data.weeklyIncome).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+
+                const weeklyServicesCard = document.querySelector('.div15 h2');
+                if (weeklyServicesCard && data.weeklyServices !== undefined) {
+                    weeklyServicesCard.textContent = data.weeklyServices;
+                }
+
+                console.log('Dashboard UI updated with latest data');
+            } catch (err) {
+                console.error('Error updating dashboard UI:', err);
+            }
+        }
+
+        // BroadcastChannel for cross-tab communication (better than localStorage)
+        let dashboardChannel = null;
+        if ('BroadcastChannel' in window) {
+            dashboardChannel = new BroadcastChannel('dashboard-refresh');
+            dashboardChannel.onmessage = function(event) {
+                console.log('Dashboard refresh signal received via BroadcastChannel:', event.data);
+                fetchDashboardData();
+            };
+        }
+
+        // Fallback: Listen for localStorage signal (for older browsers)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'dashboardRefreshNeeded') {
+                console.log('Dashboard refresh triggered from localStorage event');
+                fetchDashboardData();
+            }
+        });
+
+        // Refresh when tab becomes visible (user switches back to dashboard)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('Tab became visible - refreshing dashboard');
+                fetchDashboardData();
+            }
+        });
+
+        // Refresh when window gains focus
+        window.addEventListener('focus', function() {
+            console.log('Window gained focus - refreshing dashboard');
+            fetchDashboardData();
+        });
+
+        // Auto-refresh dashboard every 5 seconds (reduced from 30 for real-time feel)
+        setInterval(function() {
+            // Only auto-refresh if tab is visible to save resources
+            if (!document.hidden) {
+                fetchDashboardData();
+            }
+        }, 5000);
+
+        // Initial load immediately
+        fetchDashboardData();
 
         // Service Types Chart
         console.log('Service Type Data:', <?php echo json_encode($serviceTypeBreakdown); ?>);

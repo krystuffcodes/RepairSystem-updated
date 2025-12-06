@@ -499,7 +499,7 @@ $userSession = $auth->requireAuth('staff');
         //});
 
         //API Base URL
-        const API_BASE_URL = '../../RepairSystem/backend/api/customer_appliance_api.php';
+        const API_BASE_URL = '../backend/api/customer_appliance_api.php';
 
         //notification/alert helper function
         function showAlert(type, message) {

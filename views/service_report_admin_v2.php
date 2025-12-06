@@ -1143,7 +1143,13 @@ $userSession = $auth->requireAuth('admin');
 
             if (reports && reports.length > 0) {
                 reports.forEach(report => {
-                    if (report.status === 'Pending') {
+                    let status = report.status;
+                    // Map numeric status codes to text
+                    if (typeof status === 'number' || /^\d+$/.test(status)) {
+                        const statusMap = {'0': 'Completed', '1': 'Pending', '2': 'Under Repair', '3': 'Unrepairable', '4': 'Release Out'};
+                        status = statusMap[String(status)] || status;
+                    }
+                    if (status === 'Pending') {
                         hasPendingReports = true;
                     }
                 });
@@ -1492,10 +1498,20 @@ $userSession = $auth->requireAuth('admin');
                 }
 
                 console.log('Submitting form data: ', formData);
+                
                 const response = await callServiceAPI(action, formData, reportId);
                 
+                console.log('API Response:', response);
+                
                 if(!response || !response.success) {
-                    throw new Error(response?.message || 'Failed to process report');
+                    const errorMsg = response?.message || 'Failed to process report';
+                    console.error('Save failed:', errorMsg);
+                    throw new Error(errorMsg);
+                }
+                
+                // Only update cache AFTER successful save
+                if (reportId && typeof updateReportInCache === 'function') {
+                    updateReportInCache(reportId, formData);
                 }
 
                 if(!reportId && (response.data?.report_id || response.data?.ReportID)) {
@@ -1513,14 +1529,36 @@ $userSession = $auth->requireAuth('admin');
                     resetForm();
                 }
                 
-                // Refresh the badge status after form submission
-                // After creating/updating, set the current filter to include this report's status and refresh the list
-                // Set the filter to this report's status so it will be visible, then fetch up-to-date data
-                $('#service-report-filter').val(formData.status || 'All');
+                // Refresh the service reports list from server to ensure accuracy
                 await loadServiceReportsOnInit();
-                await loadServiceReports();
-                // open modal so the user can see the created report list
-                $('#serviceReportListModal').modal('show');
+                await refreshServiceReports();
+                
+                // Trigger dashboard refresh for all open tabs/windows
+                // Method 1: BroadcastChannel (modern browsers, works immediately)
+                if ('BroadcastChannel' in window) {
+                    const channel = new BroadcastChannel('dashboard-refresh');
+                    channel.postMessage({ action: 'refresh', timestamp: Date.now() });
+                    channel.close();
+                    console.log('Dashboard refresh signal sent via BroadcastChannel');
+                }
+                
+                // Method 2: localStorage (fallback for older browsers and cross-tab)
+                localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
+                setTimeout(() => {
+                    localStorage.setItem('dashboardRefreshNeeded', Date.now().toString());
+                }, 100);
+                
+                // Method 3: Dispatch custom event for same-tab refresh
+                window.dispatchEvent(new CustomEvent('dashboardRefresh', { 
+                    detail: { timestamp: Date.now() } 
+                }));
+                
+                console.log('Dashboard refresh signals sent (all methods)');
+                
+                // Open modal so the user can see the updated report list (only for new reports)
+                if (!reportId) {
+                    $('#serviceReportListModal').modal('show');
+                }
 
             } catch (error) {
                 console.error('Form submission error:', error);
@@ -2222,8 +2260,22 @@ $userSession = $auth->requireAuth('admin');
                 }
 
                 const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
+                
+                // Map numeric status codes to text (for legacy data compatibility)
+                let statusText = report.status;
+                if (typeof statusText === 'number' || /^\d+$/.test(statusText)) {
+                    const statusMap = {
+                        '0': 'Completed',
+                        '1': 'Pending',
+                        '2': 'Under Repair',
+                        '3': 'Unrepairable',
+                        '4': 'Release Out'
+                    };
+                    statusText = statusMap[String(statusText)] || statusText;
+                }
+                
                 let statusBadge = '';
-                switch ((report.status || '').toString()) {
+                switch ((statusText || '').toString()) {
                     case 'Completed':
                         statusBadge = '<span class="badge badge-success">Completed</span>';
                         break;
@@ -2240,7 +2292,7 @@ $userSession = $auth->requireAuth('admin');
                         statusBadge = '<span class="badge badge-secondary">Release Out</span>';
                         break;
                     default:
-                        statusBadge = `<span class="badge badge-light">${report.status || 'N/A'}</span>`;
+                        statusBadge = `<span class="badge badge-light">${statusText || 'N/A'}</span>`;
                 }
 
                 const totalAmount = parseFloat(report.total_amount || 0);
@@ -2292,6 +2344,42 @@ $userSession = $auth->requireAuth('admin');
             }
         }
 
+        // Refresh reports without resetting filters
+        async function refreshServiceReports() {
+            try {
+                const response = await callServiceAPI('getAll');
+                if (!response.success || !response.data) {
+                    console.error('Failed to refresh service reports');
+                    return;
+                }
+
+                // Store the reports data globally
+                window.serviceReportsData = response.data;
+                // Re-apply current filters
+                applyStatusAndSearch();
+                updateBadgeStatus(window.serviceReportsData);
+                console.log('Service reports refreshed successfully');
+            } catch (error) {
+                console.error("Failed to refresh service reports: ", error);
+            }
+        }
+
+        // Optimistically update a report in the local cache
+        function updateReportInCache(reportId, updatedData) {
+            if (!window.serviceReportsData || !Array.isArray(window.serviceReportsData)) return;
+            
+            const index = window.serviceReportsData.findIndex(r => r.report_id == reportId);
+            if (index !== -1) {
+                // Merge updated data with existing report
+                window.serviceReportsData[index] = { ...window.serviceReportsData[index], ...updatedData };
+                console.log('Optimistically updated report in cache:', reportId);
+                
+                // Re-render with current filters
+                applyStatusAndSearch();
+                updateBadgeStatus(window.serviceReportsData);
+            }
+        }
+
         function filterServiceReports(query) {
             query = (query || '').toString().toLowerCase().trim();
             const baseList = Array.isArray(window.currentServiceReports) ? window.currentServiceReports : (Array.isArray(window.serviceReportsData) ? window.serviceReportsData : []);
@@ -2316,7 +2404,15 @@ $userSession = $auth->requireAuth('admin');
             if (!status || status === 'All') {
                 window.currentServiceReports = Array.isArray(window.serviceReportsData) ? window.serviceReportsData.slice() : [];
             } else {
-                window.currentServiceReports = Array.isArray(window.serviceReportsData) ? window.serviceReportsData.filter(r => r.status === status) : [];
+                window.currentServiceReports = Array.isArray(window.serviceReportsData) ? window.serviceReportsData.filter(r => {
+                    let reportStatus = r.status;
+                    // Map numeric status codes to text
+                    if (typeof reportStatus === 'number' || /^\d+$/.test(reportStatus)) {
+                        const statusMap = {'0': 'Completed', '1': 'Pending', '2': 'Under Repair', '3': 'Unrepairable', '4': 'Release Out'};
+                        reportStatus = statusMap[String(reportStatus)] || reportStatus;
+                    }
+                    return reportStatus === status;
+                }) : [];
             }
             renderServiceReportsRows(window.currentServiceReports);
         }

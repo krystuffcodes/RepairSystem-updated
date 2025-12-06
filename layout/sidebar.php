@@ -12,8 +12,8 @@
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'customer_info.php' ? 'active' : ''; ?>">
             <a href="customer_info.php"><i class="material-icons">people</i><span>Customer Info</span></a>
         </li>
-        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'service_report.php' ? 'active' : ''; ?>">
-            <a href="service_report.php"><i class="material-icons">description</i><span>Service Report</span></a>
+        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'service_report_admin_v2.php' ? 'active' : ''; ?>">
+            <a href="service_report_admin_v2.php"><i class="material-icons">description</i><span>Service Report</span></a>
         </li>
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'transactions.php' ? 'active' : ''; ?>">
             <a href="transactions.php"><i class="material-icons">payment</i><span>Transactions</span></a>

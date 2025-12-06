@@ -8,7 +8,7 @@
             </div>
             <div class="col-md-5 col-lg-3 order-3 order-md-2">
                 <?php
-                $hideSearchPages = ['Dashboard'];
+                $hideSearchPages = ['Dashboard', 'Service Report'];
                 if (!in_array($pageTitle, $hideSearchPages)):
                 ?>
                     <div class="xp-searchbar">
