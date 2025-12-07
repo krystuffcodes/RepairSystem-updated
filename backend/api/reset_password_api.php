@@ -93,7 +93,7 @@ function loadMailConfig()
 
 function sendResetEmail($email, $token, $config)
 {
-    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+    $mail = new PHPMailer(true);
 
     try {
         // Server settings

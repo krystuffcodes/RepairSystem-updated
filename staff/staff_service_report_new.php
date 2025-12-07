@@ -686,6 +686,14 @@ try {
                                     </div>
                                 </div>
                                 
+                                <!-- Complaint Row -->
+                                <div class="row mb-2">
+                                    <div class="col-md-9">
+                                        <label>Complaint</label>
+                                        <textarea class="form-control" name="complaint" id="complaint" rows="2"></textarea>
+                                    </div>
+                                </div>
+                                
                                 <!-- Part Used Section -->
                                 <div class="part-used-section">
                                     <div class="row mb-2 pl-3">
@@ -741,17 +749,13 @@ try {
                                     </div>
                                 </div>
                                 
-                                <!-- Complaint, Date Repaired and Date Delivered Row -->
+                                <!-- Date Repaired and Date Delivered Row -->
                                 <div class="row mb-2">
                                     <div class="col-md-6 pe-1">
-                                        <label>Complaint</label>
-                                        <textarea class="form-control" name="complaint" id="complaint" rows="2"></textarea>
-                                    </div>
-                                    <div class="col-md-3 px-1">
                                         <label>Date Repaired</label>
                                         <input type="date" class="form-control" name="date_repaired">
                                     </div>
-                                    <div class="col-md-3 ps-1">
+                                    <div class="col-md-6 ps-1">
                                         <label>Date Delivered</label>
                                         <input type="date" class="form-control" name="date_delivered">
                                     </div>

@@ -9,14 +9,14 @@
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'staff_dashboard.php' ? 'active' : ''; ?>">
             <a href="staff_dashboard.php"><i class="material-icons pb-3">dashboard</i><span>Dashboard</span></a>
         </li>
+        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'customers_info.php' ? 'active' : ''; ?>">
+            <a href="customers_info.php"><i class="material-icons pb-3">people</i><span>Customer Info</span></a>
+        </li>
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'services_report.php' || basename($_SERVER['PHP_SELF']) == 'staff_service_report_new.php' || basename($_SERVER['PHP_SELF']) == 'staff_service_report.php' ? 'active' : ''; ?>">
             <a href="staff_service_report_new.php"><i class="material-icons pb-3">description</i><span>Service Report</span></a>
         </li>
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'parts_management.php' ? 'active' : ''; ?>">
-            <a href="parts_management.php"><i class="material-icons pb-3">inventory_2</i><span>Parts Management</span></a>
-        </li>
-        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'customers_info.php' ? 'active' : ''; ?>">
-            <a href="customers_info.php"><i class="material-icons pb-3">people</i><span>Customer Info</span></a>
+            <a href="parts_management.php"><i class="material-icons pb-3">inventory_2</i><span>Parts</span></a>
         </li>
     </ul>
 
