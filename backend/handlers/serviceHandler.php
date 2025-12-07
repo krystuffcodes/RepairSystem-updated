@@ -46,9 +46,10 @@ class Service_report {
     }
 
     private function validate() {
-         if(empty($this->location)) {
-            throw new InvalidArgumentException("At least one location type must be selected");
-        }
+         // Location is now optional - no validation needed
+        // if(empty($this->location)) {
+        //     throw new InvalidArgumentException("At least one location type must be selected");
+        // }
 
         $requiredFields = [
             'customer_name' => $this->customer_name,
@@ -132,9 +133,10 @@ class Service_detail {
     }
 
     private function validateBasic() {
-        if(empty($this->service_types)) {
-            throw new InvalidArgumentException("At least one service type must be selected");
-        }
+        // Service types are now optional - use default 'repair' if empty
+        // if(empty($this->service_types)) {
+        //     throw new InvalidArgumentException("At least one service type must be selected");
+        // }
 
         if($this->labor < 0 || $this->pullout_delivery < 0 || $this->parts_total_charge < 0 || $this->total_amount < 0) {
             throw new InvalidArgumentException("Financial values cannot be negative");
@@ -354,14 +356,12 @@ class ServiceHandler {
 
             $stmt = $this->conn->prepare("
                 INSERT INTO {$this->servicereport_table} 
-                (customer_name, customer_id, appliance_name, appliance_id, date_in, status, dealer, dop, date_pulled_out, findings, remarks, location)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?)
+                (customer_name, appliance_name, date_in, status, dealer, dop, date_pulled_out, findings, remarks, location)
+                    VALUES (?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?)
             ");
 
             $customer_name = $report->customer_name;
-            $customer_id = $report->customer_id;
             $appliance_name = $report->appliance_name;
-            $appliance_id = $report->appliance_id;
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status;
             $dealer = $report->dealer ? $report->dealer : null;
@@ -372,11 +372,9 @@ class ServiceHandler {
             $locationJson = json_encode($report->location);
 
             $stmt->bind_param(
-                "sisissssssss",
+                "ssssssssss",
                 $customer_name,
-                $customer_id,
                 $appliance_name,
-                $appliance_id,
                 $dateIn,
                 $status,
                 $dealer,
