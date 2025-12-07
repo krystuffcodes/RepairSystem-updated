@@ -299,89 +299,184 @@ try {
             font-weight: 600;
         }
 
+        /* Print styles */
         @media print {
-            body * {
+            body {
                 visibility: hidden;
-            }
-
-            .print-section,
-            .print-section * {
-                visibility: visible;
-            }
-
-            .print-section {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                padding: 20px;
-                background: white;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            .modal-xxl {
-                max-width: 100% !important;
-                width: 100% !important;
                 margin: 0 !important;
-            }
-
-            .modal-content {
-                box-shadow: none !important;
-                border: 1px solid #ddd !important;
-            }
-
-            .modal-header {
-                border-bottom: 2px solid #333 !important;
-            }
-
-            .table {
-                border-collapse: collapse;
-                width: 100%;
-                font-size: 12px;
-            }
-
-            .table th,
-            .table td {
-                border: 1px solid #ddd;
-                padding: 6px;
-            }
-
-            .table th {
-                background-color: #f2f2f2;
-                font-weight: bold;
-            }
-
-            .findings-section {
-                border: 1px solid #000 !important;
-                background-color: white !important;
-            }
-
-            .findings-checkbox:checked {
-                background-color: #000 !important;
-            }
-
-            .card {
-                border: none !important;
-                box-shadow: none !important;
-            }
-
-            .card-header {
-                background: white !important;
-                border-bottom: 2px solid #333 !important;
-            }
-
-            .card-title {
-                font-size: 18px;
-                font-weight: bold;
+                padding: 0 !important;
                 color: #000000 !important;
             }
             
-            .modal-title {
-                color: #000000 !important;
+            .wrapper,
+            .xp-menubar,
+            .body-overlay,
+            #sidebar,
+            #content .main-content .row .col-md-12 .card,
+            .modal-header,
+            .modal-footer,
+            #serviceReportListModal,
+            .modal-header button,
+            .ms-auto,
+            .d-flex {
+                display: none !important;
             }
+            
+            #printReportModal {
+                position: static !important;
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                background: white !important;
+                border: none !important;
+                opacity: 1 !important;
+            }
+            
+            #printReportModal .modal-dialog {
+                position: static !important;
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            #printReportModal .modal-content {
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                height: auto !important;
+                background: white !important;
+                opacity: 1 !important;
+            }
+            
+            #printReportModal .modal-body {
+                padding: 0 !important;
+                display: block !important;
+                height: auto !important;
+                background: white !important;
+                opacity: 1 !important;
+            }
+            
+            #print-report-body {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                background: white !important;
+                page-break-inside: avoid !important;
+                opacity: 1 !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            /* Force ALL text to be pure black - not gray */
+            #print-report-body,
+            #print-report-body * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                color: #000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+            
+            /* Specific text elements - force pure black */
+            #print-report-body h1,
+            #print-report-body h2,
+            #print-report-body h3,
+            #print-report-body h4,
+            #print-report-body h5,
+            #print-report-body h6 {
+                color: #000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                text-shadow: none !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            #print-report-body p,
+            #print-report-body span,
+            #print-report-body strong,
+            #print-report-body b,
+            #print-report-body em,
+            #print-report-body i {
+                color: #000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                text-shadow: none !important;
+                -webkit-text-fill-color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            /* Force table text to pure black */
+            #print-report-body table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #print-report-body tbody,
+            #print-report-body thead,
+            #print-report-body tfoot {
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #print-report-body tr {
+                page-break-inside: avoid !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #print-report-body td,
+            #print-report-body th {
+                color: #000000 !important;
+                border-color: #000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Force div and section text to black */
+            #print-report-body div {
+                color: #000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            /* Remove any background colors and shadows when printing so text remains visible */
+            #print-report-body,
+            #print-report-body * {
+                background: transparent !important;
+                background-color: transparent !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                filter: none !important;
+            }
+            
+            @page {
+                size: A4;
+                margin: 0.3in;
+            }
+        }
+
+        .print-content {
+            margin: 0;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.4;
+            background: transparent;
         }
 
         #transactionForm input,
@@ -511,9 +606,8 @@ try {
                                         <label>Customer</label>
                                         <!-- Searchable customer input + hidden select to store id -->
                                         <div class="customer-search-wrapper" style="position: relative;">
-                                            <!-- Search input hidden for now; use dropdown select instead -->
-                                            <input type="text" id="customer-search" class="form-control" placeholder="Search customer by name" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" style="display:none;">
-                                            <select class="form-control customer-select" name="customer" id="customer-select">
+                                            <input type="text" id="customer-search" class="form-control" placeholder="Search customer by name" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+                                            <select class="form-control customer-select d-none" name="customer" id="customer-select" aria-hidden="true" tabindex="-1">
                                                 <option value="">Select Customer</option>
                                             </select>
                                             <div id="customer-suggestions" class="list-group customer-suggestions" style="display:none; max-height: 260px; overflow-y: auto; position: absolute; left: 0; top: calc(100% + 6px); width: 100%; z-index: 2000;"></div>
@@ -880,9 +974,28 @@ try {
         </div>
     </div>
 
+    <!-- Print Report Modal -->
+    <div class="modal fade" id="printReportModal" tabindex="-1" aria-labelledby="printReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="max-width: 900px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="printReportModalLabel">Print Service Report</h5>
+                    <div class="ms-auto d-flex gap-2">
+                        <button class="btn btn-secondary close-print-modal" type="button">Close</button>
+                        <button id="print-report-btn" class="btn btn-primary" type="button">Print</button>
+                    </div>
+                </div>
+                <div class="modal-body" style="max-height: 85vh; overflow-y: auto; padding: 0; background: #ffffff;">
+                    <div id="print-report-body" class="print-section" style="background: #ffffff;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/jquery-3.3.1.min.js"></script>
     <script src="../js/popper.min.js"></script>
     <script src="../js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="javascripts/script_for_report.js"></script>
     <script type="text/javascript">
         // Customer search function
@@ -1398,6 +1511,35 @@ try {
             $('#serviceReportListModal').modal('hide');
             setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 300);
             deleteReport(reportId);
+        });
+
+        // Print report button handler
+        $(document).on('click', '.print-report', async function(e) {
+            e.preventDefault();
+            const reportId = $(this).data('id');
+            if (!reportId) return;
+            // hide the list modal immediately
+            $('#serviceReportListModal').modal('hide');
+            setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 300);
+            await renderPrintModal(reportId);
+            $('#printReportModal').modal('show');
+        });
+
+        // Print button inside modal
+        $(document).on('click', '#print-report-btn', function() {
+            window.print();
+        });
+
+        // Close print modal button handler
+        $(document).on('click', '.close-print-modal', function() {
+            $('#printReportModal').modal('hide');
+            setTimeout(() => { 
+                $('.modal-backdrop').remove(); 
+                $('body').removeClass('modal-open').css({
+                    'overflow': '',
+                    'padding-right': ''
+                });
+            }, 100);
         });
 
         // Assign-to-me button handler
@@ -1991,6 +2133,7 @@ try {
                         <td>${dateIn}</td>
                         <td>${statusBadge}</td>
                         <td class="actions-col">
+                            <a href="#" class="print-report" data-id="${report.report_id}" title="Print Report"><i class="material-icons text-success">print</i></a>
                             <a href="#" class="edit-report" data-id="${report.report_id}"><i class="material-icons text-primary">edit</i></a>
                             <a href="#" class="delete-report" data-id="${report.report_id}"><i class="material-icons text-danger">delete</i></a>
                             ${assignBtn}
@@ -2079,6 +2222,220 @@ try {
                 }));
             }
         }
+
+        // Render print modal with report details as a screenshot
+        async function renderPrintModal(reportId) {
+            try {
+                showLoading(true, '#printReportModal');
+                
+                const response = await callServiceAPI('getById', null, reportId);
+                
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to load report');
+                }
+
+                const report = response.data;
+                
+                // Create a temporary container to build the formatted report
+                const tempContainer = document.createElement('div');
+                tempContainer.id = 'temp-screenshot-container';
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '-9999px';
+                tempContainer.style.width = '900px';
+                tempContainer.style.background = '#ffffff';
+                tempContainer.style.padding = '25px';
+                tempContainer.style.fontSize = '13px';
+                tempContainer.style.lineHeight = '1.8';
+                tempContainer.style.fontFamily = 'Arial, sans-serif';
+                tempContainer.style.color = '#000';
+                
+                // Format dates
+                const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
+                const dop = report.dop ? new Date(report.dop).toLocaleDateString() : 'N/A';
+                const datePulledOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : 'N/A';
+                const dateRepaired = report.date_repaired ? new Date(report.date_repaired).toLocaleDateString() : 'N/A';
+
+                // Format service types
+                let serviceTypes = 'N/A';
+                if (report.service_types && Array.isArray(report.service_types)) {
+                    serviceTypes = report.service_types.join(', ');
+                } else if (typeof report.service_types === 'string') {
+                    serviceTypes = report.service_types;
+                }
+
+                // Build parts list with table
+                let partsHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #000;"><tr style="border-bottom: 2px solid #000;"><th style="text-align: left; padding: 6px; color: #000; font-weight: bold;">Part Name</th><th style="text-align: center; padding: 6px; color: #000; font-weight: bold;">Qty</th></tr>';
+                if (report.parts && Array.isArray(report.parts)) {
+                    report.parts.forEach(part => {
+                        partsHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">${part.part_name || 'N/A'}</td><td style="text-align: center; padding: 6px; color: #000;">${part.quantity || 0}</td></tr>`;
+                    });
+                } else {
+                    partsHtml += '<tr><td colspan="2" style="padding: 6px; color: #000;">N/A</td></tr>';
+                }
+                partsHtml += '</table>';
+
+                // Build charges breakdown with table
+                let chargesHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #000;"><tr style="border-bottom: 2px solid #000;"><th style="text-align: left; padding: 6px; color: #000; font-weight: bold;">Description</th><th style="text-align: right; padding: 6px; color: #000; font-weight: bold;">Amount</th></tr>';
+                chargesHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">Labor</td><td style="text-align: right; padding: 6px; color: #000;">₱${parseFloat(report.labor || 0).toFixed(2)}</td></tr>`;
+                chargesHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">Pull-Out/Delivery</td><td style="text-align: right; padding: 6px; color: #000;">₱${parseFloat(report.pullout_delivery || 0).toFixed(2)}</td></tr>`;
+                chargesHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">Parts Charge</td><td style="text-align: right; padding: 6px; color: #000;">₱${parseFloat(report.parts_total_charge || 0).toFixed(2)}</td></tr>`;
+                chargesHtml += '</table>';
+
+                const printContentHtml = `
+                    <div style="padding: 25px; font-size: 13px; line-height: 1.8; font-family: Arial, sans-serif; color: #000;">
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom: 10px;">
+                            <h2 style="margin: 0 0 8px 0; font-size: 24px; font-weight: bold; color: #000;">SERVICE REPAIR REPORT</h2>
+                            <p style="margin: 0; font-size: 12px; color: #000; font-weight: 600;">Service Report ID: #${report.report_id}</p>
+                        </div>
+                        
+                        <!-- First Row: Info -->
+                        <div style="margin-bottom: 15px; display: table; width: 100%; border-collapse: collapse;">
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Date In:</strong><br><span style="font-size: 12px; color: #000;">${dateIn}</span>
+                            </div>
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Status:</strong><br><span style="font-size: 12px; color: #000;">${report.status || 'N/A'}</span>
+                            </div>
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Dealer:</strong><br><span style="font-size: 12px; color: #000;">${report.dealer || 'N/A'}</span>
+                            </div>
+                            <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
+                                <strong style="font-size: 13px; color: #000;">Staff:</strong><br><span style="font-size: 12px; color: #000;">${report.staff_name || 'N/A'}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer & Appliance -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">CUSTOMER INFORMATION</h4>
+                            <div style="display: table; width: 100%; border-collapse: collapse;">
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Name:</strong> <span style="font-size: 12px; color: #000;">${report.customer_name || 'N/A'}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Contact:</strong> <span style="font-size: 12px; color: #000;">${report.customer_contact || 'N/A'}</span>
+                                </div>
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Appliance:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_name || 'N/A'}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Model:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_model || 'N/A'}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Serial:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_serial || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Service Details -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">SERVICE INFORMATION</h4>
+                            <div style="display: table; width: 100%; border-collapse: collapse;">
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Service Type:</strong> <span style="font-size: 12px; color: #000;">${serviceTypes}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Findings:</strong> <span style="font-size: 12px; color: #000;">${report.findings || 'N/A'}</span>
+                                </div>
+                                <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
+                                    <strong style="font-size: 12px; color: #000;">Date of Problem:</strong> <span style="font-size: 12px; color: #000;">${dop}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Date Pulled Out:</strong> <span style="font-size: 12px; color: #000;">${datePulledOut}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Date Repaired:</strong> <span style="font-size: 12px; color: #000;">${dateRepaired}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Complaint -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">COMPLAINT</h4>
+                            <div style="padding: 10px; border: 1px solid #000; min-height: 40px; background: #ffffff; font-size: 12px; color: #000;">
+                                ${report.complaint || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <!-- Parts Used -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">PARTS USED</h4>
+                            <div style="padding: 10px; border: 1px solid #000; background: #ffffff;">
+                                ${partsHtml}
+                            </div>
+                        </div>
+                        
+                        <!-- Charges -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">CHARGES BREAKDOWN</h4>
+                            <div style="padding: 10px; border: 1px solid #000; background: #ffffff;">
+                                ${chargesHtml}
+                            </div>
+                        </div>
+                        
+                        <!-- Total Amount -->
+                        <div style="margin-bottom: 15px; background-color: #ffffff; padding: 15px; border: 3px solid #000; font-weight: bold; font-size: 16px; text-align: right; color: #000;">
+                            TOTAL AMOUNT: ₱${parseFloat(report.total_amount || 0).toFixed(2)}
+                        </div>
+                        
+                        <!-- Remarks -->
+                        <div style="margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">REMARKS</h4>
+                            <div style="padding: 10px; border: 1px solid #000; min-height: 40px; background: #ffffff; font-size: 12px; color: #000;">
+                                ${report.remarks || 'N/A'}
+                            </div>
+                        </div>
+                        
+                        <!-- Signature Area -->
+                        <div style="margin-top: 20px; border-top: 2px solid #000; padding-top: 15px;">
+                            <div style="display: table; width: 100%; border-collapse: collapse;">
+                                <div style="display: table-cell; width: 33%; padding: 0 8px 0 0; text-align: center;">
+                                    <div style="height: 60px; border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                                    <strong style="font-size: 12px; display: block;">Technician</strong>
+                                    <span style="font-size: 11px;">Date: _____________</span>
+                                </div>
+                                <div style="display: table-cell; width: 33%; padding: 0 8px; text-align: center;">
+                                    <div style="height: 60px; border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                                    <strong style="font-size: 12px; display: block;">Manager</strong>
+                                    <span style="font-size: 11px;">Date: _____________</span>
+                                </div>
+                                <div style="display: table-cell; width: 33%; padding: 0 0 0 8px; text-align: center;">
+                                    <div style="height: 60px; border-bottom: 2px solid #000; margin-bottom: 8px;"></div>
+                                    <strong style="font-size: 12px; display: block;">Released By</strong>
+                                    <span style="font-size: 11px;">Date: _____________</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                tempContainer.innerHTML = printContentHtml;
+                document.body.appendChild(tempContainer);
+
+                // Wait for images/content to load
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Capture the formatted report as a screenshot
+                const canvas = await html2canvas(tempContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+                
+                // Convert canvas to image
+                const screenshotImage = canvas.toDataURL('image/png');
+                
+                // Remove temporary container
+                document.body.removeChild(tempContainer);
+                
+                // Inject the screenshot image into the print body
+                const screenshotHtml = `
+                    <div style="text-align: center; width: 100%; height: auto;">
+                        <img src="${screenshotImage}" style="max-width: 100%; height: auto; border: none; display: block;" />
+                    </div>
+                `;
+                
+                $('#print-report-body').html(screenshotHtml);
+                showLoading(false, '#printReportModal');
+
+            } catch (error) {
+                console.error('Error rendering print modal:', error);
+                showLoading(false, '#printReportModal');
+                showAlert('danger', error.message || 'Failed to load report for printing');
+            }
+        }
+
+
     </script>
 </body>
 </html>
