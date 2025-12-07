@@ -97,6 +97,9 @@ $userSession = $auth->requireAuth('staff');
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="card-title mb-0">Manage Parts</h5>
+                                <button type="button" class="btn btn-success d-flex align-items-center" data-toggle="modal" data-target="#addPartModal">
+                                    <i class="material-icons mr-2">&#xE147;</i> Add New Part
+                                </button>
                             </div>
                             <div class="card-body">
                                 <!-- Rest of your content remains the same -->
