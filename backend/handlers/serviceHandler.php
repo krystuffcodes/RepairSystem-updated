@@ -133,24 +133,26 @@ class Service_detail {
     }
 
     private function validateBasic() {
-        // Service types are now optional - use default 'repair' if empty
-        // if(empty($this->service_types)) {
-        //     throw new InvalidArgumentException("At least one service type must be selected");
-        // }
+        // Service types are optional - if empty, use empty array
+        if(empty($this->service_types) || !is_array($this->service_types)) {
+            $this->service_types = [];
+        }
 
+        // Ensure financial values are not negative
         if($this->labor < 0 || $this->pullout_delivery < 0 || $this->parts_total_charge < 0 || $this->total_amount < 0) {
             throw new InvalidArgumentException("Financial values cannot be negative");
         }
 
+        // Calculate total from components
         $calculatedTotal = $this->labor + $this->pullout_delivery + $this->service_charge + $this->parts_total_charge;
-        // If client didn't provide a total (0 or null), compute it server-side.
         $providedTotal = round(floatval($this->total_amount), 2);
         $calculatedRounded = round($calculatedTotal, 2);
 
+        // If no total provided or all values are 0, just use calculated total (even if 0)
         if ($providedTotal <= 0) {
-            // Populate total_amount so downstream code and DB store a consistent value
             $this->total_amount = $calculatedRounded;
         } else {
+            // Only validate mismatch if a non-zero total was provided
             $diff = abs($providedTotal - $calculatedRounded);
             if ($diff > 0.01) {
                 throw new InvalidArgumentException(

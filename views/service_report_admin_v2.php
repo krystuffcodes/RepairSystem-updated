@@ -2697,8 +2697,14 @@ $userSession = $auth->requireAuth('admin');
         }
 
         async function validateForm() {
+            // Only validate the 4 required fields: customer, appliance, date_in, status
             if (!$('#customer-select').val()) {
                 showAlert('danger', 'Please select a customer');
+                return false;
+            }
+
+            if (!$('#appliance-select').val()) {
+                showAlert('danger', 'Please select an appliance');
                 return false;
             }
 
@@ -2708,23 +2714,22 @@ $userSession = $auth->requireAuth('admin');
                 return false;
             }
 
-            if (!$('#appliance-select').val()) {
-                showAlert('danger', 'Please select an appliance');
-                return false;
-            }
-
             if (!$('select[name="status"]').val()) {
                 showAlert('danger', 'Please select a status');
                 return false;
             }
 
-            // Validate parts quantities
-            const partsValid = await validatePartsQuantities();
-            if (!partsValid) {
-                return false;
-            }
+            // Only validate parts quantities if parts are actually added
+            const hasParts = $('.parts-row .part-select').filter(function() {
+                return $(this).val() !== '';
+            }).length > 0;
 
-            //if(!validateDates()) return false; - UNCOMMENT IF WORKIN NA
+            if (hasParts) {
+                const partsValid = await validatePartsQuantities();
+                if (!partsValid) {
+                    return false;
+                }
+            }
 
             return true;
         }
