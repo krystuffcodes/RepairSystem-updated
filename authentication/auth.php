@@ -96,8 +96,16 @@ try {
     header("Location: $baseUrl/index.php");
     exit();
 } catch (Exception $e) {
-    error_log("Error: " . $e->getMessage());
-    $_SESSION['login_error'] = "System error occurred. Please try again.";
+    error_log("Login Error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
+    // Show more detailed error in development, generic in production
+    $isDevelopment = !isset($_ENV['APP_ENV']) || $_ENV['APP_ENV'] !== 'production';
+    if ($isDevelopment) {
+        $_SESSION['login_error'] = "System error: " . $e->getMessage();
+    } else {
+        $_SESSION['login_error'] = "System error occurred. Please contact support if this persists.";
+    }
     header("Location: $baseUrl/index.php");
     exit();
 }
