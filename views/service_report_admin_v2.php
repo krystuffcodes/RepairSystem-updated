@@ -26,6 +26,7 @@ $userSession = $auth->requireAuth('admin');
                         visibility: hidden;
                         margin: 0 !important;
                         padding: 0 !important;
+                        color: #000000 !important;
                     }
                     
                     .wrapper,
@@ -47,13 +48,16 @@ $userSession = $auth->requireAuth('admin');
                         display: block !important;
                         width: 100% !important;
                         height: 100% !important;
-                        visibility: visible !important;
+                        background: white !important;
+                        border: none !important;
+                        opacity: 1 !important;
                     }
                     
                     #printReportModal .modal-dialog {
                         position: static !important;
                         display: block !important;
                         width: 100% !important;
+                        height: auto !important;
                         margin: 0 !important;
                         max-width: 100% !important;
                     }
@@ -62,199 +66,131 @@ $userSession = $auth->requireAuth('admin');
                         border: none !important;
                         box-shadow: none !important;
                         margin: 0 !important;
+                        height: auto !important;
+                        background: white !important;
+                        opacity: 1 !important;
                     }
                     
                     #printReportModal .modal-body {
                         padding: 0 !important;
                         display: block !important;
-                        visibility: visible !important;
+                        height: auto !important;
+                        background: white !important;
+                        opacity: 1 !important;
                     }
                     
                     #print-report-body {
                         display: block !important;
                         width: 100% !important;
-                        visibility: visible !important;
+                        height: auto !important;
+                        background: white !important;
+                        page-break-inside: avoid !important;
+                        opacity: 1 !important;
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
                     }
                     
+                    /* Force ALL text to be pure black - not gray */
                     #print-report-body,
                     #print-report-body * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                        color: #000000 !important;
+                        opacity: 1 !important;
                         visibility: visible !important;
                     }
                     
-                    .print-copy {
-                        page-break-after: avoid !important;
-                        page-break-inside: avoid !important;
+                    /* Specific text elements - force pure black */
+                    #print-report-body h1,
+                    #print-report-body h2,
+                    #print-report-body h3,
+                    #print-report-body h4,
+                    #print-report-body h5,
+                    #print-report-body h6 {
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        text-shadow: none !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     
-                    .print-copy:first-child {
-                        margin-bottom: 0.3in !important;
-                        border-bottom: 1px dashed #000 !important;
-                        padding-bottom: 0.2in !important;
+                    #print-report-body p,
+                    #print-report-body span,
+                    #print-report-body strong,
+                    #print-report-body b,
+                    #print-report-body em,
+                    #print-report-body i {
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        text-shadow: none !important;
+                        -webkit-text-fill-color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    /* Force table text to pure black */
+                    #print-report-body table {
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    #print-report-body tbody,
+                    #print-report-body thead,
+                    #print-report-body tfoot {
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    #print-report-body tr {
+                        page-break-inside: avoid !important;
+                        color: #000000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    #print-report-body td,
+                    #print-report-body th {
+                        color: #000000 !important;
+                        border-color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    /* Force div and section text to black */
+                    #print-report-body div {
+                        color: #000000 !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+                    
+                    /* Remove any background colors and shadows when printing so text remains visible */
+                    #print-report-body,
+                    #print-report-body * {
+                        background: transparent !important;
+                        background-color: transparent !important;
+                        box-shadow: none !important;
+                        -webkit-box-shadow: none !important;
+                        filter: none !important;
                     }
                     
                     @page {
-                        size: 8.5in 13in; /* Short bond paper */
-                        margin: 0.3in 0.4in;
+                        size: A4;
+                        margin: 0.3in;
                     }
                 }
-
-        /* Print template styles */
-        .print-form {
-            font-family: Arial, sans-serif;
-            font-size: 10px;
-            line-height: 1.3;
-            color: #000;
-        }
-        
-        .print-copy {
-            width: 100%;
-            min-height: 5.8in;
-            padding: 10px;
-        }
-        
-        .print-header {
-            text-align: center;
-            border: 2px solid #000;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .print-header h2 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        
-        .print-header h3 {
-            margin: 2px 0;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        
-        .print-header p {
-            margin: 2px 0;
-            font-size: 9px;
-        }
-        
-        .print-checkboxes {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 8px 0;
-            font-size: 10px;
-        }
-        
-        .print-checkbox {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .print-checkbox input[type="checkbox"] {
-            width: 12px;
-            height: 12px;
-            margin: 0;
-        }
-        
-        .print-info-section {
-            display: table;
-            width: 100%;
-            margin-bottom: 8px;
-        }
-        
-        .print-info-row {
-            display: table-row;
-        }
-        
-        .print-info-label {
-            display: table-cell;
-            width: 100px;
-            font-weight: bold;
-            padding: 3px 5px;
-            vertical-align: top;
-        }
-        
-        .print-info-value {
-            display: table-cell;
-            padding: 3px 5px;
-            border-bottom: 1px solid #000;
-        }
-        
-        .print-two-column {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-        
-        .print-column {
-            flex: 1;
-        }
-        
-        .print-parts-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-        
-        .print-parts-table th,
-        .print-parts-table td {
-            border: 1px solid #000;
-            padding: 4px;
-            text-align: left;
-            font-size: 9px;
-        }
-        
-        .print-parts-table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-        
-        .print-parts-table td {
-            min-height: 15px;
-        }
-        
-        .print-signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            gap: 8px;
-        }
-        
-        .print-signature-box {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .print-signature-line {
-            border-top: 1px solid #000;
-            margin-top: 25px;
-            padding-top: 3px;
-            font-size: 8px;
-        }
-        
-        .print-terms {
-            margin-top: 10px;
-            font-size: 8px;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
-        
-        .print-terms p {
-            margin: 2px 0;
-        }
-        
-        @media print {
-            .print-form {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            
-            .print-parts-table th {
-                background-color: #f0f0f0 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
 
         .print-content {
             margin: 0;
@@ -864,14 +800,6 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                         </div>
                                         
-                                        <!-- Complaint Row -->
-                                        <div class="row mb-2">
-                                            <div class="col-md-9">
-                                                <label>Complaint</label>
-                                                <textarea class="form-control" name="complaint" id="complaint" rows="2"></textarea>
-                                            </div>
-                                        </div>
-                                        
                                         <!-- Part Used Section with Border -->
                                         <div class="part-used-section">
                                             <div class="row mb-2 pl-3">
@@ -912,15 +840,23 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                         </div>
                                         
-                                        <!-- Date Repaired & Date Delivered Row -->
+                                        <!-- Complaint with Date Repaired & Date Delivered (single responsive row) -->
                                         <div class="row mb-2 align-items-start">
-                                            <div class="col-md-6 pe-1">
-                                                <label class="mb-1">Date Repaired</label>
-                                                <input type="date" class="form-control" name="date_repaired">
+                                            <div class="col-md-8 pe-1 d-flex flex-column">
+                                                <!-- Total Amount (hidden, not used for form submission) -->
+                                                <input type="hidden" id="total-amount" readonly>
+                                                <label class="mb-1">Complaint</label>
+                                                <textarea class="form-control" name="complaint" id="complaint" style="height:calc(2 * 38px + 8px);" aria-label="complaint"></textarea>
                                             </div>
-                                            <div class="col-md-6 ps-1">
-                                                <label class="mb-1">Date Delivered</label>
-                                                <input type="date" class="form-control" name="date_delivered">
+                                            <div class="col-md-4 ps-1 d-flex flex-column" style="gap:8px;">
+                                                <div>
+                                                    <label class="mb-1">Date Repaired</label>
+                                                    <input type="date" class="form-control" name="date_repaired">
+                                                </div>
+                                                <div>
+                                                    <label class="mb-1">Date Delivered</label>
+                                                    <input type="date" class="form-control" name="date_delivered">
+                                                </div>
                                             </div>
                                         </div>
                                         <!-- Charged Details Section Header -->
@@ -1821,9 +1757,7 @@ $userSession = $auth->requireAuth('admin');
                                 seen.add(key);
                                 return true;
                             });
-                            console.log('Customers loaded for search:', window.customersList.length, 'customers');
                         }
-                    });
 
                         // If loading staff dropdown, also populate the matching datalist and suggestion data for the visible input
                         if (type === 'staff') {
@@ -2188,7 +2122,7 @@ $userSession = $auth->requireAuth('admin');
 
                 $inputs.each(function() {
                     const $input = $(this);
-                    const selectSelector = $input.data('target') || `#${$input.attr('id').replace('-input','-select')}`;
+                    const selectSelector = $input.data('target') || (`#${$input.attr('id').replace('-input','-select')}`);
                     const $hiddenSelect = $(selectSelector);
 
                     // Ensure suggestion container exists
@@ -3106,199 +3040,35 @@ $userSession = $auth->requireAuth('admin');
                     </div>
                 `;
                 
-                // NEW IMPLEMENTATION: Generate dual-copy print format
-                // Format dates
-                const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : '';
-                const dop = report.dop ? new Date(report.dop).toLocaleDateString() : '';
-                const dateRepaired = report.date_repaired ? new Date(report.date_repaired).toLocaleDateString() : '';
+                tempContainer.innerHTML = printContentHtml;
+                document.body.appendChild(tempContainer);
 
-                // Format service types checkboxes
-                const isShop = report.service_types && (Array.isArray(report.service_types) ? report.service_types.includes('Shop') : report.service_types.includes('Shop'));
-                const isField = report.service_types && (Array.isArray(report.service_types) ? report.service_types.includes('Field') : report.service_types.includes('Field'));
+                // Wait for images/content to load
+                await new Promise(resolve => setTimeout(resolve, 500));
 
-                // Build parts table rows
-                let partsRows = '';
-                if (report.parts && Array.isArray(report.parts) && report.parts.length > 0) {
-                    report.parts.forEach(part => {
-                        partsRows += `
-                            <tr>
-                                <td style="text-align: center;">${part.quantity || 1}</td>
-                                <td>${part.part_number || ''}</td>
-                                <td>${part.part_name || 'N/A'}</td>
-                                <td style="text-align: right;">₱${parseFloat(part.unit_price || 0).toFixed(2)}</td>
-                                <td style="text-align: right;">₱${parseFloat((part.quantity || 1) * (part.unit_price || 0)).toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-                }
-                // Add empty rows to fill space (minimum 3 rows)
-                const minRows = 3;
-                const currentRows = report.parts && report.parts.length || 0;
-                for (let i = currentRows; i < minRows; i++) {
-                    partsRows += '<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
-                }
-
-                // Generate single copy HTML
-                const generateCopyHTML = (copyLabel) => `
-                    <div class="print-copy print-form">
-                        <!-- Header -->
-                        <div class="print-header">
-                            <h2>101 REPAIR SHOP</h2>
-                            <h3>AUTHORIZED SERVICE CENTER</h3>
-                            <p>123 Main Street, City, Province | Tel: (123) 456-7890 | Email: info@101repairshop.com</p>
-                        </div>
-
-                        <!-- Service Type Checkboxes -->
-                        <div class="print-checkboxes">
-                            <div class="print-checkbox">
-                                <input type="checkbox" ${isShop ? 'checked' : ''}> SHOP
-                            </div>
-                            <div class="print-checkbox">
-                                <input type="checkbox" ${isField ? 'checked' : ''}> FIELD
-                            </div>
-                            <div class="print-checkbox">
-                                <input type="checkbox"> IN WTY
-                            </div>
-                            <div class="print-checkbox">
-                                <input type="checkbox"> OUT WTY
-                            </div>
-                        </div>
-
-                        <!-- Two Column Section -->
-                        <div class="print-two-column">
-                            <!-- Left Column - Customer Info -->
-                            <div class="print-column">
-                                <div class="print-info-section">
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">CUSTOMER:</div>
-                                        <div class="print-info-value">${report.customer_name || ''}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">ADDRESS:</div>
-                                        <div class="print-info-value">${report.address || ''}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">CONTACT NO:</div>
-                                        <div class="print-info-value">${report.contact || ''}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">UNIT:</div>
-                                        <div class="print-info-value">${report.appliance_type || ''}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">BRAND:</div>
-                                        <div class="print-info-value">${report.brand || ''}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">MODEL:</div>
-                                        <div class="print-info-value">${report.model || ''}</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Right Column - Service Details -->
-                            <div class="print-column">
-                                <div class="print-info-section">
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">SR NO:</div>
-                                        <div class="print-info-value">${report.report_id || ''}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">DATE IN:</div>
-                                        <div class="print-info-value">${dateIn}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">DOP:</div>
-                                        <div class="print-info-value">${dop}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">DATE REPAIRED:</div>
-                                        <div class="print-info-value">${dateRepaired}</div>
-                                    </div>
-                                    <div class="print-info-row">
-                                        <div class="print-info-label">COMPLAINT:</div>
-                                        <div class="print-info-value">${report.complaint || ''}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Parts Table -->
-                        <table class="print-parts-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 8%;">QTY</th>
-                                    <th style="width: 20%;">PART NO.</th>
-                                    <th style="width: 42%;">DESCRIPTION</th>
-                                    <th style="width: 15%;">UNIT PRICE</th>
-                                    <th style="width: 15%;">AMOUNT</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${partsRows}
-                            </tbody>
-                        </table>
-
-                        <!-- Labor & Total -->
-                        <div style="margin-top: 8px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                                <span><strong>LABOR:</strong></span>
-                                <span>₱${parseFloat(report.labor || 0).toFixed(2)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                                <span><strong>PULL-OUT/DELIVERY:</strong></span>
-                                <span>₱${parseFloat(report.pullout_delivery || 0).toFixed(2)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px; border-top: 2px solid #000; padding-top: 3px;">
-                                <span>TOTAL AMOUNT:</span>
-                                <span>₱${parseFloat(report.total_amount || 0).toFixed(2)}</span>
-                            </div>
-                        </div>
-
-                        <!-- Remarks -->
-                        <div style="margin-top: 8px; border: 1px solid #000; padding: 5px; min-height: 30px;">
-                            <strong>REMARKS:</strong> ${report.remarks || ''}
-                        </div>
-
-                        <!-- Signatures -->
-                        <div class="print-signatures">
-                            <div class="print-signature-box">
-                                <div class="print-signature-line">RECEPTIONIST</div>
-                            </div>
-                            <div class="print-signature-box">
-                                <div class="print-signature-line">SUPERVISOR</div>
-                            </div>
-                            <div class="print-signature-box">
-                                <div class="print-signature-line">TECHNICIAN</div>
-                            </div>
-                            <div class="print-signature-box">
-                                <div class="print-signature-line">RELEASED BY</div>
-                            </div>
-                            <div class="print-signature-box">
-                                <div class="print-signature-line">CUSTOMER SIGNATURE</div>
-                            </div>
-                        </div>
-
-                        <!-- Terms -->
-                        <div class="print-terms">
-                            <p><strong>TERMS & CONDITIONS:</strong></p>
-                            <p>1. All units must be claimed within 30 days after repair completion, otherwise a storage fee will apply.</p>
-                            <p>2. We are not responsible for any data loss. Please backup your data before service.</p>
-                            <p>3. Warranty covers parts and labor for 90 days from repair date.</p>
-                            <p style="text-align: center; margin-top: 5px;"><em>${copyLabel}</em></p>
-                        </div>
-                    </div>
-                `;
-
-                // Create both copies
-                const finalPrintHTML = `
-                    <div style="font-family: Arial, sans-serif;">
-                        ${generateCopyHTML('SECRETARY COPY')}
-                        ${generateCopyHTML('TECHNICIAN COPY')}
+                // Capture the formatted report as a screenshot
+                const canvas = await html2canvas(tempContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+                
+                // Convert canvas to image
+                const screenshotImage = canvas.toDataURL('image/png');
+                
+                // Remove temporary container
+                document.body.removeChild(tempContainer);
+                
+                // Inject the screenshot image into the print body
+                const screenshotHtml = `
+                    <div style="text-align: center; width: 100%; height: auto;">
+                        <img src="${screenshotImage}" style="max-width: 100%; height: auto; border: none; display: block;" />
                     </div>
                 `;
                 
-                $('#print-report-body').html(finalPrintHTML);
+                $('#print-report-body').html(screenshotHtml);
                 showLoading(false, '#printReportModal');
 
             } catch (error) {
