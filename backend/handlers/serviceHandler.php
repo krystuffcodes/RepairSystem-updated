@@ -633,6 +633,8 @@ class ServiceHandler {
 
     public function getAll($limit = 100, $offset = 0) {
         try {
+            error_log("ServiceHandler::getAll - Starting query with limit=$limit, offset=$offset");
+            
             $stmt = $this->conn->prepare("
                 SELECT sr.*, 
                 sd.service_types, sd.total_amount
@@ -642,9 +644,20 @@ class ServiceHandler {
                 LIMIT ? OFFSET ?
             ");
 
+            if (!$stmt) {
+                error_log("ServiceHandler::getAll - Prepare failed: " . $this->conn->error);
+                return $this->formatResponse(false, null, 'Failed to prepare query: ' . $this->conn->error);
+            }
+
             $stmt->bind_param("ii", $limit, $offset);
-            $stmt->execute();
+            
+            if (!$stmt->execute()) {
+                error_log("ServiceHandler::getAll - Execute failed: " . $stmt->error);
+                return $this->formatResponse(false, null, 'Failed to execute query: ' . $stmt->error);
+            }
+            
             $result = $stmt->get_result();
+            error_log("ServiceHandler::getAll - Query executed, rows found: " . $result->num_rows);
 
             $reports = [];
             while($row = $result->fetch_assoc()) {
@@ -662,8 +675,10 @@ class ServiceHandler {
                 $reports[] = $row;
             }
 
+            error_log("ServiceHandler::getAll - Returning " . count($reports) . " reports");
             return $this->formatResponse(true, $reports);
         } catch(Exception $e) {
+            error_log("ServiceHandler::getAll - Exception: " . $e->getMessage());
             return $this->formatResponse(false, null, 'Failed to retrieve reports: ' . $e->getMessage());
         }
     }

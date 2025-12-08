@@ -84,9 +84,12 @@ try {
                 sendResponse(false, null, 'Method is incorrect', 405);
             }
 
+            error_log("SERVICE API: getAll called");
             $limit = $_GET['limit'] ?? 100;
             $offset = $_GET['offset'] ?? 0;
+            error_log("SERVICE API: limit=$limit, offset=$offset");
             $result = $serviceHandler->getAll($limit, $offset);
+            error_log("SERVICE API: getAll result - success: " . ($result['success'] ? 'true' : 'false') . ", data count: " . (is_array($result['data']) ? count($result['data']) : 'null'));
             sendResponse($result['success'], $result['data'], $result['message']);
 
             break;
