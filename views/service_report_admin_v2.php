@@ -1393,8 +1393,12 @@ $userSession = $auth->requireAuth('admin');
 
         function gatherFormData() {
             const formatDateForPHP = (dateStr) => {
-                if (!dateStr) return null;
-                return new Date(dateStr).toISOString().split('T')[0];
+                if (!dateStr || dateStr.trim() === '') return null;
+                try {
+                    return new Date(dateStr).toISOString().split('T')[0];
+                } catch (e) {
+                    return null;
+                }
             };
 
             const formData = {
@@ -1403,7 +1407,7 @@ $userSession = $auth->requireAuth('admin');
                 customer_id: $('#customer-select').val() ? parseInt($('#customer-select').val()) : null,
                 appliance_name: $('#appliance-select option:selected').text() || '',
                 appliance_id: $('#appliance-select').val() ? parseInt($('#appliance-select').val()) : null,
-                date_in: formatDateForPHP($('#date-in').val()) || null,
+                date_in: formatDateForPHP($('#date-in').val()),
                 status: $('select[name="status"]').val() || '',
                 
                 //service report - OPTIONAL FIELDS (can be empty)
@@ -1414,8 +1418,8 @@ $userSession = $auth->requireAuth('admin');
 
                 //service details - ALL OPTIONAL
                 service_types: [],
-                date_repaired: formatDateForPHP($('input[name="date_repaired"]').val()) || null,
-                date_delivered: formatDateForPHP($('input[name="date_delivered"]').val()) || null,
+                date_repaired: formatDateForPHP($('input[name="date_repaired"]').val()),
+                date_delivered: formatDateForPHP($('input[name="date_delivered"]').val()),
                 complaint: $('textarea[name="complaint"]').val() || '',
                 labor: parseFloat($('#labor-amount').val()) || 0,
                 pullout_delivery: parseFloat($('#pullout-delivery').val()) || 0,
