@@ -1398,23 +1398,25 @@ $userSession = $auth->requireAuth('admin');
             };
 
             const formData = {
-                //service report 
-                customer_name: $('#customer-select option:selected').text(),
+                //service report - REQUIRED FIELDS
+                customer_name: $('#customer-select option:selected').text() || '',
                 customer_id: $('#customer-select').val() ? parseInt($('#customer-select').val()) : null,
-                appliance_name: $('#appliance-select option:selected').text(),
+                appliance_name: $('#appliance-select option:selected').text() || '',
                 appliance_id: $('#appliance-select').val() ? parseInt($('#appliance-select').val()) : null,
-                date_in: formatDateForPHP($('#date-in').val()),
-                status: $('select[name="status"]').val(),
-                dealer: $('input[name="dealer"]').val(),
-                findings: $('input[name="findings"]').val(),
-                remarks: $('input[name="remarks"]').val(),
+                date_in: formatDateForPHP($('#date-in').val()) || null,
+                status: $('select[name="status"]').val() || '',
+                
+                //service report - OPTIONAL FIELDS (can be empty)
+                dealer: $('input[name="dealer"]').val() || '',
+                findings: $('input[name="findings"]').val() || '',
+                remarks: $('input[name="remarks"]').val() || '',
                 location: [],
 
-                //service detials
+                //service details - ALL OPTIONAL
                 service_types: [],
-                date_repaired: formatDateForPHP($('input[name="date_repaired"]').val()),
-                date_delivered: formatDateForPHP($('input[name="date_delivered"]').val()),
-                complaint: $('textarea[name="complaint"]').val(),
+                date_repaired: formatDateForPHP($('input[name="date_repaired"]').val()) || null,
+                date_delivered: formatDateForPHP($('input[name="date_delivered"]').val()) || null,
+                complaint: $('textarea[name="complaint"]').val() || '',
                 labor: parseFloat($('#labor-amount').val()) || 0,
                 pullout_delivery: parseFloat($('#pullout-delivery').val()) || 0,
                 parts_total_charge: parseFloat($('input[name="parts_charge"]').val()) || 0,
