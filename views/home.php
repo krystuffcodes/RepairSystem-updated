@@ -864,9 +864,9 @@ try {
         }
         ?>
 
-        // Transaction Trends
+        // Transaction Trends - Store chart instance for updates
         const ctxRevenue = document.getElementById('revenueChart');
-        new Chart(ctxRevenue, {
+        let revenueChart = new Chart(ctxRevenue, {
             type: 'line',
             data: {
                 labels: <?php echo json_encode($labels); ?>,
@@ -1018,6 +1018,25 @@ try {
                 const weeklyServicesCard = document.querySelector('.div15 h2');
                 if (weeklyServicesCard && data.weeklyServices !== undefined) {
                     weeklyServicesCard.textContent = data.weeklyServices;
+                }
+
+                // Update Service Performance Overview chart with latest monthlyData
+                if (data.monthlyData && Array.isArray(data.monthlyData) && revenueChart) {
+                    const labels = [];
+                    const amounts = [];
+                    const counts = [];
+                    
+                    data.monthlyData.forEach(item => {
+                        const monthDate = new Date(item.month + '-01');
+                        labels.push(monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+                        amounts.push(parseFloat(item.total_amount) || 0);
+                        counts.push(parseInt(item.transaction_count) || 0);
+                    });
+
+                    revenueChart.data.labels = labels;
+                    revenueChart.data.datasets[0].data = amounts;
+                    revenueChart.data.datasets[1].data = counts;
+                    revenueChart.update();
                 }
 
                 console.log('Dashboard UI updated with latest data');
