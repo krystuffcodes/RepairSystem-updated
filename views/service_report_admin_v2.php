@@ -1427,8 +1427,6 @@ $userSession = $auth->requireAuth('admin');
 
                 //service details - ALL OPTIONAL
                 service_types: [],
-                date_repaired: formatDateForPHP($('input[name="date_repaired"]').val()),
-                date_delivered: formatDateForPHP($('input[name="date_delivered"]').val()),
                 complaint: $('textarea[name="complaint"]').val() || '',
                 labor: parseFloat($('#labor-amount').val()) || 0,
                 pullout_delivery: parseFloat($('#pullout-delivery').val()) || 0,
@@ -1442,6 +1440,13 @@ $userSession = $auth->requireAuth('admin');
 
                 parts: []
             };
+            
+            // Add optional date fields only if they have valid values
+            const dateRepairedVal = formatDateForPHP($('input[name="date_repaired"]').val());
+            const dateDeliveredVal = formatDateForPHP($('input[name="date_delivered"]').val());
+            
+            if (dateRepairedVal) formData.date_repaired = dateRepairedVal;
+            if (dateDeliveredVal) formData.date_delivered = dateDeliveredVal;
 
             if ($('#shop').is(':checked')) formData.location.push('shop');
             if ($('#field').is(':checked')) formData.location.push('field');
@@ -1483,11 +1488,7 @@ $userSession = $auth->requireAuth('admin');
             if (dopVal) formData.dop = dopVal;
             if (datePulledVal) formData.date_pulled_out = datePulledVal;
             
-            // Clean up date fields - remove if null to prevent empty strings
-            if (!formData.date_repaired) delete formData.date_repaired;
-            if (!formData.date_delivered) delete formData.date_delivered;
-            
-            console.log('Form data before sending:', formData);
+            console.log('Admin form data before sending:', formData);
             
             return formData;
         }

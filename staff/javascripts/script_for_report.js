@@ -251,16 +251,12 @@
                 
                 //service report - OPTIONAL FIELDS (can be empty)
                 dealer: $('input[name="dealer"]').val() || '',
-                dop: formatDateForPHP($('input[name="dop"]').val()),
-                date_pulled_out: formatDateForPHP($('input[name="date_pulled_out"]').val()),
                 findings: $('input[name="findings"]').val() || '',
                 remarks: $('input[name="remarks"]').val() || '',
                 location: [],
 
                 //service details - ALL OPTIONAL
                 service_types: [],
-                date_repaired: formatDateForPHP($('input[name="date_repaired"]').val()),
-                date_delivered: formatDateForPHP($('input[name="date_delivered"]').val()),
                 complaint: $('textarea[name="complaint"]').val() || '',
                 labor: parseFloat($('#labor-amount').val()) || 0,
                 pullout_delivery: parseFloat($('#pullout-delivery').val()) || 0,
@@ -274,6 +270,17 @@
 
                 parts: []
             };
+            
+            // Add optional date fields only if they have valid values
+            const dopVal = formatDateForPHP($('input[name="dop"]').val());
+            const datePulledVal = formatDateForPHP($('input[name="date_pulled_out"]').val());
+            const dateRepairedVal = formatDateForPHP($('input[name="date_repaired"]').val());
+            const dateDeliveredVal = formatDateForPHP($('input[name="date_delivered"]').val());
+            
+            if (dopVal) formData.dop = dopVal;
+            if (datePulledVal) formData.date_pulled_out = datePulledVal;
+            if (dateRepairedVal) formData.date_repaired = dateRepairedVal;
+            if (dateDeliveredVal) formData.date_delivered = dateDeliveredVal;
 
             if ($('#shop').is(':checked')) formData.location.push('shop');
             if ($('#field').is(':checked')) formData.location.push('field');
@@ -308,13 +315,7 @@
                 formData.report_id = reportId;
             }
             
-            // Clean up date fields - remove if null to prevent empty strings
-            if (!formData.date_repaired) delete formData.date_repaired;
-            if (!formData.date_delivered) delete formData.date_delivered;
-            if (!formData.dop) delete formData.dop;
-            if (!formData.date_pulled_out) delete formData.date_pulled_out;
-            
-            console.log('Form data before sending:', formData);
+            console.log('Staff form data before sending:', formData);
             
             return formData;
         }
