@@ -1254,15 +1254,15 @@ try {
                             // Build name to match format used in service reports: Brand - SerialNo (Category)
                             let name = '';
                             
-                            if (appliance.brand && appliance.serial_no && appliance.category) {
-                                name = `${appliance.brand} - ${appliance.serial_no} (${appliance.category})`;
-                            } else if (appliance.brand || appliance.product) {
-                                const parts = [];
-                                if (appliance.brand) parts.push(appliance.brand);
-                                if (appliance.product) parts.push(appliance.product);
-                                name = parts.join(' ').trim();
+                            // Check if we have brand and category (required for proper format)
+                            if (appliance.brand) {
+                                const serial = appliance.serial_no || appliance.model_no || 'No Serial';
+                                const category = appliance.category || appliance.model_no || 'No Model';
+                                name = `${appliance.brand} - ${serial} (${category})`;
+                            } else if (appliance.product) {
+                                name = appliance.product;
                             } else {
-                                name = appliance.appliance_name || appliance.name || appliance.product || ('Appliance ' + (id || ''));
+                                name = appliance.appliance_name || appliance.name || ('Appliance ' + (id || ''));
                             }
                             
                             select.append(`<option value="${id}">${name}</option>`);
@@ -1927,17 +1927,57 @@ try {
                                         if (report.appliance_name) {
                                             console.log('Trying to select by name:', report.appliance_name);
                                             let found = false;
+                                            
+                                            // First try exact match
                                             $('#appliance-select option').each(function() {
-                                                const optionText = $(this).text();
-                                                if (optionText.includes(report.appliance_name) || report.appliance_name.includes(optionText)) {
+                                                const optionText = $(this).text().trim();
+                                                if (optionText === report.appliance_name.trim()) {
                                                     $(this).prop('selected', true);
-                                                    console.log('Appliance selected by name match:', optionText);
+                                                    console.log('Appliance selected by exact match:', optionText);
                                                     found = true;
                                                     return false;
                                                 }
                                             });
+                                            
+                                            // If no exact match, try partial match
+                                            if (!found) {
+                                                $('#appliance-select option').each(function() {
+                                                    const optionText = $(this).text();
+                                                    const reportName = report.appliance_name;
+                                                    
+                                                    // Extract key parts for comparison (brand and category)
+                                                    const extractParts = (str) => {
+                                                        const brandMatch = str.match(/^([^-]+)/);
+                                                        const categoryMatch = str.match(/\(([^)]+)\)/);
+                                                        return {
+                                                            brand: brandMatch ? brandMatch[1].trim() : '',
+                                                            category: categoryMatch ? categoryMatch[1].trim() : ''
+                                                        };
+                                                    };
+                                                    
+                                                    const optionParts = extractParts(optionText);
+                                                    const reportParts = extractParts(reportName);
+                                                    
+                                                    // Match if brand and category are the same
+                                                    if (optionParts.brand && reportParts.brand && 
+                                                        optionParts.brand === reportParts.brand &&
+                                                        optionParts.category && reportParts.category &&
+                                                        optionParts.category === reportParts.category) {
+                                                        $(this).prop('selected', true);
+                                                        console.log('Appliance selected by brand+category match:', optionText);
+                                                        found = true;
+                                                        return false;
+                                                    }
+                                                });
+                                            }
+                                            
                                             if (!found) {
                                                 console.warn('Could not find appliance by name:', report.appliance_name);
+                                                // If we have the appliance_id, still try to set it
+                                                if (appId) {
+                                                    $('#appliance-select').val(appId);
+                                                    console.log('Set appliance by ID as fallback:', appId);
+                                                }
                                             }
                                         }
                                     } else {
