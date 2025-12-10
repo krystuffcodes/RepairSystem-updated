@@ -367,11 +367,23 @@ class ServiceHandler {
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status;
             $dealer = $report->dealer ? $report->dealer : null;
-            $dop = $report->dop ? $report->dop->format('Y-m-d') : null;
-            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : null;
+            $dop = $report->dop ? $report->dop->format('Y-m-d') : '';
+            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : '';
             $findings = $report->findings ? $report->findings : null;
             $remarks = $report->remarks ? $report->remarks : null;
             $locationJson = json_encode($report->location);
+
+            error_log("INSERT SERVICE REPORT - Values:");
+            error_log("  customer_name: " . ($customer_name ?? 'null'));
+            error_log("  appliance_name: " . ($appliance_name ?? 'null'));
+            error_log("  date_in: " . ($dateIn ?? 'null'));
+            error_log("  status: " . ($status ?? 'null'));
+            error_log("  dealer: " . ($dealer ?? 'null'));
+            error_log("  dop: '" . $dop . "'");
+            error_log("  datePullOut: '" . $datePullOut . "'");
+            error_log("  findings: " . ($findings ?? 'null'));
+            error_log("  remarks: " . ($remarks ?? 'null'));
+            error_log("  location: " . $locationJson);
 
             $stmt->bind_param(
                 "ssssssssss",
@@ -416,6 +428,13 @@ class ServiceHandler {
             $manager = $detail->manager ? $detail->manager : null;
             $technician = $detail->technician ? $detail->technician : null;
             $released_by = $detail->released_by ? $detail->released_by : null;
+
+            error_log("INSERT SERVICE DETAILS - Values:");
+            error_log("  report_id: " . $reportId);
+            error_log("  service_types: " . $serviceTypesJson);
+            error_log("  service_charge: " . ($service_charge ?? 'null'));
+            error_log("  dateRepaired: '" . $dateRepaired . "'");
+            error_log("  dateDelivered: '" . $dateDelivered . "'");
 
             $stmt->bind_param(
                 "isdsssddddssss",
@@ -704,8 +723,8 @@ class ServiceHandler {
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status ? $report->status : null;
             $dealer = $report->dealer ? $report->dealer : null;
-                        $dop = $report->dop ? $report->dop->format('Y-m-d') : null;
-                        $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : null;
+            $dop = $report->dop ? $report->dop->format('Y-m-d') : '';
+            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : '';
             $findings = $report->findings ? $report->findings : null;
             $remarks = $report->remarks ? $report->remarks : null;
             $locationJson = json_encode($report->location);
