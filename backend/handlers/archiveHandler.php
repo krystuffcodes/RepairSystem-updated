@@ -2,12 +2,36 @@
 class ArchiveHandler {
     private $conn;
     private $table_name = "archive_records";
+    private $tableExists = null;
 
     public function __construct($db) {
         $this->conn = $db;
+        $this->checkTableExists();
+    }
+
+    private function checkTableExists() {
+        if ($this->tableExists !== null) {
+            return $this->tableExists;
+        }
+        
+        $result = $this->conn->query("SHOW TABLES LIKE '{$this->table_name}'");
+        $this->tableExists = ($result && $result->num_rows > 0);
+        
+        if (!$this->tableExists) {
+            error_log('WARNING: archive_records table does not exist. Archiving will be skipped.');
+        }
+        
+        return $this->tableExists;
     }
 
     public function archiveRecord($table_name, $record_id, $deleted_data, $deleted_by = null, $reason = null) {
+        // Check if archive table exists, if not, log and return success (graceful degradation)
+        if (!$this->checkTableExists()) {
+            error_log('ArchiveHandler->archiveRecord skipped: archive_records table does not exist. Table: ' . $table_name . ' Record: ' . $record_id);
+            // Return true to not break the deletion process
+            return true;
+        }
+        
         $query = "INSERT INTO " . $this->table_name . " 
                   (table_name, record_id, deleted_data, deleted_by, reason) 
                   VALUES (?, ?, ?, ?, ?)";
@@ -15,7 +39,8 @@ class ArchiveHandler {
         $stmt = $this->conn->prepare($query);
         if (!$stmt) {
             error_log('ArchiveHandler->archiveRecord prepare failed: ' . $this->conn->error);
-            return false;
+            // Return true to not break deletion even if archiving fails
+            return true;
         }
 
         // Encode deleted_data into JSON, using partial output fallback if needed.
@@ -40,19 +65,32 @@ class ArchiveHandler {
         $bindResult = $stmt->bind_param("sisis", $table_name, $record_id, $deleted_json, $deleted_by_val, $reason_val);
         if ($bindResult === false) {
             error_log('ArchiveHandler->archiveRecord bind_param failed: ' . $stmt->error);
-            return false;
+            // Return true to not break deletion
+            return true;
         }
 
         $execResult = $stmt->execute();
         if ($execResult === false) {
             error_log('ArchiveHandler->archiveRecord execute failed: ' . $stmt->error . ' | SQL: ' . $query . ' | data: ' . substr($deleted_json, 0, 2000));
-            return false;
+            // Return true to not break deletion even if archiving fails
+            return true;
         }
         error_log('ArchiveHandler->archiveRecord success: table=' . $table_name . ' record=' . $record_id . ' by=' . var_export($deleted_by_val, true));
         return true;
     }
 
     public function getArchivedRecords($page = 1, $itemsPerPage = 10, $search = '') {
+        // Check if table exists
+        if (!$this->checkTableExists()) {
+            return [
+                'archives' => [],
+                'current_page' => 1,
+                'total_pages' => 0,
+                'total_items' => 0,
+                'items_per_page' => $itemsPerPage
+            ];
+        }
+        
         $offset = ($page - 1) * $itemsPerPage;
         
         $where_conditions = [];
