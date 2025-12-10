@@ -24,6 +24,28 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `archive_records`
+--
+
+CREATE TABLE `archive_records` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `table_name` varchar(100) NOT NULL,
+  `record_id` int(11) NOT NULL,
+  `deleted_data` longtext NOT NULL,
+  `deleted_by` int(11) DEFAULT NULL,
+  `deleted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reason` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `table_name` (`table_name`),
+  KEY `record_id` (`record_id`),
+  KEY `deleted_at` (`deleted_at`),
+  KEY `idx_table_record` (`table_name`, `record_id`),
+  KEY `idx_deleted_by` (`deleted_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `appliances`
 --
 

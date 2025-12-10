@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/bootstrapArchive.php';
+
 class ArchiveHandler {
     private $conn;
     private $table_name = "archive_records";
@@ -6,6 +8,8 @@ class ArchiveHandler {
 
     public function __construct($db) {
         $this->conn = $db;
+        // Try to ensure table exists on initialization
+        ensureArchiveTableExists($db);
         $this->checkTableExists();
     }
 
