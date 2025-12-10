@@ -838,6 +838,14 @@ $userSession = $auth->requireAuth('both');
                 // Show corresponding content
                 $('.tab-content').removeClass('active');
                 $(`#${tabId}Tab`).addClass('active');
+                
+                // Load data when switching tabs
+                if (tabId === 'archive') {
+                    $('#searchArchive').val('');
+                    loadArchivedRecords(1);
+                } else if (tabId === 'activity') {
+                    loadActivityLog(currentActivityPage);
+                }
             });
 
             // Activity Log Filtering
@@ -916,24 +924,63 @@ $userSession = $auth->requireAuth('both');
                 }
             });
 
-            // Restore record function
+            // Restore record function with loading states and better feedback
             function restoreRecord(archiveId) {
+                // Find the button that triggered this
+                const $button = $(`.restore-btn[data-id="${archiveId}"]`);
+                const originalHtml = $button.html();
+                
+                // Disable button and show loading state
+                $button.prop('disabled', true).html(`
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>Restoring...</span>
+                `);
+                
                 $.ajax({
                     url: API_BASE_URL + '?action=restoreRecord&id=' + archiveId,
                     type: 'GET',
                     dataType: 'json',
                     success: function(response) {
                         if (response && response.success) {
-                            alert('Record restored successfully');
+                            showAlert('success', 'Record restored successfully!');
+                            // Reload the archive table
                             loadArchivedRecords(currentArchivePage);
                         } else {
-                            alert('Error: ' + (response.message || 'Failed to restore record'));
+                            showAlert('error', response.message || 'Failed to restore record');
+                            // Re-enable button on error
+                            $button.prop('disabled', false).html(originalHtml);
                         }
                     },
                     error: function(xhr, status, error) {
-                        alert('Error: ' + error);
+                        console.error('Restore error:', error, xhr.responseText);
+                        showAlert('error', 'Error restoring record: ' + error);
+                        // Re-enable button on error
+                        $button.prop('disabled', false).html(originalHtml);
                     }
                 });
+            }
+            
+            // Helper function to show alerts
+            function showAlert(type, message) {
+                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const iconName = type === 'success' ? 'check_circle' : 'error';
+                
+                const alertHtml = `
+                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px;">
+                        <span class="material-icons" style="vertical-align: middle; margin-right: 8px;">${iconName}</span>
+                        ${message}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                `;
+                
+                $('body').append(alertHtml);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(function() {
+                    $('.alert').fadeOut(300, function() { $(this).remove(); });
+                }, 5000);
             }
 
             // Update pagination functions
@@ -1050,8 +1097,17 @@ $userSession = $auth->requireAuth('both');
                 const apiUrl = API_BASE_URL + '?action=getArchivedRecords&page=' + page + '&itemsPerPage=10&search=' + encodeURIComponent(search);
                 console.log('Fetching archived records from:', apiUrl);
 
-                // show loading
-                $('#archiveTableBody').html('<tr><td colspan="6" class="text-center">Loading archived records...</td></tr>');
+                // show loading with spinner
+                $('#archiveTableBody').html(`
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mt-2 mb-0">Loading archived records...</p>
+                        </td>
+                    </tr>
+                `);
 
                 $.ajax({
                     url: apiUrl,
@@ -1079,12 +1135,37 @@ $userSession = $auth->requireAuth('both');
                             });
                         } else {
                             console.error('Error loading archived records:', response?.message || response?.error || 'Unknown');
-                            $('#archiveTableBody').html('<tr><td colspan="6" class="text-center">Error loading archived records: ' + (response?.message || response?.error || 'Unknown') + '</td></tr>');
+                            $('#archiveTableBody').html(`
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <i class="material-icons text-warning" style="font-size: 48px;">warning</i>
+                                        <p class="mb-0">Error loading archived records: ${response?.message || response?.error || 'Unknown'}</p>
+                                    </td>
+                                </tr>
+                            `);
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('AJAX Error:', status, error, 'ResponseText:', xhr.responseText);
-                        $('#archiveTableBody').html('<tr><td colspan="6" class="text-center">Failed to load archived records</td></tr>');
+                        let errorMessage = 'Failed to load archived records';
+                        
+                        if (xhr.status === 404) {
+                            errorMessage = 'Archive API endpoint not found. Check backend/api/archive_api.php';
+                        } else if (xhr.status === 500) {
+                            errorMessage = 'Server error. Check PHP error logs.';
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        
+                        $('#archiveTableBody').html(`
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="material-icons text-danger" style="font-size: 48px;">error</i>
+                                    <p class="mb-0">${errorMessage}</p>
+                                    <small class="text-muted">Status: ${xhr.status} ${status}</small>
+                                </td>
+                            </tr>
+                        `);
                     }
                 });
             }
@@ -1245,16 +1326,22 @@ $userSession = $auth->requireAuth('both');
                 return `
                     <tr>
                         <td>${archive.id}</td>
-                        <td>${tableName}</td>
+                        <td><span class="badge badge-secondary">${tableName}</span></td>
                         <td>#${recordId}</td>
                         <td>${deletedAt}</td>
-                        <td>${reason}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-secondary view-archive-btn me-1" data-id="${archive.id}">
-                                <span class="material-icons">visibility</span> View
+                        <td><small>${reason}</small></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-info view-archive-btn me-1" 
+                                    data-id="${archive.id}" 
+                                    style="display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="material-icons" style="font-size: 16px;">visibility</span>
+                                <span>View</span>
                             </button>
-                            <button class="btn btn-sm btn-outline-primary restore-btn" data-id="${archive.id}">
-                                <span class="material-icons">restore</span> Restore
+                            <button class="btn btn-sm btn-success restore-btn" 
+                                    data-id="${archive.id}"
+                                    style="display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="material-icons" style="font-size: 16px;">restore</span>
+                                <span>Restore</span>
                             </button>
                         </td>
                     </tr>
