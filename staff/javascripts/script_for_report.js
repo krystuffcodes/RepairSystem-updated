@@ -307,6 +307,15 @@
             if (reportId) {
                 formData.report_id = reportId;
             }
+            
+            // Clean up date fields - remove if null to prevent empty strings
+            if (!formData.date_repaired) delete formData.date_repaired;
+            if (!formData.date_delivered) delete formData.date_delivered;
+            if (!formData.dop) delete formData.dop;
+            if (!formData.date_pulled_out) delete formData.date_pulled_out;
+            
+            console.log('Form data before sending:', formData);
+            
             return formData;
         }
 

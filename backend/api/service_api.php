@@ -222,10 +222,23 @@ try {
                 $parts_total_val = isset($input['parts_total_charge']) ? floatval($input['parts_total_charge']) : 0.0;
                 $total_amount_val = isset($input['total_amount']) ? floatval($input['total_amount']) : 0.0;
 
-                // Parse optional detail dates defensively
-                $dateRepairedObj = null;
-                $dateRepairedObj = safeParseDate($input['date_repaired'] ?? null);
-                $dateDeliveredObj = safeParseDate($input['date_delivered'] ?? null);
+                // Parse optional detail dates defensively - clean empty strings
+                $dateRepairedInput = $input['date_repaired'] ?? null;
+                $dateDeliveredInput = $input['date_delivered'] ?? null;
+                
+                // Clean empty strings before parsing
+                if (is_string($dateRepairedInput) && trim($dateRepairedInput) === '') {
+                    $dateRepairedInput = null;
+                }
+                if (is_string($dateDeliveredInput) && trim($dateDeliveredInput) === '') {
+                    $dateDeliveredInput = null;
+                }
+                
+                $dateRepairedObj = safeParseDate($dateRepairedInput);
+                $dateDeliveredObj = safeParseDate($dateDeliveredInput);
+                
+                error_log("Date parsed - Repaired: " . ($dateRepairedObj ? $dateRepairedObj->format('Y-m-d') : 'null') . 
+                         ", Delivered: " . ($dateDeliveredObj ? $dateDeliveredObj->format('Y-m-d') : 'null'));
 
                 $detail = new Service_detail(
                     $service_types_list, // default to ['repair'] if missing or empty

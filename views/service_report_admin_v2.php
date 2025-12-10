@@ -1482,6 +1482,13 @@ $userSession = $auth->requireAuth('admin');
             const datePulledVal = formatDateForPHP($('input[name="date_pulled_out"]').val());
             if (dopVal) formData.dop = dopVal;
             if (datePulledVal) formData.date_pulled_out = datePulledVal;
+            
+            // Clean up date fields - remove if null to prevent empty strings
+            if (!formData.date_repaired) delete formData.date_repaired;
+            if (!formData.date_delivered) delete formData.date_delivered;
+            
+            console.log('Form data before sending:', formData);
+            
             return formData;
         }
 
