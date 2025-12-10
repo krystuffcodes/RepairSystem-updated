@@ -33,9 +33,19 @@ function sendResponse($success, $data = null, $message = '', $httpCode = 200)
  * Accepts 'Y-m-d' or other parseable formats; returns null on failure.
  */
 function safeParseDate($value) {
-    if (empty($value)) return null;
+    // Handle null, empty string, whitespace, or "null" string
+    if (empty($value) || (is_string($value) && trim($value) === '') || $value === 'null') {
+        return null;
+    }
+    
     // If already a DateTime, return as-is
     if ($value instanceof DateTime) return $value;
+
+    // Trim whitespace from string values
+    if (is_string($value)) {
+        $value = trim($value);
+        if ($value === '') return null;
+    }
 
     // Try strict Y-m-d first
     $dt = DateTime::createFromFormat('Y-m-d', $value);
@@ -170,12 +180,13 @@ try {
                     }
                 }
 
+                // Clean all date fields - convert empty strings to null
                 $dopVal = isset($input['dop']) ? $input['dop'] : null;
                 $datePulledVal = isset($input['date_pulled_out']) ? $input['date_pulled_out'] : null;
 
-                // Treat empty or "null" string as null explicitly
-                $dopVal = ($dopVal === '' || $dopVal === 'null') ? null : $dopVal;
-                $datePulledVal = ($datePulledVal === '' || $datePulledVal === 'null') ? null : $datePulledVal;
+                // Treat empty, "null" string, or whitespace as null
+                $dopVal = (empty(trim($dopVal ?? '')) || $dopVal === 'null') ? null : $dopVal;
+                $datePulledVal = (empty(trim($datePulledVal ?? '')) || $datePulledVal === 'null') ? null : $datePulledVal;
 
                 // Defensive parsing of required date_in
                 $dateInObj = safeParseDate($input['date_in'] ?? null);

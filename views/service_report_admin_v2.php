@@ -1393,10 +1393,19 @@ $userSession = $auth->requireAuth('admin');
 
         function gatherFormData() {
             const formatDateForPHP = (dateStr) => {
-                if (!dateStr || dateStr.trim() === '') return null;
+                // Handle null, undefined, empty string, or whitespace
+                if (!dateStr || (typeof dateStr === 'string' && dateStr.trim() === '')) {
+                    return null;
+                }
                 try {
-                    return new Date(dateStr).toISOString().split('T')[0];
+                    const date = new Date(dateStr);
+                    // Check if date is valid
+                    if (isNaN(date.getTime())) {
+                        return null;
+                    }
+                    return date.toISOString().split('T')[0];
                 } catch (e) {
+                    console.error('Date formatting error:', e);
                     return null;
                 }
             };
