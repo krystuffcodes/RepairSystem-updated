@@ -359,7 +359,7 @@ class ServiceHandler {
             $stmt = $this->conn->prepare("
                 INSERT INTO {$this->servicereport_table} 
                 (customer_name, appliance_name, date_in, status, dealer, dop, date_pulled_out, findings, remarks, location)
-                    VALUES (?, ?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $customer_name = $report->customer_name;
@@ -367,8 +367,8 @@ class ServiceHandler {
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status;
             $dealer = $report->dealer ? $report->dealer : null;
-            $dop = $report->dop ? $report->dop->format('Y-m-d') : '';
-            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : '';
+            $dop = $report->dop ? $report->dop->format('Y-m-d') : null;
+            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : null;
             $findings = $report->findings ? $report->findings : null;
             $remarks = $report->remarks ? $report->remarks : null;
             $locationJson = json_encode($report->location);
@@ -379,8 +379,8 @@ class ServiceHandler {
             error_log("  date_in: " . ($dateIn ?? 'null'));
             error_log("  status: " . ($status ?? 'null'));
             error_log("  dealer: " . ($dealer ?? 'null'));
-            error_log("  dop: '" . $dop . "'");
-            error_log("  datePullOut: '" . $datePullOut . "'");
+            error_log("  dop: " . ($dop ?? 'null'));
+            error_log("  datePullOut: " . ($datePullOut ?? 'null'));
             error_log("  findings: " . ($findings ?? 'null'));
             error_log("  remarks: " . ($remarks ?? 'null'));
             error_log("  location: " . $locationJson);
@@ -412,13 +412,13 @@ class ServiceHandler {
                 INSERT INTO {$this->servicedetail_table} 
                 (report_id, service_types, service_charge, date_repaired, date_delivered, complaint, labor, pullout_delivery,
                 parts_total_charge, total_amount, receptionist, manager, technician, released_by)
-                VALUES (?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             "); 
 
             $serviceTypesJson = json_encode($detail->service_types);
             $service_charge = $detail->service_charge ? $detail->service_charge : null;
-            $dateRepaired = $detail->date_repaired ? $detail->date_repaired->format('Y-m-d') : '';
-            $dateDelivered = $detail->date_delivered ? $detail->date_delivered->format('Y-m-d') : '';
+            $dateRepaired = $detail->date_repaired ? $detail->date_repaired->format('Y-m-d') : null;
+            $dateDelivered = $detail->date_delivered ? $detail->date_delivered->format('Y-m-d') : null;
             $complaint = $detail->complaint ? $detail->complaint : null;
             $labor = $detail->labor ? $detail->labor : null;
             $pullout_delivery = $detail->pullout_delivery ? $detail->pullout_delivery : null;
@@ -433,8 +433,8 @@ class ServiceHandler {
             error_log("  report_id: " . $reportId);
             error_log("  service_types: " . $serviceTypesJson);
             error_log("  service_charge: " . ($service_charge ?? 'null'));
-            error_log("  dateRepaired: '" . $dateRepaired . "'");
-            error_log("  dateDelivered: '" . $dateDelivered . "'");
+            error_log("  dateRepaired: '" . ($dateRepaired ?? 'null') . "'");
+            error_log("  dateDelivered: '" . ($dateDelivered ?? 'null') . "'");
 
             $stmt->bind_param(
                 "isdsssddddssss",
@@ -713,7 +713,7 @@ class ServiceHandler {
             $stmt = $this->conn->prepare("
                 UPDATE {$this->servicereport_table}
                 SET customer_name = ?, customer_id = ?, appliance_name = ?, appliance_id = ?, date_in = ?, status = ?,
-                dealer = ?, dop = NULLIF(?, ''), date_pulled_out = NULLIF(?, ''), findings = ?, remarks = ?, location = ?
+                dealer = ?, dop = ?, date_pulled_out = ?, findings = ?, remarks = ?, location = ?
                  WHERE report_id = ?
             ");
             $customer_name = $report->customer_name ? $report->customer_name : null;
@@ -723,8 +723,8 @@ class ServiceHandler {
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status ? $report->status : null;
             $dealer = $report->dealer ? $report->dealer : null;
-            $dop = $report->dop ? $report->dop->format('Y-m-d') : '';
-            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : '';
+            $dop = $report->dop ? $report->dop->format('Y-m-d') : null;
+            $datePullOut = $report->date_pulled_out ? $report->date_pulled_out->format('Y-m-d') : null;
             $findings = $report->findings ? $report->findings : null;
             $remarks = $report->remarks ? $report->remarks : null;
             $locationJson = json_encode($report->location);
@@ -792,13 +792,13 @@ class ServiceHandler {
                 INSERT INTO {$this->servicedetail_table} 
                 (report_id, service_types, service_charge, date_repaired, date_delivered, complaint, labor,
                 pullout_delivery, parts_total_charge, total_amount, receptionist, manager, technician, released_by)
-                VALUES (?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $serviceTypesJson = json_encode($detail->service_types);
             $service_charge = $detail->service_charge ? $detail->service_charge : null;
-            $dateRepaired = $detail->date_repaired ? $detail->date_repaired->format('Y-m-d') : '';
-            $dateDelivered = $detail->date_delivered ? $detail->date_delivered->format('Y-m-d') : '';
+            $dateRepaired = $detail->date_repaired ? $detail->date_repaired->format('Y-m-d') : null;
+            $dateDelivered = $detail->date_delivered ? $detail->date_delivered->format('Y-m-d') : null;
             $complaint = $detail->complaint ? $detail->complaint : null;
             $labor = $detail->labor ? $detail->labor : null;
             $pullout_delivery = $detail->pullout_delivery ? $detail->pullout_delivery : null;
