@@ -882,8 +882,11 @@ $userSession = $auth->requireAuth('admin');
                                                 </div>
                                             </div>
                                             <div class="col-md-3 px-1">
-                                                <!-- Total (hidden) -->
-                                                <input type="hidden" name="total_amount" id="total-amount-2" readonly>
+                                                <label class="mb-1">Total:</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">₱</span>
+                                                    <input type="number" class="form-control" name="total_amount" id="total-amount-2" readonly>
+                                                </div>
                                             </div>
                                             <div class="col-md-3 ps-1">
                                                 <label class="mb-1">Parts Charge:</label>
