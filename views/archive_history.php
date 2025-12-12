@@ -186,6 +186,11 @@ $userSession = $auth->requireAuth('both');
             border-color: var(--primary);
         }
         
+        .filter-btn.active:hover {
+            background: #5a5c5a;
+            border-color: #5a5c5a;
+        }
+        
         .stats-container {
             padding: 20px 25px;
             display: grid;
@@ -203,18 +208,18 @@ $userSession = $auth->requireAuth('both');
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
+        .stat-box .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
         .stat-box h6 {
             font-size: 0.85rem;
             color: var(--text-light);
             margin: 0 0 5px 0;
             text-transform: uppercase;
             font-weight: 600;
-        }
-        
-        .stat-box .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary);
         }
         
         /* Button Styles */
@@ -430,12 +435,17 @@ $userSession = $auth->requireAuth('both');
             color: white;
             border-color: var(--primary);
             transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(108, 110, 108, 0.3);
         }
         
         .page-item.active .page-link {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+        }
+        
+        .page-item.active .page-link:hover {
+            background: #5a5c5a;
         }
         
         .page-item.disabled .page-link {
@@ -492,6 +502,10 @@ $userSession = $auth->requireAuth('both');
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
+        }
+        
+        .loading-overlay {
+            background: rgba(108, 110, 108, 0.2);
         }
         
         @keyframes spin {
