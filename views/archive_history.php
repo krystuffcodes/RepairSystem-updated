@@ -31,7 +31,7 @@ $userSession = $auth->requireAuth('both');
             --card-bg: #ffffff;
             --text: #333;
             --text-light: #666;
-            --border: #dee2e6;
+            --border: #545455ff;
         }
         
         * {
@@ -86,7 +86,7 @@ $userSession = $auth->requireAuth('both');
             border-bottom: 2px solid var(--border);
             flex-wrap: wrap;
             gap: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             border-radius: 12px 12px 0 0;
         }
         
@@ -264,7 +264,12 @@ $userSession = $auth->requireAuth('both');
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a5c5a;
             color: white;
         }
         
@@ -293,7 +298,7 @@ $userSession = $auth->requireAuth('both');
         }
         
         .table thead th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             color: white;
             padding: 15px;
             text-align: left;
@@ -548,7 +553,7 @@ $userSession = $auth->requireAuth('both');
         
         /* Modal Enhancements */
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary);
             color: white;
             border-radius: 8px 8px 0 0;
         }
