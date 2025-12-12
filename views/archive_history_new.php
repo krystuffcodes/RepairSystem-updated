@@ -21,7 +21,7 @@ $userSession = $auth->requireAuth('both');
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
-            --primary: #353b48;
+            --primary: #2d3748;
             --secondary: #2d3748;
             --highlight: #e53e3e;
             --success: #28a745;

@@ -27,8 +27,8 @@
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'staff.php' ? 'active' : ''; ?>">
             <a href="staff.php"><i class="material-icons">engineering</i><span>Staff</span></a>
         </li>
-        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'archive_history.php' ? 'active' : ''; ?>">
-            <a href="archive_history.php"><i class="material-icons">archive</i><span>Archive History</span></a>
+        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'archive_history_new.php' ? 'active' : ''; ?>">
+            <a href="archive_history_new.php"><i class="material-icons">archive</i><span>Archive History</span></a>
         </li>
     </ul>
 
