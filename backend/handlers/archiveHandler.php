@@ -126,7 +126,7 @@ class ArchiveHandler {
         
         // Get paginated results
         $query = "SELECT * FROM " . $this->table_name . " " . $where_clause . " 
-                  ORDER BY deleted_at DESC LIMIT ? OFFSET ?";
+                  ORDER BY id ASC LIMIT ? OFFSET ?";
         
         $stmt = $this->conn->prepare($query);
         

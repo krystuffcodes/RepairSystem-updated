@@ -21,7 +21,7 @@ $userSession = $auth->requireAuth('both');
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
-            --primary: #2d3748;
+            --primary: #6c6e6cff;
             --secondary: #2d3748;
             --highlight: #e53e3e;
             --success: #28a745;
@@ -86,7 +86,7 @@ $userSession = $auth->requireAuth('both');
             border-bottom: 2px solid var(--border);
             flex-wrap: wrap;
             gap: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #353B48;
             border-radius: 12px 12px 0 0;
         }
         
@@ -264,7 +264,7 @@ $userSession = $auth->requireAuth('both');
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #353B48;
             color: white;
         }
         
@@ -293,7 +293,7 @@ $userSession = $auth->requireAuth('both');
         }
         
         .table thead th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #353B48;
             color: white;
             padding: 15px;
             text-align: left;
@@ -548,7 +548,7 @@ $userSession = $auth->requireAuth('both');
         
         /* Modal Enhancements */
         .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #353B48;
             color: white;
             border-radius: 8px 8px 0 0;
         }
