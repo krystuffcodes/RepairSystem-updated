@@ -1102,12 +1102,54 @@ $userSession = $auth->requireAuth('both');
                 <hr>
                 <h6 class="mt-3 mb-3"><strong>Deleted Data:</strong></h6>
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
-                    <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 0.85rem;">${JSON.stringify(deletedData, null, 2)}</pre>
+                    ${formatDeletedData(deletedData)}
                 </div>
             `;
 
             $('#detailsModalBody').html(html);
             $('#detailsModal').modal('show');
+        }
+
+        function formatDeletedData(data) {
+            if (!data || Object.keys(data).length === 0) {
+                return '<p style="margin: 0; color: #999;">No data available</p>';
+            }
+
+            let html = '<div style="font-size: 0.9rem;">';
+            
+            for (const [key, value] of Object.entries(data)) {
+                // Skip null or undefined values
+                if (value === null || value === undefined) continue;
+                
+                // Format the key to be more readable
+                const label = key.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+                
+                // Format the value
+                let displayValue = value;
+                if (typeof value === 'object') {
+                    displayValue = JSON.stringify(value, null, 2);
+                } else if (key.toLowerCase().includes('date') || key.toLowerCase().includes('time')) {
+                    // Try to format dates
+                    const date = new Date(value);
+                    if (!isNaN(date.getTime())) {
+                        displayValue = formatDateTime(value);
+                    }
+                } else if (typeof value === 'boolean') {
+                    displayValue = value ? 'Yes' : 'No';
+                }
+                
+                html += `
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #dee2e6;">
+                        <div style="font-weight: 600; color: #495057; margin-bottom: 4px;">${label}:</div>
+                        <div style="color: #6c757d; word-break: break-word;">${displayValue}</div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            return html;
         }
 
         function restoreRecord(id, $btn) {
