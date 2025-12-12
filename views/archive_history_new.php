@@ -697,7 +697,7 @@ $userSession = $auth->requireAuth('both');
                                     <tr>
                                         <th style="width: 80px;">ID</th>
                                         <th style="width: 150px;">Table Type</th>
-                                        <th style="width: 100px;">Record ID</th>
+                                        <th style="width: 200px;">Record Name</th>
                                         <th style="width: 180px;">Deleted At</th>
                                         <th style="width: 140px;">Deleted By</th>
                                         <th>Reason</th>
@@ -897,12 +897,13 @@ $userSession = $auth->requireAuth('both');
             const deletedAt = formatDateTime(item.deleted_at);
             const deletedBy = item.deleted_by || 'System';
             const reason = item.reason || 'No reason provided';
+            const recordName = getRecordName(item);
 
             return `
                 <tr>
                     <td><strong>#${item.id}</strong></td>
                     <td><span class="badge ${badgeClass}">${item.table_name}</span></td>
-                    <td><strong>#${item.record_id}</strong></td>
+                    <td><strong>${recordName}</strong></td>
                     <td><small>${deletedAt}</small></td>
                     <td><small>${deletedBy}</small></td>
                     <td><small>${truncateText(reason, 50)}</small></td>
@@ -918,6 +919,33 @@ $userSession = $auth->requireAuth('both');
                     </td>
                 </tr>
             `;
+        }
+
+        function getRecordName(item) {
+            const data = item.deleted_data || {};
+            const recordId = item.record_id;
+            
+            // Extract name based on table type
+            switch(item.table_name) {
+                case 'customer':
+                    return data.customer_name || data.name || `Customer #${recordId}`;
+                case 'staff':
+                    return data.name || data.staff_name || `Staff #${recordId}`;
+                case 'parts':
+                    return data.parts_name || data.name || `Part #${recordId}`;
+                case 'appliance':
+                    return data.appliance || data.appliance_name || data.name || `Appliance #${recordId}`;
+                case 'transaction':
+                    return data.service_number || data.transaction_id || `Transaction #${recordId}`;
+                case 'Service_details':
+                case 'service_details':
+                    return data.service_number || data.service_id || `Service #${recordId}`;
+                case 'Service_reports':
+                case 'service_reports':
+                    return data.service_number || data.report_id || `Report #${recordId}`;
+                default:
+                    return `Record #${recordId}`;
+            }
         }
 
         function getBadgeClass(tableName) {

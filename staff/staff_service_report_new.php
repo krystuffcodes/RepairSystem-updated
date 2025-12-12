@@ -652,11 +652,11 @@ try {
                                 </div>
                                 <!-- Findings Row -->
                                 <div class="row mb-0 align-items-end">
-                                    <div class="col-md-9">
+                                    <div class="col-md-7">
                                         <label>Findings</label>
                                     </div>
                                     <div class="col-md-1 text-center">
-                                        <label class="form-label p-0 m-0 w-100" style="font-weight: normal;">Shop</label>
+                                        <label class="form-label p-0 m-0 w-100" style="font-weight: normal; font-size: 0.9rem;">Shop</label>
                                     </div>
                                     <div class="col-md-1 text-center">
                                         <label class="form-label p-0 m-0 w-100" style="font-weight: normal;">Field</label>
@@ -669,7 +669,7 @@ try {
                                     </div>
                                 </div>
                                 <div class="row mb-2 align-items-center">
-                                    <div class="col-md-8">
+                                    <div class="col-md-7">
                                         <input type="text" class="form-control" name="findings">
                                     </div>
                                     <div class="col-md-1 text-center d-flex flex-column align-items-center justify-content-center">
