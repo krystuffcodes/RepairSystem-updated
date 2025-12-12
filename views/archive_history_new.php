@@ -86,7 +86,7 @@ $userSession = $auth->requireAuth('both');
             border-bottom: 2px solid var(--border);
             flex-wrap: wrap;
             gap: 15px;
-            background: #353B48;
+            background: #353b48;
             border-radius: 12px 12px 0 0;
         }
         
@@ -264,7 +264,7 @@ $userSession = $auth->requireAuth('both');
         }
         
         .btn-primary {
-            background: #353B48;
+            background: #353b48;
             color: white;
         }
         
@@ -293,7 +293,7 @@ $userSession = $auth->requireAuth('both');
         }
         
         .table thead th {
-            background: #353B48;
+            background: #353b48;
             color: white;
             padding: 15px;
             text-align: left;
@@ -548,7 +548,7 @@ $userSession = $auth->requireAuth('both');
         
         /* Modal Enhancements */
         .modal-header {
-            background: #353B48;
+            background: #353b48;
             color: white;
             border-radius: 8px 8px 0 0;
         }
