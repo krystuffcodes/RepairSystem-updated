@@ -1100,14 +1100,117 @@ $userSession = $auth->requireAuth('both');
                     <span class="detail-value">${item.reason || 'No reason provided'}</span>
                 </div>
                 <hr>
-                <h6 class="mt-3 mb-3"><strong>Deleted Data:</strong></h6>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
-                    <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 0.85rem;">${JSON.stringify(deletedData, null, 2)}</pre>
+                <h6 class="mt-3 mb-3"><strong>Record Information:</strong></h6>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+                    ${formatDeletedDataReadable(deletedData)}
                 </div>
             `;
 
             $('#detailsModalBody').html(html);
             $('#detailsModal').modal('show');
+        }
+
+        function formatDeletedDataReadable(data) {
+            if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+                return '<p class="text-muted">No data available</p>';
+            }
+
+            let html = '<div class="data-display">';
+            
+            // Field name mapping for better readability
+            const fieldNames = {
+                'CustomerID': 'Customer ID',
+                'First_name': 'First Name',
+                'Last_name': 'Last Name',
+                'Phone_no': 'Phone Number',
+                'Address': 'Address',
+                'ApplianceID': 'Appliance ID',
+                'Appliance_type': 'Appliance Type',
+                'Brand': 'Brand',
+                'Model': 'Model',
+                'Serial_no': 'Serial Number',
+                'PartID': 'Part ID',
+                'Part_name': 'Part Name',
+                'Part_number': 'Part Number',
+                'Quantity': 'Quantity',
+                'Price': 'Price',
+                'StaffID': 'Staff ID',
+                'Staff_name': 'Staff Name',
+                'Position': 'Position',
+                'Email': 'Email',
+                'TransactionID': 'Transaction ID',
+                'Service_date': 'Service Date',
+                'Status': 'Status',
+                'Total_cost': 'Total Cost',
+                'Payment_status': 'Payment Status',
+                'created_at': 'Created At',
+                'updated_at': 'Updated At'
+            };
+
+            for (const [key, value] of Object.entries(data)) {
+                // Skip null or undefined values
+                if (value === null || value === undefined) continue;
+                
+                // Get readable field name
+                const fieldName = fieldNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                
+                // Format the value
+                let displayValue = value;
+                
+                // Format dates
+                if (key.includes('date') || key.includes('_at')) {
+                    try {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                            displayValue = date.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    } catch (e) {
+                        displayValue = value;
+                    }
+                }
+                
+                // Format currency
+                if (key.toLowerCase().includes('price') || key.toLowerCase().includes('cost')) {
+                    displayValue = '₱ ' + parseFloat(value).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+                
+                // Format phone numbers
+                if (key.toLowerCase().includes('phone')) {
+                    displayValue = formatPhoneNumber(value);
+                }
+                
+                html += `
+                    <div class="detail-row" style="padding: 12px 0; border-bottom: 1px solid #e0e0e0;">
+                        <span class="detail-label" style="font-weight: 600; color: #555; min-width: 160px; display: inline-block;">
+                            ${fieldName}:
+                        </span>
+                        <span class="detail-value" style="color: #333; font-size: 0.95rem;">
+                            ${displayValue}
+                        </span>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function formatPhoneNumber(phone) {
+            if (!phone) return phone;
+            const cleaned = ('' + phone).replace(/\D/g, '');
+            if (cleaned.length === 11) {
+                return cleaned.replace(/(\d{4})(\d{3})(\d{4})/, '$1-$2-$3');
+            }
+            return phone;
         }
 
         function restoreRecord(id, $btn) {
