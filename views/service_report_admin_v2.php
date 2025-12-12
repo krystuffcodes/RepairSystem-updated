@@ -776,11 +776,14 @@ $userSession = $auth->requireAuth('admin');
                                                 <label class="form-label p-0 m-0 w-100" style="font-weight: normal;">Field</label>
                                             </div>
                                             <div class="col-md-1 text-center">
+                                                <label class="form-label p-0 m-0 w-100" style="font-weight: normal;">In WTY</label>
+                                            </div>
+                                            <div class="col-md-1 text-center">
                                                 <label class="form-label p-0 m-0 w-100" style="font-weight: normal;">Out WTY</label>
                                             </div>
                                         </div>
                                         <div class="row mb-2 align-items-center">
-                                            <div class="col-md-9">
+                                            <div class="col-md-8">
                                                 <input type="text" class="form-control" name="findings">
                                             </div>
                                             <div class="col-md-1 text-center d-flex flex-column align-items-center justify-content-center">
@@ -788,6 +791,9 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                             <div class="col-md-1 text-center d-flex flex-column align-items-center justify-content-center">
                                                 <input class="form-check-input" type="checkbox" name="field" id="field" style="width: 1.4em; height: 1.4em;">
+                                            </div>
+                                            <div class="col-md-1 text-center d-flex flex-column align-items-center justify-content-center">
+                                                <input class="form-check-input" type="checkbox" name="in_wty" id="in_wty" style="width: 1.4em; height: 1.4em;">
                                             </div>
                                             <div class="col-md-1 text-center d-flex flex-column align-items-center justify-content-center">
                                                 <input class="form-check-input" type="checkbox" name="out_wty" id="out_wty" style="width: 1.4em; height: 1.4em;">
