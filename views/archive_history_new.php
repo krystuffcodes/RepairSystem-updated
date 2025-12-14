@@ -226,9 +226,12 @@ $userSession = $auth->requireAuth('both');
             font-size: 0.9rem;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
             transition: all 0.3s;
             font-weight: 500;
+            min-width: 100px;
+            text-align: center;
         }
         
         .btn-success {
@@ -911,14 +914,14 @@ $userSession = $auth->requireAuth('both');
                     <td><small>${deletedAt}</small></td>
                     <td><small>${deletedBy}</small></td>
                     <td><small>${truncateText(reason, 50)}</small></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-info btn-view" data-id="${item.id}">
-                            <span class="material-icons" style="font-size: 16px;">visibility</span>
-                            View
+                    <td class="text-center" style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                        <button class="btn btn-sm btn-info btn-view" data-id="${item.id}" style="width: 110px;">
+                            <span class="material-icons" style="font-size: 18px;">visibility</span>
+                            <span>View</span>
                         </button>
-                        <button class="btn btn-sm btn-success btn-restore" data-id="${item.id}">
-                            <span class="material-icons" style="font-size: 16px;">restore</span>
-                            Restore
+                        <button class="btn btn-sm btn-success btn-restore" data-id="${item.id}" style="width: 110px;">
+                            <span class="material-icons" style="font-size: 18px;">restore</span>
+                            <span>Restore</span>
                         </button>
                     </td>
                 </tr>
