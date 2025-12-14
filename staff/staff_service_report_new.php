@@ -1827,6 +1827,18 @@ try {
                                 });
                             }
                             
+                            // Update visible customer search input with the customer name
+                            if (report.customer_name) {
+                                $('#customer-search').val(report.customer_name);
+                                console.log('Customer search input updated to:', report.customer_name);
+                            }
+                            
+                            // Trigger change event to sync hidden select and visible input
+                            if (selectedCustId) {
+                                $('#customer-select').trigger('change');
+                                console.log('Customer select change event triggered');
+                            }
+                            
                             // Set basic fields
                             $('#date-in').val(report.date_in || '');
                             
