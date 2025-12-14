@@ -922,8 +922,21 @@ $userSession = $auth->requireAuth('both');
         }
 
         function getRecordName(item) {
-            const data = item.deleted_data || {};
+            let data = item.deleted_data || {};
             const recordId = item.record_id;
+            
+            // Handle if deleted_data is a string (shouldn't happen but just in case)
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.log('Failed to parse deleted_data:', data);
+                    return `Record #${recordId}`;
+                }
+            }
+            
+            // Log for debugging
+            console.log(`Record [${item.table_name}#${recordId}]:`, data);
             
             // Extract name based on table type
             switch(item.table_name) {
