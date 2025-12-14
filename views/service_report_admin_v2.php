@@ -681,6 +681,178 @@ $userSession = $auth->requireAuth('admin');
             background-color: #f8f9fa !important; /* subtle hover */
             color: #212529 !important; /* ensure readable text */
         }
+
+        /* Status Progress Indicator Styles */
+        .status-progress-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .status-progress-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .progress-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .progress-step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step-number.inactive {
+            background-color: #e0e0e0;
+            color: #666;
+        }
+
+        .progress-step-number.active {
+            background-color: #ffc107;
+            color: #000;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3);
+        }
+
+        .progress-step-number.completed {
+            background-color: #28a745;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+        }
+
+        .progress-step-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #666;
+            text-align: center;
+            max-width: 80px;
+        }
+
+        .progress-step-label.active {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .progress-step-label.completed {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .progress-connector {
+            flex: 1;
+            height: 3px;
+            background-color: #e0e0e0;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .progress-connector.active,
+        .progress-connector.completed {
+            background-color: #28a745;
+        }
+
+        .status-timeline {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #ffffff;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #007bff;
+            margin-right: 10px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .timeline-text {
+            flex: 1;
+        }
+
+        .timeline-text strong {
+            color: #333;
+        }
+
+        .timeline-text span {
+            color: #666;
+        }
+
+        .status-dropdown-toggle {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+        }
+
+        .status-dropdown-toggle:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+
+        .status-dropdown-toggle.collapsed::after {
+            content: '▼';
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .status-dropdown-toggle:not(.collapsed)::after {
+            content: '▲';
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .progress-timeline-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
     </style>
 </head>
 
@@ -740,7 +912,7 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                             <div class="col-md-3">
                                                 <label>Status</label>
-                                                <select class="form-control" name="status" required>
+                                                <select class="form-control" name="status" id="status-select" required>
                                                     <option value="">Select Status</option>
                                                     <option value="Pending">Pending</option>
                                                     <option value="Under Repair">Under Repair</option>
@@ -750,6 +922,60 @@ $userSession = $auth->requireAuth('admin');
                                                 </select>
                                             </div>
                                         </div>
+
+                                        <!-- Status Progress Indicator -->
+                                        <div id="status-progress-container" class="status-progress-container" style="display: none;">
+                                            <div class="status-progress-title">Repair Progress</div>
+                                            
+                                            <!-- Main Progress Bar -->
+                                            <div class="progress-bar-container">
+                                                <!-- Pending Step -->
+                                                <div class="progress-step">
+                                                    <div class="progress-step-number inactive" id="step-1">1</div>
+                                                    <div class="progress-step-label" id="step-1-label">Pending</div>
+                                                </div>
+                                                
+                                                <!-- Connector 1 -->
+                                                <div class="progress-connector inactive" id="connector-1"></div>
+                                                
+                                                <!-- Under Repair Step -->
+                                                <div class="progress-step">
+                                                    <div class="progress-step-number inactive" id="step-2">2</div>
+                                                    <div class="progress-step-label" id="step-2-label">Under Repair</div>
+                                                </div>
+                                                
+                                                <!-- Connector 2 -->
+                                                <div class="progress-connector inactive" id="connector-2"></div>
+                                                
+                                                <!-- Completed Step -->
+                                                <div class="progress-step">
+                                                    <div class="progress-step-number inactive" id="step-3">3</div>
+                                                    <div class="progress-step-label" id="step-3-label">Completed</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Status Timeline with Dropdown -->
+                                            <div style="text-align: center; margin-top: 10px;">
+                                                <a href="#" class="status-dropdown-toggle collapsed" id="status-timeline-toggle" data-toggle="collapse" data-target="#status-timeline-content">
+                                                    View Progress Timeline
+                                                </a>
+                                            </div>
+
+                                            <div id="status-timeline-content" class="collapse">
+                                                <div class="status-timeline">
+                                                    <div class="progress-timeline-content" id="progress-timeline-items">
+                                                        <div class="timeline-item">
+                                                            <div class="timeline-dot"></div>
+                                                            <div class="timeline-text">
+                                                                <strong>Status Created</strong><br>
+                                                                <span id="timeline-created-date">Not yet created</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Second Row: Dealer, DOP, Date Pulled-Out, Service Type -->
                                         <div class="row mb-2">
                                             <div class="col-md-3">
@@ -1174,6 +1400,200 @@ $userSession = $auth->requireAuth('admin');
             }
         }
 
+        // Status Progress Functions
+        function updateStatusProgress(status) {
+            const container = $('#status-progress-container');
+            if (!status) {
+                container.hide();
+                return;
+            }
+
+            container.show();
+
+            // Define status order and steps
+            const statusFlow = {
+                'Pending': { step: 1, isCompleted: false },
+                'Under Repair': { step: 2, isCompleted: false },
+                'Completed': { step: 3, isCompleted: true },
+                'Unrepairable': { step: 2, isCompleted: false, isAlternate: true },
+                'Release Out': { step: 3, isCompleted: true, isAlternate: true }
+            };
+
+            const currentStatus = statusFlow[status] || { step: 0, isCompleted: false };
+
+            // Update progress steps display
+            updateProgressSteps(currentStatus.step, currentStatus.isCompleted);
+
+            // Update timeline
+            updateProgressTimeline(status);
+        }
+
+        function updateProgressSteps(currentStep, isCompleted) {
+            // Reset all steps
+            for (let i = 1; i <= 3; i++) {
+                const $stepNumber = $(`#step-${i}`);
+                const $stepLabel = $(`#step-${i}-label`);
+                const $connector = $(`#connector-${i}`);
+
+                $stepNumber.removeClass('active completed inactive');
+                $stepLabel.removeClass('active completed');
+                if ($connector.length) {
+                    $connector.removeClass('active completed');
+                }
+
+                $stepNumber.addClass('inactive');
+            }
+
+            // Set completed steps
+            for (let i = 1; i < currentStep; i++) {
+                $(`#step-${i}`).removeClass('inactive').addClass('completed');
+                $(`#step-${i}-label`).addClass('completed');
+                if ($(`#connector-${i}`).length) {
+                    $(`#connector-${i}`).removeClass('inactive').addClass('completed');
+                }
+            }
+
+            // Set current step as active
+            if (currentStep > 0 && currentStep <= 3) {
+                $(`#step-${currentStep}`).removeClass('inactive').addClass('active');
+                $(`#step-${currentStep}-label`).addClass('active');
+            }
+
+            // Set remaining steps
+            for (let i = currentStep + 1; i <= 3; i++) {
+                $(`#step-${i}`).removeClass('completed').addClass('inactive');
+                $(`#step-${i}-label`).removeClass('completed');
+            }
+        }
+
+        function updateProgressTimeline(status) {
+            const timelineContainer = $('#progress-timeline-items');
+            const currentDate = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let timelineHTML = '';
+
+            // Map statuses to timeline events
+            const timelineEvents = {
+                'Pending': {
+                    title: 'Received for Service',
+                    description: 'Awaiting repair technician'
+                },
+                'Under Repair': {
+                    title: 'Under Repair',
+                    description: 'Technician is working on the unit'
+                },
+                'Unrepairable': {
+                    title: 'Unit is Unrepairable',
+                    description: 'Unable to repair - marked as unrepairable'
+                },
+                'Release Out': {
+                    title: 'Released to Customer',
+                    description: 'Unit has been released out'
+                },
+                'Completed': {
+                    title: 'Repair Completed',
+                    description: 'Service completed and ready for delivery'
+                }
+            };
+
+            const event = timelineEvents[status] || { title: 'Status Unknown', description: '' };
+
+            timelineHTML += `
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-text">
+                        <strong>${event.title}</strong><br>
+                        <span>${event.description}</span><br>
+                        <small style="color: #999;">${currentDate}</small>
+                    </div>
+                </div>
+            `;
+
+            // Add previous status tracking (if available from form)
+            const statusSelect = $('select[name="status"]');
+            const reportId = $('#report_id').val();
+            if (reportId) {
+                timelineHTML += `
+                    <div class="timeline-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-text">
+                            <strong>Report Created</strong><br>
+                            <span>Service report initiated</span><br>
+                            <small style="color: #999;">Report ID: #${reportId}</small>
+                        </div>
+                    </div>
+                `;
+            }
+
+            timelineContainer.html(timelineHTML);
+        }
+
+        function generateStatusProgressHTML(status) {
+            // Define status order and steps
+            const statusFlow = {
+                'Pending': { step: 1, isCompleted: false },
+                'Under Repair': { step: 2, isCompleted: false },
+                'Completed': { step: 3, isCompleted: true },
+                'Unrepairable': { step: 2, isCompleted: false, isAlternate: true },
+                'Release Out': { step: 3, isCompleted: true, isAlternate: true }
+            };
+
+            const currentStatus = statusFlow[status] || { step: 0, isCompleted: false };
+            let html = '<div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px;">';
+
+            // Define steps
+            const steps = [
+                { num: 1, label: 'Pending' },
+                { num: 2, label: 'Under Repair' },
+                { num: 3, label: 'Completed' }
+            ];
+
+            // Generate progress visualization
+            steps.forEach((step, index) => {
+                let stepColor = '#e0e0e0';
+                let textColor = '#666';
+                let fontWeight = 'normal';
+
+                if (step.num < currentStatus.step) {
+                    stepColor = '#28a745';
+                    textColor = '#28a745';
+                    fontWeight = 'bold';
+                } else if (step.num === currentStatus.step) {
+                    stepColor = '#ffc107';
+                    textColor = '#ffc107';
+                    fontWeight = 'bold';
+                }
+
+                // Step circle
+                html += `
+                    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background-color: ${stepColor}; display: flex; align-items: center; justify-content: center; color: ${stepColor === '#28a745' ? 'white' : '#000'}; font-weight: bold; font-size: 11px; margin-bottom: 4px;">
+                            ${step.num < currentStatus.step ? '✓' : step.num}
+                        </div>
+                        <span style="font-size: 10px; color: ${textColor}; font-weight: ${fontWeight}; text-align: center; max-width: 60px;">${step.label}</span>
+                    </div>
+                `;
+
+                // Connector line
+                if (index < steps.length - 1) {
+                    let connectorColor = '#e0e0e0';
+                    if (step.num < currentStatus.step) {
+                        connectorColor = '#28a745';
+                    }
+                    html += `<div style="flex: 0.5; height: 2px; background-color: ${connectorColor}; margin-top: 10px; margin-bottom: 10px;"></div>`;
+                }
+            });
+
+            html += '</div>';
+            return html;
+        }
+
         async function initializeServiceReport() {
             try {
                 await loadServicePrices();
@@ -1189,6 +1609,16 @@ $userSession = $auth->requireAuth('admin');
 
         function bindEventHandlers() {
             $('#serviceReportForm').on('submit', handleFormSubmit);
+
+            // Status change handler - update progress
+            $('select[name="status"]').on('change', function() {
+                const status = $(this).val();
+                updateStatusProgress(status);
+                const reportId = $('#report_id').val();
+                if (reportId) {
+                    updateSubmitButton(status, reportId);
+                }
+            });
 
             $(document).on('click', '#add-part', function() {
                 addPartRow();
@@ -1252,13 +1682,6 @@ $userSession = $auth->requireAuth('admin');
 
                 // Modal on-screen transparency handlers removed - keep modal white on-screen
                 // (Previously saved/restored styles to force transparency; no longer needed.)
-
-            $('select[name="status"]').on('change', function() {
-                const reportId = $('#report_id').val();
-                if (reportId) {
-                    updateSubmitButton($(this).val(), reportId);
-                }
-            });
 
             // Ensure modal closes properly when clicking close button or backdrop
             $('#serviceReportListModal').on('hidden.bs.modal', function() {
@@ -1913,6 +2336,7 @@ $userSession = $auth->requireAuth('admin');
                 $('#report_id').val(report.report_id);
                 $('#date-in').val(report.date_in);
                 $('select[name="status"]').val(report.status);
+                updateStatusProgress(report.status);  // Update status progress display
                 $('input[name="dealer"]').val(report.dealer || '');
                 $('input[name="dop"]').val(report.dop || '');
                 $('input[name="date_pulled_out"]').val(report.date_pulled_out || '');
@@ -2701,6 +3125,7 @@ $userSession = $auth->requireAuth('admin');
             $('#customer-search').val('');
         
             updateSubmitButton('', '');
+            updateStatusProgress(''); // Reset status progress
             calculateTotals();
             updateRemoveButtons();
         }
@@ -2983,6 +3408,12 @@ $userSession = $auth->requireAuth('admin');
                             <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
                                 <strong style="font-size: 13px; color: #000;">Staff:</strong><br><span style="font-size: 12px; color: #000;">${report.staff_name || 'N/A'}</span>
                             </div>
+                        </div>
+                        
+                        <!-- Status Progress Visualization -->
+                        <div style="margin-bottom: 15px; padding: 12px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;">
+                            <h4 style="margin: 0 0 10px 0; font-size: 12px; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.5px;">Repair Progress</h4>
+                            ${generateStatusProgressHTML(report.status)}
                         </div>
                         
                         <!-- Customer & Appliance -->
