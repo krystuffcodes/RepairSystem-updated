@@ -897,30 +897,44 @@ $userSession = $auth->requireAuth('both');
 
         function loadUserDetails(userIds, callback) {
             // Fetch user information for the given IDs
-            $.ajax({
-                url: '../backend/api/users_api.php?action=getUsersByIds',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ ids: userIds }),
-                success: function(response) {
-                    if (response.success && response.data) {
-                        // Map user data
-                        response.data.forEach(user => {
-                            userMap[user.id] = {
+            // We'll need to call the staff API multiple times or check the staffs
+            let loadedCount = 0;
+            let totalToLoad = userIds.length;
+
+            if (totalToLoad === 0) {
+                callback();
+                return;
+            }
+
+            userIds.forEach(userId => {
+                $.ajax({
+                    url: `../backend/api/staff_api.php?action=getStaffsById&id=${userId}`,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success && response.data) {
+                            const user = response.data;
+                            userMap[userId] = {
                                 name: user.first_name && user.last_name 
                                     ? `${user.first_name} ${user.last_name}` 
-                                    : (user.name || `User #${user.id}`),
+                                    : (user.name || user.fullname || `User #${userId}`),
                                 role: user.role === 'admin' ? 'Admin' : 'Staff'
                             };
-                        });
-                        console.log('User map loaded:', userMap);
+                        }
+                        loadedCount++;
+                        if (loadedCount === totalToLoad) {
+                            console.log('User map loaded:', userMap);
+                            callback();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        loadedCount++;
+                        console.warn(`Could not load user ${userId}:`, error);
+                        if (loadedCount === totalToLoad) {
+                            callback();
+                        }
                     }
-                    callback();
-                },
-                error: function(xhr, status, error) {
-                    console.warn('Could not load user details:', error);
-                    callback();
-                }
+                });
             });
         }
 
