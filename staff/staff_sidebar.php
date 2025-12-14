@@ -18,6 +18,9 @@
         <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'customers_info.php' ? 'active' : ''; ?>">
             <a href="customers_info.php"><i class="material-icons pb-3">people</i><span>Customer Info</span></a>
         </li>
+        <li class="<?php echo basename($_SERVER['PHP_SELF']) == 'transactions_view.php' ? 'active' : ''; ?>">
+            <a href="transactions_view.php"><i class="material-icons pb-3">receipt</i><span>Transactions</span></a>
+        </li>
     </ul>
 
     <div class="logout-container">
