@@ -928,20 +928,40 @@ $userSession = $auth->requireAuth('both');
             // Extract name based on table type
             switch(item.table_name) {
                 case 'customer':
-                    return data.customer_name || data.name || `Customer #${recordId}`;
+                    return data.customer_name || data.first_name || data.name || `Customer #${recordId}`;
                 case 'staff':
-                    return data.name || data.staff_name || `Staff #${recordId}`;
+                    return data.first_name && data.last_name 
+                        ? `${data.first_name} ${data.last_name}`
+                        : data.name || data.staff_name || `Staff #${recordId}`;
                 case 'parts':
-                    return data.parts_name || data.name || `Part #${recordId}`;
+                    return data.parts_name || data.part_name || data.name || `Part #${recordId}`;
                 case 'appliance':
-                    return data.appliance || data.appliance_name || data.name || `Appliance #${recordId}`;
+                    return data.appliance_name || data.appliance || data.name || `Appliance #${recordId}`;
                 case 'transaction':
+                    // Try to get customer name from transaction
+                    const customerName = data.customer_name || data.customer || '';
+                    const amount = data.total_amount || data.amount || '';
+                    if (customerName && amount) {
+                        return `${customerName} - ₱${parseFloat(amount).toFixed(2)}`;
+                    }
                     return data.service_number || data.transaction_id || `Transaction #${recordId}`;
                 case 'Service_details':
                 case 'service_details':
+                    // Try to get customer and appliance info
+                    const serviceCustomer = data.customer_name || data.customer || '';
+                    const serviceAppliance = data.appliance_name || data.appliance || '';
+                    if (serviceCustomer && serviceAppliance) {
+                        return `${serviceCustomer} - ${serviceAppliance}`;
+                    }
                     return data.service_number || data.service_id || `Service #${recordId}`;
                 case 'Service_reports':
                 case 'service_reports':
+                    // Try to get customer name and service number
+                    const reportCustomer = data.customer_name || data.customer || '';
+                    const serviceNum = data.service_number || '';
+                    if (reportCustomer && serviceNum) {
+                        return `${reportCustomer} - ${serviceNum}`;
+                    }
                     return data.service_number || data.report_id || `Report #${recordId}`;
                 default:
                     return `Record #${recordId}`;
