@@ -38,6 +38,46 @@ $userSession = $auth->requireAuth('admin');
         font-weight: 600;
     }
     
+    /* Tabs styling */
+    .nav-tabs {
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #242424ff;
+        border-bottom-color: #242424ff;
+        background-color: transparent;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #242424ff;
+        border-bottom-color: #242424ff;
+        background-color: transparent;
+        font-weight: 600;
+    }
+    
+    .nav-tabs .nav-link i {
+        vertical-align: middle;
+        font-size: 20px;
+        margin-right: 5px;
+    }
+    
+    /* Badge styling for table names */
+    .badge-secondary {
+        background-color: #6c757d;
+        padding: 0.4em 0.8em;
+        font-size: 0.85em;
+    }
+    
     /* Filter Controls Styles */
     .filter-controls {
         display: flex;
@@ -312,12 +352,29 @@ $userSession = $auth->requireAuth('admin');
 
             <!-- Main Content -->
             <div class="main-content">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <!-- Card Header with Filter -->
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">Transaction List</h5>
+                <!-- Navigation Tabs -->
+                <ul class="nav nav-tabs mb-3" id="transactionTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="transactions-tab" data-toggle="tab" href="#transactions" role="tab">
+                            <i class="material-icons align-middle">payment</i> Transactions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="logs-tab" data-toggle="tab" href="#logs" role="tab">
+                            <i class="material-icons align-middle">history</i> Archive Logs
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="transactionTabsContent">
+                    <!-- Transactions Tab -->
+                    <div class="tab-pane fade show active" id="transactions" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <!-- Card Header with Filter -->
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">Transaction List</h5>
                                 <div class="filter-container">
                                     <!-- For Date -->
                                     <div class="filter-group">
@@ -390,6 +447,56 @@ $userSession = $auth->requireAuth('admin');
                     </div>
                 </div>
             </div>
+
+            <!-- Archive Logs Tab -->
+            <div class="tab-pane fade" id="logs" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Archive Logs</h5>
+                                <div class="filter-container">
+                                    <!-- Search -->
+                                    <div class="filter-group">
+                                        <label for="logSearch">Search:</label>
+                                        <input type="text" id="logSearch" class="form-control" placeholder="Search logs...">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="logsTable">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Table Name</th>
+                                                <th>Record ID</th>
+                                                <th>Action</th>
+                                                <th>Deleted By</th>
+                                                <th>Deleted At</th>
+                                                <th class="no-print">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="logsTableBody">
+                                            <!-- Logs will be loaded dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                                    <div class="text-muted">
+                                        <span id="logPaginationInfo">Showing 0 to 0 of 0 entries</span>
+                                    </div>
+                                    <nav aria-label="Logs navigation">
+                                        <ul class="pagination pagination-sm mb-0" id="logPagination"></ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
             <!-- Hidden print section for transaction list -->
             <div class="transaction-list-print print-section">
@@ -738,6 +845,11 @@ $userSession = $auth->requireAuth('admin');
             let txPageSize = 10;
             let txSearchTerm = '';
             let allTransactions = [];
+
+            // Archive Logs variables
+            let logCurrentPage = 1;
+            let logPageSize = 10;
+            let logSearchTerm = '';
 
 
             // Load staff for payment modal - fixed version
@@ -1586,6 +1698,208 @@ $userSession = $auth->requireAuth('admin');
                 }
                 return true;
             }
+    </script>
+
+    <script>
+    // ==================== ARCHIVE LOGS FUNCTIONALITY ====================
+    
+    // Load archive logs with pagination
+    function loadArchiveLogs(page = 1) {
+        showLoading(true, '#logs .card-body');
+
+        const params = new URLSearchParams({
+            action: 'getAll',
+            page: String(page),
+            itemsPerPage: String(logPageSize),
+            search: logSearchTerm || ''
+        });
+
+        $.ajax({
+            url: '../backend/api/archive_api.php?' + params.toString(),
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Archive logs response:', response);
+                
+                if (response.success && response.data) {
+                    const payload = response.data;
+                    const archives = Array.isArray(payload.archives) ? payload.archives : [];
+                    
+                    logCurrentPage = Number(payload.current_page) || 1;
+                    const totalPages = Number(payload.total_pages) || 1;
+                    const totalItems = Number(payload.total_items) || 0;
+                    
+                    renderArchiveLogs(archives);
+                    
+                    // Update pagination info
+                    const start = (logCurrentPage - 1) * logPageSize + 1;
+                    const end = (logCurrentPage - 1) * logPageSize + archives.length;
+                    updateLogPaginationInfo(totalItems, start, end);
+                    renderLogPagination(totalPages);
+                } else {
+                    throw new Error(response.message || 'Failed to load archive logs');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading archive logs:', error);
+                showAlert('danger', 'Failed to load archive logs: ' + (xhr.responseJSON?.message || error));
+                $('#logsTableBody').html('<tr><td colspan="7" class="text-center">Error loading archive logs</td></tr>');
+            },
+            complete: function() {
+                showLoading(false, '#logs .card-body');
+            }
+        });
+    }
+
+    // Render archive logs to table
+    function renderArchiveLogs(archives) {
+        const $tableBody = $('#logsTableBody');
+        $tableBody.empty();
+        
+        if (archives.length === 0) {
+            $tableBody.html('<tr><td colspan="7" class="text-center">No archive logs found</td></tr>');
+            return;
+        }
+        
+        const html = archives.map(archive => {
+            const deletedAt = new Date(archive.deleted_at).toLocaleString();
+            const reason = archive.reason || 'No reason provided';
+            const deletedBy = archive.deleted_by || 'System';
+            
+            return `
+                <tr>
+                    <td>${archive.id}</td>
+                    <td><span class="badge badge-secondary">${archive.table_name}</span></td>
+                    <td>${archive.record_id}</td>
+                    <td>${reason}</td>
+                    <td>${deletedBy}</td>
+                    <td>${deletedAt}</td>
+                    <td class="no-print">
+                        <a href="#" class="view-archive-details" data-id="${archive.id}" data-details='${JSON.stringify(archive).replace(/'/g, "&#39;")}' title="View Details">
+                            <i class="material-icons" data-toggle="tooltip">visibility</i>
+                        </a>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        $tableBody.html(html);
+        
+        // Re-bind events after rendering
+        $('.view-archive-details').click(function(e) {
+            e.preventDefault();
+            const details = $(this).data('details');
+            showArchiveDetails(details);
+        });
+    }
+
+    // Show archive details in a modal/alert
+    function showArchiveDetails(archive) {
+        let detailsHtml = `
+            <div style="text-align: left;">
+                <h5>Archive Record Details</h5>
+                <p><strong>ID:</strong> ${archive.id}</p>
+                <p><strong>Table:</strong> ${archive.table_name}</p>
+                <p><strong>Record ID:</strong> ${archive.record_id}</p>
+                <p><strong>Deleted At:</strong> ${new Date(archive.deleted_at).toLocaleString()}</p>
+                <p><strong>Deleted By:</strong> ${archive.deleted_by || 'System'}</p>
+                <p><strong>Reason:</strong> ${archive.reason || 'No reason provided'}</p>
+                <hr>
+                <h6>Deleted Data:</h6>
+                <pre style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 4px;">${JSON.stringify(archive.deleted_data, null, 2)}</pre>
+            </div>
+        `;
+        
+        // Create a custom modal or use a simple alert
+        if ($('#archiveDetailsModal').length === 0) {
+            $('body').append(`
+                <div class="modal fade" id="archiveDetailsModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Archive Details</h5>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <div class="modal-body" id="archiveDetailsBody"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        $('#archiveDetailsBody').html(detailsHtml);
+        $('#archiveDetailsModal').modal('show');
+    }
+
+    // Update log pagination info
+    function updateLogPaginationInfo(totalItems, start, end) {
+        const $info = $('#logPaginationInfo');
+        if (totalItems === 0) {
+            $info.text('Showing 0 to 0 of 0 entries');
+            return;
+        }
+        $info.text(`Showing ${start} to ${Math.min(end, totalItems)} of ${totalItems} entries`);
+    }
+
+    // Render log pagination
+    function renderLogPagination(totalPages) {
+        const $pagination = $('#logPagination');
+        $pagination.empty();
+
+        const prevDisabled = logCurrentPage === 1 ? 'disabled' : '';
+        $pagination.append(`<li class="page-item ${prevDisabled}"><a class="page-link" href="#" data-page="${logCurrentPage - 1}">Previous</a></li>`);
+
+        const maxVisible = 5;
+        let start = Math.max(1, logCurrentPage - Math.floor(maxVisible / 2));
+        let end = Math.min(totalPages, start + maxVisible - 1);
+        if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+
+        if (start > 1) {
+            $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+            if (start > 2) $pagination.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+        }
+
+        for (let i = start; i <= end; i++) {
+            const active = i === logCurrentPage ? 'active' : '';
+            $pagination.append(`<li class="page-item ${active}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`);
+        }
+
+        if (end < totalPages) {
+            if (end < totalPages - 1) $pagination.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+            $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
+        }
+
+        if (totalPages < 1) totalPages = 1;
+        const nextDisabled = logCurrentPage === totalPages ? 'disabled' : '';
+        $pagination.append(`<li class="page-item ${nextDisabled}"><a class="page-link" href="#" data-page="${logCurrentPage + 1}">Next</a></li>`);
+
+        $pagination.find('.page-link').on('click', function(e) {
+            e.preventDefault();
+            const page = parseInt($(this).data('page'));
+            if (!isNaN(page) && page !== logCurrentPage) {
+                logCurrentPage = page;
+                loadArchiveLogs(logCurrentPage);
+            }
+        });
+    }
+
+    // Initialize log search functionality
+    $('#logSearch').on('keyup', function() {
+        logSearchTerm = ($(this).val() || '').toLowerCase().trim();
+        logCurrentPage = 1;
+        loadArchiveLogs(1);
+    });
+
+    // Tab switch event - load logs when tab is shown
+    $('#logs-tab').on('shown.bs.tab', function (e) {
+        if ($('#logsTableBody tr').length === 0) {
+            loadArchiveLogs(1);
+        }
+    });
+
     </script>
 </body>
 
