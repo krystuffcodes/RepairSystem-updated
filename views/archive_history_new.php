@@ -939,13 +939,17 @@ $userSession = $auth->requireAuth('both');
                 }
             }
             
-            // Log for debugging
-            console.log(`Record [${item.table_name}#${recordId}]:`, data);
+            // Log for debugging - show ALL properties available
+            console.log(`=== RECORD DEBUG [${item.table_name}#${recordId}] ===`);
+            console.log('Full item:', item);
+            console.log('Deleted data:', data);
+            console.log('All keys in deleted_data:', Object.keys(data));
             
             // Extract name based on table type
             switch(item.table_name) {
                 case 'customer':
                     // Try to get customer name
+                    console.log('Customer case - checking fields:', {customer_name: data.customer_name, first_name: data.first_name, last_name: data.last_name, name: data.name});
                     if (data.customer_name) return data.customer_name;
                     if (data.first_name && data.last_name) return `${data.first_name} ${data.last_name}`;
                     if (data.first_name) return data.first_name;
@@ -953,16 +957,19 @@ $userSession = $auth->requireAuth('both');
                     
                 case 'staff':
                     // Try to get staff full name
+                    console.log('Staff case - checking fields:', {first_name: data.first_name, last_name: data.last_name, name: data.name});
                     if (data.first_name && data.last_name) return `${data.first_name} ${data.last_name}`;
                     if (data.first_name) return data.first_name;
                     return data.name || data.staff_name || `Staff #${recordId}`;
                     
                 case 'parts':
                     // Try to get part name
+                    console.log('Parts case - checking fields:', {parts_name: data.parts_name, part_name: data.part_name, name: data.name});
                     return data.parts_name || data.part_name || data.name || `Part #${recordId}`;
                     
                 case 'appliance':
                     // Try to get appliance name
+                    console.log('Appliance case - checking fields:', {appliance_name: data.appliance_name, appliance: data.appliance, name: data.name});
                     return data.appliance_name || data.appliance || data.name || `Appliance #${recordId}`;
                     
                 case 'work_service':
@@ -970,12 +977,14 @@ $userSession = $auth->requireAuth('both');
                 case 'Work_Service':
                 case 'WorkService':
                     // Try to get work service name
+                    console.log('Work Service case - checking fields:', {work_service_name: data.work_service_name, service_name: data.service_name, name: data.name});
                     return data.work_service_name || data.service_name || data.name || `Work Service #${recordId}`;
                     
                 case 'transaction':
                     // Try to get customer name from transaction
                     const customerName = data.customer_name || data.customer || '';
                     const amount = data.total_amount || data.amount || '';
+                    console.log('Transaction case - checking fields:', {customer_name: customerName, amount: amount});
                     if (customerName && amount) {
                         return `${customerName} - ₱${parseFloat(amount).toFixed(2)}`;
                     }
@@ -986,6 +995,7 @@ $userSession = $auth->requireAuth('both');
                     // Try to get customer and appliance info
                     const serviceCustomer = data.customer_name || data.customer || '';
                     const serviceAppliance = data.appliance_name || data.appliance || '';
+                    console.log('Service Details case - checking fields:', {customer: serviceCustomer, appliance: serviceAppliance});
                     if (serviceCustomer && serviceAppliance) {
                         return `${serviceCustomer} - ${serviceAppliance}`;
                     }
@@ -996,12 +1006,14 @@ $userSession = $auth->requireAuth('both');
                     // Try to get customer name and service number
                     const reportCustomer = data.customer_name || data.customer || '';
                     const serviceNum = data.service_number || '';
+                    console.log('Service Reports case - checking fields:', {customer: reportCustomer, service_number: serviceNum});
                     if (reportCustomer && serviceNum) {
                         return `${reportCustomer} - ${serviceNum}`;
                     }
                     return data.service_number || data.report_id || `Report #${recordId}`;
                     
                 default:
+                    console.log('Default case - no match for table:', item.table_name);
                     return `Record #${recordId}`;
             }
         }
