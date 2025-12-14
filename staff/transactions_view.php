@@ -90,12 +90,26 @@ $userSession = $auth->requireAuth('staff');
         }
 
         .modal-dialog {
-            max-width: 700px;
+            max-width: 1100px;
         }
 
         .modal-title {
             color: #000000 !important;
             font-weight: 600;
+        }
+
+        .transaction-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .transaction-details-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .transaction-details-grid .form-group.full-width {
+            grid-column: 1 / -1;
         }
 
         .read-only-badge {
@@ -241,55 +255,55 @@ $userSession = $auth->requireAuth('staff');
     </div>
 
     <!-- Transaction Details Modal (Read-Only) -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="transactionModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Transaction Details</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Transaction ID</label>
-                        <input type="text" class="form-control" id="modal_transaction_id" readonly>
+                    <div class="transaction-details-grid">
+                        <div class="form-group">
+                            <label><strong>Transaction ID</strong></label>
+                            <input type="text" class="form-control" id="modal_transaction_id" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Customer Name</strong></label>
+                            <input type="text" class="form-control" id="modal_customer_name" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Appliance</strong></label>
+                            <input type="text" class="form-control" id="modal_appliance_name" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Total Amount</strong></label>
+                            <input type="text" class="form-control" id="modal_total_amount" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Payment Status</strong></label>
+                            <input type="text" class="form-control" id="modal_payment_status" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Payment Date</strong></label>
+                            <input type="text" class="form-control" id="modal_payment_date" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Received By</strong></label>
+                            <input type="text" class="form-control" id="modal_received_by" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Service Types</strong></label>
+                            <textarea class="form-control" id="modal_service_types" readonly rows="2"></textarea>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Customer Name</label>
-                        <input type="text" class="form-control" id="modal_customer_name" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Appliance</label>
-                        <input type="text" class="form-control" id="modal_appliance_name" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Total Amount</label>
-                        <input type="text" class="form-control" id="modal_total_amount" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Payment Status</label>
-                        <input type="text" class="form-control" id="modal_payment_status" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Payment Date</label>
-                        <input type="text" class="form-control" id="modal_payment_date" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Received By</label>
-                        <input type="text" class="form-control" id="modal_received_by" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>Service Types</label>
-                        <textarea class="form-control" id="modal_service_types" readonly rows="3"></textarea>
-                    </div>
-                    <div class="alert alert-info" role="alert">
+                    <div class="alert alert-info mt-3" role="alert">
                         <i class="material-icons align-middle" style="font-size: 18px; vertical-align: middle;">info</i>
                         This is a read-only view. You cannot modify transaction information.
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
