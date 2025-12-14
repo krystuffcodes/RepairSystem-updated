@@ -208,9 +208,7 @@ try {
                     $datePulledObj,
                     $input['findings'] ?? '',
                     $input['remarks'] ?? '',
-                    $input['location'] ?? ['shop'],
-                    isset($input['customer_id']) ? intval($input['customer_id']) : null,
-                    isset($input['appliance_id']) ? intval($input['appliance_id']) : null
+                    $input['location'] ?? ['shop']
                 );
                 error_log("Service report object created");
 
