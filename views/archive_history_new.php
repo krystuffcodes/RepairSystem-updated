@@ -769,6 +769,7 @@ $userSession = $auth->requireAuth('both');
         let itemsPerPage = 10;
         let currentFilter = 'all';
         let searchTerm = '';
+        let userMap = {}; // Cache for user data
 
         $(document).ready(function() {
             // Initialize
@@ -859,21 +860,66 @@ $userSession = $auth->requireAuth('both');
                     console.log('Archive data loaded:', response);
                     if (response.success) {
                         archiveData = response.data.archives || [];
-                        renderTable(archiveData);
-                        updatePagination(response.data);
-                        updateStats(response.data);
-                        updateFilters(archiveData);
+                        
+                        // Extract unique user IDs to fetch their details
+                        const userIds = [...new Set(archiveData.map(a => a.deleted_by).filter(id => id && id !== '0' && id !== 0))];
+                        
+                        // Load user details if we have IDs to fetch
+                        if (userIds.length > 0) {
+                            loadUserDetails(userIds, function() {
+                                renderTable(archiveData);
+                                updatePagination(response.data);
+                                updateStats(response.data);
+                                updateFilters(archiveData);
+                                showLoading(false);
+                            });
+                        } else {
+                            renderTable(archiveData);
+                            updatePagination(response.data);
+                            updateStats(response.data);
+                            updateFilters(archiveData);
+                            showLoading(false);
+                        }
                     } else {
                         showAlert('error', response.message || 'Failed to load archive data');
                         renderEmptyState('error');
+                        showLoading(false);
                     }
-                    showLoading(false);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading archive data:', error);
                     showAlert('error', 'Failed to load archive data: ' + error);
                     renderEmptyState('error');
                     showLoading(false);
+                }
+            });
+        }
+
+        function loadUserDetails(userIds, callback) {
+            // Fetch user information for the given IDs
+            $.ajax({
+                url: '../backend/api/users_api.php?action=getUsersByIds',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ ids: userIds }),
+                success: function(response) {
+                    if (response.success && response.data) {
+                        // Map user data
+                        response.data.forEach(user => {
+                            userMap[user.id] = {
+                                name: user.first_name && user.last_name 
+                                    ? `${user.first_name} ${user.last_name}` 
+                                    : (user.name || `User #${user.id}`),
+                                role: user.role === 'admin' ? 'Admin' : 'Staff'
+                            };
+                        });
+                        console.log('User map loaded:', userMap);
+                    }
+                    callback();
+                },
+                error: function(xhr, status, error) {
+                    console.warn('Could not load user details:', error);
+                    callback();
                 }
             });
         }
@@ -902,7 +948,7 @@ $userSession = $auth->requireAuth('both');
         function createTableRow(item) {
             const badgeClass = getBadgeClass(item.table_name);
             const deletedAt = formatDateTime(item.deleted_at);
-            const deletedBy = item.deleted_by || 'System';
+            const deletedByFormatted = formatDeletedBy(item.deleted_by);
             const reason = item.reason || 'No reason provided';
             const recordName = getRecordName(item);
 
@@ -912,7 +958,7 @@ $userSession = $auth->requireAuth('both');
                     <td><span class="badge ${badgeClass}">${item.table_name}</span></td>
                     <td><strong>${recordName}</strong></td>
                     <td><small>${deletedAt}</small></td>
-                    <td><small>${deletedBy}</small></td>
+                    <td><small>${deletedByFormatted}</small></td>
                     <td><small>${truncateText(reason, 50)}</small></td>
                     <td class="text-center" style="display: flex; gap: 8px; justify-content: center; align-items: center;">
                         <button class="btn btn-sm btn-info btn-view" data-id="${item.id}" style="width: 110px;">
@@ -926,6 +972,22 @@ $userSession = $auth->requireAuth('both');
                     </td>
                 </tr>
             `;
+        }
+
+        function formatDeletedBy(userId) {
+            // Handle system deletions
+            if (!userId || userId === '0' || userId === 0) {
+                return 'System';
+            }
+
+            // Check if we have cached user info
+            if (userMap[userId]) {
+                const user = userMap[userId];
+                return `${user.role} - ${user.name}`;
+            }
+
+            // Return as is if no cached data (will try to load later)
+            return `User #${userId}`;
         }
 
         function getRecordName(item) {
@@ -1164,7 +1226,7 @@ $userSession = $auth->requireAuth('both');
 
             const deletedData = item.deleted_data || {};
             const deletedAt = formatDateTime(item.deleted_at);
-            const deletedBy = item.deleted_by || 'System';
+            const deletedByFormatted = formatDeletedBy(item.deleted_by);
 
             let html = `
                 <div class="detail-grid-landscape">
@@ -1182,7 +1244,7 @@ $userSession = $auth->requireAuth('both');
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Deleted By</div>
-                        <div class="detail-value">${deletedBy}</div>
+                        <div class="detail-value">${deletedByFormatted}</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Deleted At</div>
