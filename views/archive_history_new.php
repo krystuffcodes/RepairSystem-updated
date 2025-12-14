@@ -564,28 +564,37 @@ $userSession = $auth->requireAuth('both');
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
         
-        .detail-row {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
         
-        .detail-row:last-child {
-            border-bottom: none;
+        .detail-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .detail-row.full-width {
+            grid-column: 1 / -1;
         }
         
         .detail-label {
             font-weight: 600;
             color: var(--text);
-            min-width: 140px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .detail-value {
             color: var(--text-light);
-            flex: 1;
-            text-align: right;
+            font-size: 1rem;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
         }
         
         /* Responsive */
@@ -729,22 +738,20 @@ $userSession = $auth->requireAuth('both');
 
     <!-- Archive Details Modal -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <span class="material-icons" style="vertical-align: middle;">info</span>
                         Archived Record Details
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true" style="color: white;">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="detailsModalBody">
                     <!-- Details will be loaded here -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -1136,29 +1143,31 @@ $userSession = $auth->requireAuth('both');
             const deletedBy = item.deleted_by || 'System';
 
             let html = `
-                <div class="detail-row">
-                    <span class="detail-label">Archive ID:</span>
-                    <span class="detail-value"><strong>#${item.id}</strong></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Table Type:</span>
-                    <span class="detail-value"><span class="badge ${getBadgeClass(item.table_name)}">${item.table_name}</span></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Record ID:</span>
-                    <span class="detail-value"><strong>#${item.record_id}</strong></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Deleted At:</span>
-                    <span class="detail-value">${deletedAt}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Deleted By:</span>
-                    <span class="detail-value">${deletedBy}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Reason:</span>
-                    <span class="detail-value">${item.reason || 'No reason provided'}</span>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">Archive ID</span>
+                        <span class="detail-value"><strong>#${item.id}</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Record ID</span>
+                        <span class="detail-value"><strong>#${item.record_id}</strong></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Table Type</span>
+                        <span class="detail-value"><span class="badge ${getBadgeClass(item.table_name)}">${item.table_name}</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Deleted By</span>
+                        <span class="detail-value">${deletedBy}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Deleted At</span>
+                        <span class="detail-value">${deletedAt}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Reason</span>
+                        <span class="detail-value">${item.reason || 'No reason provided'}</span>
+                    </div>
                 </div>
                 <hr>
                 <h6 class="mt-3 mb-3"><strong>Deleted Data:</strong></h6>
