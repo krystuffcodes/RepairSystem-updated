@@ -712,14 +712,12 @@ class ServiceHandler {
 
             $stmt = $this->conn->prepare("
                 UPDATE {$this->servicereport_table}
-                SET customer_name = ?, customer_id = ?, appliance_name = ?, appliance_id = ?, date_in = ?, status = ?,
+                SET customer_name = ?, appliance_name = ?, date_in = ?, status = ?,
                 dealer = ?, dop = ?, date_pulled_out = ?, findings = ?, remarks = ?, location = ?
                  WHERE report_id = ?
             ");
             $customer_name = $report->customer_name ? $report->customer_name : null;
-            $customer_id = $report->customer_id;
             $appliance_name = $report->appliance_name ? $report->appliance_name : null;
-            $appliance_id = $report->appliance_id;
             $dateIn = $report->date_in ? $report->date_in->format('Y-m-d') : null;
             $status = $report->status ? $report->status : null;
             $dealer = $report->dealer ? $report->dealer : null;
@@ -730,11 +728,9 @@ class ServiceHandler {
             $locationJson = json_encode($report->location);
 
             $stmt->bind_param(
-                "sisisissssssi",
+                "ssssssssssi",
                 $customer_name,
-                $customer_id,
                 $appliance_name,
-                $appliance_id,
                 $dateIn,
                 $status,
                 $dealer,
