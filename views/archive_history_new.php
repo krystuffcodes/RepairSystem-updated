@@ -928,8 +928,9 @@ $userSession = $auth->requireAuth('both');
         function getRecordName(item) {
             let data = item.deleted_data || {};
             const recordId = item.record_id;
+            const tableName = (item.table_name || '').toLowerCase();
             
-            // Handle if deleted_data is a string (shouldn't happen but just in case)
+            // Handle if deleted_data is a string
             if (typeof data === 'string') {
                 try {
                     data = JSON.parse(data);
@@ -939,82 +940,72 @@ $userSession = $auth->requireAuth('both');
                 }
             }
             
-            // Log for debugging - show ALL properties available
-            console.log(`=== RECORD DEBUG [${item.table_name}#${recordId}] ===`);
-            console.log('Full item:', item);
-            console.log('Deleted data:', data);
-            console.log('All keys in deleted_data:', Object.keys(data));
+            // Log for debugging
+            console.log(`=== RECORD [${tableName}#${recordId}] ===`, Object.keys(data));
+            
+            // Helper function to get a value from multiple possible field names
+            const getField = (fieldNames) => {
+                if (!Array.isArray(fieldNames)) fieldNames = [fieldNames];
+                for (let field of fieldNames) {
+                    if (data[field]) return data[field];
+                }
+                return null;
+            };
             
             // Extract name based on table type
-            switch(item.table_name) {
-                case 'customer':
-                    // Try to get customer name
-                    console.log('Customer case - checking fields:', {customer_name: data.customer_name, first_name: data.first_name, last_name: data.last_name, name: data.name});
-                    if (data.customer_name) return data.customer_name;
-                    if (data.first_name && data.last_name) return `${data.first_name} ${data.last_name}`;
-                    if (data.first_name) return data.first_name;
-                    return data.name || `Customer #${recordId}`;
-                    
-                case 'staff':
-                    // Try to get staff full name
-                    console.log('Staff case - checking fields:', {first_name: data.first_name, last_name: data.last_name, name: data.name});
-                    if (data.first_name && data.last_name) return `${data.first_name} ${data.last_name}`;
-                    if (data.first_name) return data.first_name;
-                    return data.name || data.staff_name || `Staff #${recordId}`;
-                    
-                case 'parts':
-                    // Try to get part name
-                    console.log('Parts case - checking fields:', {parts_name: data.parts_name, part_name: data.part_name, name: data.name});
-                    return data.parts_name || data.part_name || data.name || `Part #${recordId}`;
-                    
-                case 'appliance':
-                    // Try to get appliance name
-                    console.log('Appliance case - checking fields:', {appliance_name: data.appliance_name, appliance: data.appliance, name: data.name});
-                    return data.appliance_name || data.appliance || data.name || `Appliance #${recordId}`;
-                    
-                case 'work_service':
-                case 'workservice':
-                case 'Work_Service':
-                case 'WorkService':
-                    // Try to get work service name
-                    console.log('Work Service case - checking fields:', {work_service_name: data.work_service_name, service_name: data.service_name, name: data.name});
-                    return data.work_service_name || data.service_name || data.name || `Work Service #${recordId}`;
-                    
-                case 'transaction':
-                    // Try to get customer name from transaction
-                    const customerName = data.customer_name || data.customer || '';
-                    const amount = data.total_amount || data.amount || '';
-                    console.log('Transaction case - checking fields:', {customer_name: customerName, amount: amount});
-                    if (customerName && amount) {
-                        return `${customerName} - ₱${parseFloat(amount).toFixed(2)}`;
-                    }
-                    return data.service_number || data.transaction_id || `Transaction #${recordId}`;
-                    
-                case 'Service_details':
-                case 'service_details':
-                    // Try to get customer and appliance info
-                    const serviceCustomer = data.customer_name || data.customer || '';
-                    const serviceAppliance = data.appliance_name || data.appliance || '';
-                    console.log('Service Details case - checking fields:', {customer: serviceCustomer, appliance: serviceAppliance});
-                    if (serviceCustomer && serviceAppliance) {
-                        return `${serviceCustomer} - ${serviceAppliance}`;
-                    }
-                    return data.service_number || data.service_id || `Service #${recordId}`;
-                    
-                case 'Service_reports':
-                case 'service_reports':
-                    // Try to get customer name and service number
-                    const reportCustomer = data.customer_name || data.customer || '';
-                    const serviceNum = data.service_number || '';
-                    console.log('Service Reports case - checking fields:', {customer: reportCustomer, service_number: serviceNum});
-                    if (reportCustomer && serviceNum) {
-                        return `${reportCustomer} - ${serviceNum}`;
-                    }
-                    return data.service_number || data.report_id || `Report #${recordId}`;
-                    
-                default:
-                    console.log('Default case - no match for table:', item.table_name);
-                    return `Record #${recordId}`;
+            if (tableName.includes('customer')) {
+                const name = getField(['customer_name', 'first_name', 'name']);
+                const lastName = getField(['last_name']);
+                if (name && lastName && name !== lastName) {
+                    return `${name} ${lastName}`;
+                }
+                return name || `Customer #${recordId}`;
+                
+            } else if (tableName.includes('staff')) {
+                const firstName = getField(['first_name', 'name']);
+                const lastName = getField(['last_name']);
+                if (firstName && lastName && firstName !== lastName) {
+                    return `${firstName} ${lastName}`;
+                }
+                return firstName || `Staff #${recordId}`;
+                
+            } else if (tableName.includes('part')) {
+                return getField(['parts_name', 'part_name', 'name']) || `Part #${recordId}`;
+                
+            } else if (tableName.includes('appliance')) {
+                return getField(['appliance_name', 'appliance', 'name']) || `Appliance #${recordId}`;
+                
+            } else if (tableName.includes('work_service') || tableName.includes('workservice')) {
+                return getField(['work_service_name', 'service_name', 'name']) || `Work Service #${recordId}`;
+                
+            } else if (tableName.includes('transaction')) {
+                const customerName = getField(['customer_name', 'customer']);
+                const amount = getField(['total_amount', 'amount']);
+                if (customerName && amount) {
+                    return `${customerName} - ₱${parseFloat(amount).toFixed(2)}`;
+                }
+                return customerName || getField(['transaction_id', 'service_number']) || `Transaction #${recordId}`;
+                
+            } else if (tableName.includes('service_detail')) {
+                const customerName = getField(['customer_name', 'customer']);
+                const applianceName = getField(['appliance_name', 'appliance']);
+                if (customerName && applianceName) {
+                    return `${customerName} - ${applianceName}`;
+                }
+                return customerName || applianceName || getField(['service_number', 'service_id']) || `Service #${recordId}`;
+                
+            } else if (tableName.includes('service_report')) {
+                const customerName = getField(['customer_name', 'customer']);
+                const serviceNum = getField(['service_number']);
+                if (customerName && serviceNum) {
+                    return `${customerName} - ${serviceNum}`;
+                }
+                return customerName || serviceNum || getField(['report_id']) || `Report #${recordId}`;
+                
+            } else {
+                // Default: try to find any name-like field
+                const nameField = getField(['customer_name', 'name', 'first_name', 'parts_name', 'appliance_name', 'service_number']);
+                return nameField || `Record #${recordId}`;
             }
         }
 
