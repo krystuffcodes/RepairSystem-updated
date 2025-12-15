@@ -380,6 +380,33 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Staff Comments Section -->
+                                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <h6 style="font-weight: 600; margin-bottom: 12px;">
+                                                    <span class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 6px;">comment</span>
+                                                    Staff Notes & Comments
+                                                </h6>
+                                                
+                                                <div class="form-group">
+                                                    <label for="edit_staff_comment">Add Comment</label>
+                                                    <textarea id="edit_staff_comment" class="form-control" rows="3" placeholder="Add notes or comments about this staff member..."></textarea>
+                                                </div>
+                                                
+                                                <button type="button" class="btn btn-sm btn-info" onclick="saveStaffComment()">
+                                                    <span class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">add_comment</span>
+                                                    Add Comment
+                                                </button>
+                                                
+                                                <!-- Comments Display -->
+                                                <div id="staff-comments-container" style="margin-top: 12px; max-height: 200px; overflow-y: auto;">
+                                                    <div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -572,6 +599,79 @@ $userSession = $auth->requireAuth('admin');
                 return true;
             }
         };
+
+        // Staff Comments Functions
+        let staffComments = {};  // Format: { staffId: [comments] }
+
+        function saveStaffComment() {
+            const staffId = $('#edit_staff_id').val();
+            const commentText = $('#edit_staff_comment').val().trim();
+
+            if (!staffId) {
+                alert('Please save the staff member first');
+                return;
+            }
+
+            if (!commentText) {
+                alert('Please enter a comment');
+                return;
+            }
+
+            const comment = {
+                id: Date.now(),
+                text: commentText,
+                timestamp: new Date().toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }),
+                author: '<?php echo isset($userSession["name"]) ? htmlspecialchars($userSession["name"]) : "Admin"; ?>'
+            };
+
+            if (!staffComments[staffId]) {
+                staffComments[staffId] = [];
+            }
+
+            staffComments[staffId].push(comment);
+            $('#edit_staff_comment').val('');
+            displayStaffComments(staffId);
+            alert('Comment added successfully');
+        }
+
+        function displayStaffComments(staffId) {
+            const container = $('#staff-comments-container');
+            const comments = staffComments[staffId] || [];
+
+            if (comments.length === 0) {
+                container.html('<div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>');
+                return;
+            }
+
+            let html = '';
+            comments.forEach(comment => {
+                html += `
+                    <div style="background: #f9f9f9; padding: 10px; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid #17a2b8;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-weight: 600; font-size: 11px; color: #333;">${comment.author}</span>
+                            <span style="font-size: 10px; color: #999;">${comment.timestamp}</span>
+                        </div>
+                        <div style="font-size: 11px; color: #555; line-height: 1.4;">${comment.text}</div>
+                    </div>
+                `;
+            });
+
+            container.html(html);
+        }
+
+        function loadStaffComments(staffId) {
+            if (staffId && staffComments[staffId]) {
+                displayStaffComments(staffId);
+            } else {
+                $('#staff-comments-container').html('<div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const addStaffValidator = Object.create(PasswordValidator);
@@ -901,6 +1001,9 @@ $userSession = $auth->requireAuth('admin');
                                 $('#edit_email').val(response.data.email);
                                 $('#edit_role').val(response.data.role);
                                 $('#edit_status').val(response.data.status);
+                                
+                                // Load comments for this staff member
+                                loadStaffComments(staffId);
                             }
                         }
                     });
