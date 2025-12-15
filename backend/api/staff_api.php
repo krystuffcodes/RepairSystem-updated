@@ -245,6 +245,80 @@ try {
             ]);
 
             break;
+
+        case 'addStaffComment':
+            if (empty($input['staff_id']) || empty($input['comment_text'])) {
+                sendResponse(false, null, 'Staff ID and comment text are required', 400);
+            }
+
+            $staffId = intval($input['staff_id']);
+            $commentText = trim($input['comment_text']);
+            $createdBy = intval($input['created_by'] ?? 1);
+
+            if (empty($commentText)) {
+                sendResponse(false, null, 'Comment cannot be empty', 400);
+            }
+
+            $query = "INSERT INTO staff_comments (staff_id, comment_text, created_by, created_at) 
+                     VALUES (?, ?, ?, NOW())";
+            $stmt = $db->prepare($query);
+            $stmt->bind_param('isi', $staffId, $commentText, $createdBy);
+
+            if ($stmt->execute()) {
+                sendResponse(true, ['id' => $db->insert_id], 'Comment added successfully');
+            } else {
+                sendResponse(false, null, 'Failed to add comment', 500);
+            }
+            break;
+
+        case 'getStaffComments':
+            if (empty($_GET['staff_id'])) {
+                sendResponse(false, null, 'Staff ID required', 400);
+            }
+
+            $staffId = intval($_GET['staff_id']);
+
+            $query = "SELECT sc.id, sc.comment_text, sc.created_at, 
+                             s.full_name as author
+                      FROM staff_comments sc
+                      JOIN staffs s ON sc.created_by = s.staff_id
+                      WHERE sc.staff_id = ?
+                      ORDER BY sc.created_at DESC";
+            $stmt = $db->prepare($query);
+            $stmt->bind_param('i', $staffId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $comments = [];
+            while ($row = $result->fetch_assoc()) {
+                $comments[] = [
+                    'id' => $row['id'],
+                    'text' => $row['comment_text'],
+                    'timestamp' => date('M d, Y h:i A', strtotime($row['created_at'])),
+                    'author' => $row['author']
+                ];
+            }
+
+            sendResponse(true, ['comments' => $comments], 'Comments retrieved successfully');
+            break;
+
+        case 'deleteStaffComment':
+            if (empty($_GET['id'])) {
+                sendResponse(false, null, 'Comment ID required', 400);
+            }
+
+            $commentId = intval($_GET['id']);
+
+            $query = "DELETE FROM staff_comments WHERE id = ?";
+            $stmt = $db->prepare($query);
+            $stmt->bind_param('i', $commentId);
+
+            if ($stmt->execute()) {
+                sendResponse(true, null, 'Comment deleted successfully');
+            } else {
+                sendResponse(false, null, 'Failed to delete comment', 500);
+            }
+            break;
     }
 } catch (Exception $e) {
     sendResponse(false, null, $e->getMessage(), 400);

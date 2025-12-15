@@ -601,11 +601,12 @@ $userSession = $auth->requireAuth('admin');
         };
 
         // Staff Comments Functions
-        let staffComments = {};  // Format: { staffId: [comments] }
+        let currentStaffId = null;
 
         function saveStaffComment() {
             const staffId = $('#edit_staff_id').val();
             const commentText = $('#edit_staff_comment').val().trim();
+            const createdBy = 1; // Would come from session in real app
 
             if (!staffId) {
                 alert('Please save the staff member first');
@@ -617,34 +618,34 @@ $userSession = $auth->requireAuth('admin');
                 return;
             }
 
-            const comment = {
-                id: Date.now(),
-                text: commentText,
-                timestamp: new Date().toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+            $.ajax({
+                url: API_BASE_URL + '?action=addStaffComment',
+                type: 'POST',
+                data: JSON.stringify({
+                    staff_id: staffId,
+                    comment_text: commentText,
+                    created_by: createdBy
                 }),
-                author: '<?php echo isset($userSession["name"]) ? htmlspecialchars($userSession["name"]) : "Admin"; ?>'
-            };
-
-            if (!staffComments[staffId]) {
-                staffComments[staffId] = [];
-            }
-
-            staffComments[staffId].push(comment);
-            $('#edit_staff_comment').val('');
-            displayStaffComments(staffId);
-            alert('Comment added successfully');
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response && response.success) {
+                        $('#edit_staff_comment').val('');
+                        loadStaffComments(staffId);
+                        alert('Comment added successfully');
+                    } else {
+                        alert('Error: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error adding comment: ' + xhr.responseText);
+                }
+            });
         }
 
-        function displayStaffComments(staffId) {
+        function displayStaffComments(comments) {
             const container = $('#staff-comments-container');
-            const comments = staffComments[staffId] || [];
 
-            if (comments.length === 0) {
+            if (!comments || comments.length === 0) {
                 container.html('<div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>');
                 return;
             }
@@ -657,7 +658,8 @@ $userSession = $auth->requireAuth('admin');
                             <span style="font-weight: 600; font-size: 11px; color: #333;">${comment.author}</span>
                             <span style="font-size: 10px; color: #999;">${comment.timestamp}</span>
                         </div>
-                        <div style="font-size: 11px; color: #555; line-height: 1.4;">${comment.text}</div>
+                        <div style="font-size: 11px; color: #555; line-height: 1.4; margin-bottom: 6px;">${comment.text}</div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStaffComment(${comment.id}, '${currentStaffId}')" style="font-size: 10px; padding: 2px 6px;">Delete</button>
                     </div>
                 `;
             });
@@ -666,11 +668,46 @@ $userSession = $auth->requireAuth('admin');
         }
 
         function loadStaffComments(staffId) {
-            if (staffId && staffComments[staffId]) {
-                displayStaffComments(staffId);
-            } else {
-                $('#staff-comments-container').html('<div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>');
+            currentStaffId = staffId;
+            
+            $.ajax({
+                url: API_BASE_URL + '?action=getStaffComments&staff_id=' + staffId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response && response.success) {
+                        displayStaffComments(response.data.comments);
+                    } else {
+                        $('#staff-comments-container').html('<div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error loading comments:', xhr);
+                    $('#staff-comments-container').html('<div style="font-size: 12px; color: #999; padding: 8px; text-align: center; font-style: italic;">No comments yet</div>');
+                }
+            });
+        }
+
+        function deleteStaffComment(commentId, staffId) {
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                return;
             }
+
+            $.ajax({
+                url: API_BASE_URL + '?action=deleteStaffComment&id=' + commentId,
+                type: 'GET',
+                success: function(response) {
+                    if (response && response.success) {
+                        loadStaffComments(staffId);
+                        alert('Comment deleted successfully');
+                    } else {
+                        alert('Error: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error deleting comment');
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
