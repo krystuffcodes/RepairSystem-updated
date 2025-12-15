@@ -706,7 +706,7 @@ $userSession = $auth->requireAuth('both');
                                     <tr>
                                         <th style="width: 80px;">ID</th>
                                         <th style="width: 150px;">Table Type</th>
-                                        <th style="width: 200px;">Record Name</th>
+                                        <th style="width: 250px;">Record Details</th>
                                         <th style="width: 180px;">Deleted At</th>
                                         <th style="width: 140px;">Deleted By</th>
                                         <th>Reason</th>
@@ -970,7 +970,14 @@ $userSession = $auth->requireAuth('both');
                 <tr>
                     <td><strong>#${item.id}</strong></td>
                     <td><span class="badge ${badgeClass}">${item.table_name}</span></td>
-                    <td><strong>${recordName}</strong></td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div><span style="color: #999; font-size: 0.85rem;">Record ID:</span></div>
+                            <div><strong>#${item.record_id}</strong></div>
+                            <div style="margin-top: 6px;"><span style="color: #999; font-size: 0.85rem;">Record Name:</span></div>
+                            <div><strong>${recordName}</strong></div>
+                        </div>
+                    </td>
                     <td><small>${deletedAt}</small></td>
                     <td><small>${deletedByFormatted}</small></td>
                     <td><small>${truncateText(reason, 50)}</small></td>

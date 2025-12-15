@@ -847,6 +847,87 @@ $userSession = $auth->requireAuth('admin');
             transition: transform 0.2s;
         }
 
+        /* Comment Styles */
+        .timeline-comment-section {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f0f8ff;
+            border-radius: 6px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .comment-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .comment-btn:hover {
+            background-color: #138496;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(23, 162, 184, 0.3);
+        }
+
+        .comments-container {
+            margin-top: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .comment-item {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #17a2b8;
+        }
+
+        .comment-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .comment-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .comment-text {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .no-comments {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+            padding: 8px;
+            text-align: center;
+        }
+
         .progress-timeline-content {
             max-height: 300px;
             overflow-y: auto;
@@ -971,6 +1052,19 @@ $userSession = $auth->requireAuth('admin');
                                                                 <span id="timeline-created-date">Not yet created</span>
                                                             </div>
                                                         </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Comment Section -->
+                                                <div class="timeline-comment-section">
+                                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                                        <button type="button" class="comment-btn" id="add-progress-comment-btn" onclick="openProgressCommentModal()">
+                                                            <span class="material-icons" style="font-size: 16px;">add_comment</span>
+                                                            Add Comment
+                                                        </button>
+                                                    </div>
+                                                    <div id="progress-comments-container" class="comments-container">
+                                                        <div class="no-comments">No comments yet</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1284,6 +1378,34 @@ $userSession = $auth->requireAuth('admin');
         </div>
     </div>
 
+    <!-- Progress Comment Modal -->
+    <div class="modal fade" id="progressCommentModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #17a2b8; color: white;">
+                    <h5 class="modal-title">
+                        <span class="material-icons align-middle" style="font-size: 20px; margin-right: 8px;">add_comment</span>
+                        Add Progress Comment
+                    </h5>
+                    <button type="button" class="close btn-close-white" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="progress-comment-text"><strong>Your Comment</strong></label>
+                        <textarea class="form-control" id="progress-comment-text" rows="4" placeholder="Add a comment about the repair progress..."></textarea>
+                        <small class="form-text text-muted">This comment will be displayed in the progress timeline.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-progress-comment-btn" onclick="saveProgressComment()">Save Comment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Print Report Modal -->
     <div class="modal fade" id="printReportModal" tabindex="-1" aria-labelledby="printReportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" style="max-width: 900px;">
@@ -1592,6 +1714,86 @@ $userSession = $auth->requireAuth('admin');
 
             html += '</div>';
             return html;
+        }
+
+        // Progress Comment Functions
+        let progressComments = {};
+
+        function openProgressCommentModal() {
+            $('#progress-comment-text').val('');
+            $('#progressCommentModal').modal('show');
+        }
+
+        function saveProgressComment() {
+            const commentText = $('#progress-comment-text').val().trim();
+            const reportId = $('#report_id').val();
+
+            if (!commentText) {
+                showAlert('warning', 'Please enter a comment');
+                return;
+            }
+
+            if (!reportId) {
+                showAlert('warning', 'Please save the report first before adding comments');
+                return;
+            }
+
+            // Create comment object
+            const comment = {
+                id: Date.now(),
+                text: commentText,
+                timestamp: new Date().toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }),
+                author: '<?php echo isset($userSession['name']) ? htmlspecialchars($userSession['name']) : 'User'; ?>'
+            };
+
+            // Store comments in sessionStorage (or local variable for persistence during session)
+            if (!progressComments[reportId]) {
+                progressComments[reportId] = [];
+            }
+            progressComments[reportId].push(comment);
+
+            // Update display
+            displayProgressComments(reportId);
+
+            // Close modal and show success message
+            $('#progressCommentModal').modal('hide');
+            showAlert('success', 'Comment added successfully!');
+        }
+
+        function displayProgressComments(reportId) {
+            const container = $('#progress-comments-container');
+            const comments = progressComments[reportId] || [];
+
+            if (comments.length === 0) {
+                container.html('<div class="no-comments">No comments yet</div>');
+                return;
+            }
+
+            let html = '';
+            comments.forEach(comment => {
+                html += `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">${comment.author}</span>
+                            <span class="comment-time">${comment.timestamp}</span>
+                        </div>
+                        <div class="comment-text">${comment.text}</div>
+                    </div>
+                `;
+            });
+
+            container.html(html);
+        }
+
+        function loadProgressComments(reportId) {
+            // This would load comments from the database or sessionStorage
+            displayProgressComments(reportId);
         }
 
         async function initializeServiceReport() {
@@ -2337,6 +2539,7 @@ $userSession = $auth->requireAuth('admin');
                 $('#date-in').val(report.date_in);
                 $('select[name="status"]').val(report.status);
                 updateStatusProgress(report.status);  // Update status progress display
+                loadProgressComments(report.report_id);  // Load progress comments
                 $('input[name="dealer"]').val(report.dealer || '');
                 $('input[name="dop"]').val(report.dop || '');
                 $('input[name="date_pulled_out"]').val(report.date_pulled_out || '');
@@ -3126,6 +3329,8 @@ $userSession = $auth->requireAuth('admin');
         
             updateSubmitButton('', '');
             updateStatusProgress(''); // Reset status progress
+            progressComments = {};  // Reset comments
+            $('#progress-comments-container').html('<div class="no-comments">No comments yet</div>');  // Clear comment display
             calculateTotals();
             updateRemoveButtons();
         }
