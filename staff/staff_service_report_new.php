@@ -734,6 +734,80 @@ try {
             transition: transform 0.2s;
         }
 
+        /* Comment Styles */
+        .comment-btn {
+            background-color: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .comment-btn:hover {
+            background-color: #138496;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(23, 162, 184, 0.3);
+        }
+
+        .progress-comments-list {
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .comment-item {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #17a2b8;
+        }
+
+        .comment-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .comment-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .comment-text {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .no-comments {
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+            padding: 8px;
+            text-align: center;
+        }
+
         .progress-timeline-content {
             max-height: 300px;
             overflow-y: auto;
@@ -1059,6 +1133,34 @@ try {
                             </div>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Comment Modal -->
+    <div class="modal fade" id="progressCommentModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #17a2b8; color: white;">
+                    <h5 class="modal-title">
+                        <span class="material-icons align-middle" style="font-size: 20px; margin-right: 8px;">add_comment</span>
+                        Add Comment to <span id="progress-title-modal">Progress</span>
+                    </h5>
+                    <button type="button" class="close btn-close-white" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="progress-comment-text"><strong>Your Comment</strong></label>
+                        <textarea class="form-control" id="progress-comment-text" rows="4" placeholder="Add a comment about this progress..."></textarea>
+                        <small class="form-text text-muted">This comment will be displayed under the progress item.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-progress-comment-btn" onclick="saveProgressComment()">Save Comment</button>
                 </div>
             </div>
         </div>
@@ -1470,35 +1572,54 @@ try {
             const timelineEvents = {
                 'Pending': {
                     title: 'Received for Service',
-                    description: 'Awaiting repair technician'
+                    description: 'Awaiting repair technician',
+                    key: 'pending'
                 },
                 'Under Repair': {
                     title: 'Under Repair',
-                    description: 'Technician is working on the unit'
+                    description: 'Technician is working on the unit',
+                    key: 'under_repair'
                 },
                 'Unrepairable': {
                     title: 'Unit is Unrepairable',
-                    description: 'Unable to repair - marked as unrepairable'
+                    description: 'Unable to repair - marked as unrepairable',
+                    key: 'unrepairable'
                 },
                 'Release Out': {
                     title: 'Released to Customer',
-                    description: 'Unit has been released out'
+                    description: 'Unit has been released out',
+                    key: 'release_out'
                 },
                 'Completed': {
                     title: 'Repair Completed',
-                    description: 'Service completed and ready for delivery'
+                    description: 'Service completed and ready for delivery',
+                    key: 'completed'
                 }
             };
 
-            const event = timelineEvents[status] || { title: 'Status Unknown', description: '' };
+            const event = timelineEvents[status] || { title: 'Status Unknown', description: '', key: 'unknown' };
 
+            // Current status item with comment section
             timelineHTML += `
-                <div class="timeline-item">
+                <div class="timeline-item" id="timeline-${event.key}">
                     <div class="timeline-dot"></div>
                     <div class="timeline-text">
                         <strong>${event.title}</strong><br>
                         <span>${event.description}</span><br>
                         <small style="color: #999;">${currentDate}</small>
+                        
+                        <!-- Comment Button for this progress -->
+                        <div style="margin-top: 10px;">
+                            <button type="button" class="comment-btn" onclick="openProgressCommentModal('${event.key}', '${event.title}')">
+                                <span class="material-icons" style="font-size: 14px;">add_comment</span>
+                                <span>Comment</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Comments Container for this progress -->
+                        <div id="comments-${event.key}" class="progress-comments-list" style="margin-top: 10px;">
+                            <div class="no-comments" style="font-size: 11px;">No comments</div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1507,18 +1628,34 @@ try {
             const reportId = $('#report_id').val();
             if (reportId) {
                 timelineHTML += `
-                    <div class="timeline-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                    <div class="timeline-item" id="timeline-report-created" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
                         <div class="timeline-dot"></div>
                         <div class="timeline-text">
                             <strong>Report Created</strong><br>
                             <span>Service report initiated</span><br>
                             <small style="color: #999;">Report ID: #${reportId}</small>
+                            
+                            <!-- Comment Button for report creation -->
+                            <div style="margin-top: 10px;">
+                                <button type="button" class="comment-btn" onclick="openProgressCommentModal('report_created', 'Report Created')">
+                                    <span class="material-icons" style="font-size: 14px;">add_comment</span>
+                                    <span>Comment</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Comments Container for report creation -->
+                            <div id="comments-report_created" class="progress-comments-list" style="margin-top: 10px;">
+                                <div class="no-comments" style="font-size: 11px;">No comments</div>
+                            </div>
                         </div>
                     </div>
                 `;
             }
 
             timelineContainer.html(timelineHTML);
+            
+            // Refresh comments display for all items
+            displayAllProgressComments();
         }
 
         function generateStatusProgressHTML(status) {
@@ -2462,6 +2599,9 @@ try {
                             showAlert('success', 'Report loaded for editing');
                             console.log('Form population complete');
                             
+                            // Load progress comments
+                            loadProgressComments(reportId);
+                            
                             // Scroll to top
                             $('html, body').animate({ scrollTop: 0 }, 'smooth');
                     } else {
@@ -2919,6 +3059,170 @@ try {
             }
         }
 
+        // ============ PROGRESS COMMENT FUNCTIONS ============
+
+        var currentProgressKey = null;
+        var currentReportId = null;
+        var progressComments = {};
+
+        function openProgressCommentModal(progressKey, progressTitle) {
+            currentProgressKey = progressKey;
+            currentReportId = $('#report-id').val();
+            
+            $('#progress-title-modal').text(progressTitle);
+            $('#progress-comment-text').val('');
+            $('#progressCommentModal').modal('show');
+        }
+
+        function saveProgressComment() {
+            const commentText = $('#progress-comment-text').val().trim();
+            
+            if (!commentText) {
+                showAlert('warning', 'Please enter a comment before saving.');
+                return;
+            }
+            
+            if (!currentReportId) {
+                showAlert('danger', 'Report ID not found. Please reload the report.');
+                return;
+            }
+
+            // Show loading state
+            showLoading(true, '#progressCommentModal');
+            
+            $.ajax({
+                url: '../backend/api/service_report_api.php',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    action: 'addProgressComment',
+                    report_id: currentReportId,
+                    progress_key: currentProgressKey,
+                    comment_text: commentText
+                }),
+                success: function(response) {
+                    showLoading(false, '#progressCommentModal');
+                    
+                    if (response.success) {
+                        showAlert('success', 'Comment saved successfully!');
+                        $('#progressCommentModal').modal('hide');
+                        
+                        // Reload comments to display the newly added one
+                        loadProgressComments(currentReportId);
+                    } else {
+                        showAlert('danger', response.message || 'Failed to save comment');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showLoading(false, '#progressCommentModal');
+                    console.error('Error saving comment:', error);
+                    showAlert('danger', 'Error saving comment. Please try again.');
+                }
+            });
+        }
+
+        function loadProgressComments(reportId) {
+            $.ajax({
+                url: '../backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        progressComments = {};
+                        
+                        // Organize comments by progress key
+                        if (response.data && response.data.length > 0) {
+                            response.data.forEach(function(comment) {
+                                if (!progressComments[comment.progress_key]) {
+                                    progressComments[comment.progress_key] = [];
+                                }
+                                progressComments[comment.progress_key].push(comment);
+                            });
+                        }
+                        
+                        // Display all comments
+                        displayAllProgressComments();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading progress comments:', error);
+                }
+            });
+        }
+
+        function displayProgressItemComments(progressKey) {
+            const commentsContainer = $('#comments-' + progressKey);
+            
+            if (!commentsContainer.length) {
+                return;
+            }
+            
+            if (!progressComments[progressKey] || progressComments[progressKey].length === 0) {
+                commentsContainer.html('<div class="no-comments">No comments yet</div>');
+                return;
+            }
+            
+            let commentsHtml = '';
+            progressComments[progressKey].forEach(function(comment) {
+                const createdAt = new Date(comment.created_at).toLocaleString();
+                
+                commentsHtml += `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">${escapeHtml(comment.created_by || 'Unknown')}</span>
+                            <span class="comment-time">${createdAt}</span>
+                            <button type="button" class="btn btn-sm btn-link text-danger" 
+                                    onclick="deleteProgressComment(${comment.id}, '${progressKey}')" 
+                                    style="padding: 0; margin-left: auto;">
+                                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">delete</span>
+                            </button>
+                        </div>
+                        <div class="comment-text">${escapeHtml(comment.comment_text).replace(/\n/g, '<br>')}</div>
+                    </div>
+                `;
+            });
+            
+            commentsContainer.html(commentsHtml);
+        }
+
+        function displayAllProgressComments() {
+            const progressKeys = ['pending', 'under_repair', 'unrepairable', 'release_out', 'completed', 'report_created'];
+            progressKeys.forEach(function(key) {
+                displayProgressItemComments(key);
+            });
+        }
+
+        function deleteProgressComment(commentId, progressKey) {
+            if (!confirm('Are you sure you want to delete this comment?')) {
+                return;
+            }
+            
+            $.ajax({
+                url: '../backend/api/service_report_api.php?action=deleteProgressComment&id=' + commentId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showAlert('success', 'Comment deleted successfully');
+                        // Reload to refresh display
+                        loadProgressComments(currentReportId);
+                    } else {
+                        showAlert('danger', response.message || 'Failed to delete comment');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting comment:', error);
+                    showAlert('danger', 'Error deleting comment');
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
     </script>
 </body>
