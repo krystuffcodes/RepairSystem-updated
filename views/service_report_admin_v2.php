@@ -928,6 +928,13 @@ $userSession = $auth->requireAuth('admin');
             text-align: center;
         }
 
+        .progress-comments-list {
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
         .progress-timeline-content {
             max-height: 300px;
             overflow-y: auto;
@@ -1052,19 +1059,6 @@ $userSession = $auth->requireAuth('admin');
                                                                 <span id="timeline-created-date">Not yet created</span>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Comment Section -->
-                                                <div class="timeline-comment-section">
-                                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-                                                        <button type="button" class="comment-btn" id="add-progress-comment-btn" onclick="openProgressCommentModal()">
-                                                            <span class="material-icons" style="font-size: 16px;">add_comment</span>
-                                                            Add Comment
-                                                        </button>
-                                                    </div>
-                                                    <div id="progress-comments-container" class="comments-container">
-                                                        <div class="no-comments">No comments yet</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1385,7 +1379,7 @@ $userSession = $auth->requireAuth('admin');
                 <div class="modal-header" style="background-color: #17a2b8; color: white;">
                     <h5 class="modal-title">
                         <span class="material-icons align-middle" style="font-size: 20px; margin-right: 8px;">add_comment</span>
-                        Add Progress Comment
+                        Add Comment to <span id="progress-title-modal">Progress</span>
                     </h5>
                     <button type="button" class="close btn-close-white" data-dismiss="modal" aria-label="Close" style="color: white;">
                         <span aria-hidden="true">&times;</span>
@@ -1394,8 +1388,8 @@ $userSession = $auth->requireAuth('admin');
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="progress-comment-text"><strong>Your Comment</strong></label>
-                        <textarea class="form-control" id="progress-comment-text" rows="4" placeholder="Add a comment about the repair progress..."></textarea>
-                        <small class="form-text text-muted">This comment will be displayed in the progress timeline.</small>
+                        <textarea class="form-control" id="progress-comment-text" rows="4" placeholder="Add a comment about this progress..."></textarea>
+                        <small class="form-text text-muted">This comment will be displayed under the progress item.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1604,35 +1598,54 @@ $userSession = $auth->requireAuth('admin');
             const timelineEvents = {
                 'Pending': {
                     title: 'Received for Service',
-                    description: 'Awaiting repair technician'
+                    description: 'Awaiting repair technician',
+                    key: 'pending'
                 },
                 'Under Repair': {
                     title: 'Under Repair',
-                    description: 'Technician is working on the unit'
+                    description: 'Technician is working on the unit',
+                    key: 'under_repair'
                 },
                 'Unrepairable': {
                     title: 'Unit is Unrepairable',
-                    description: 'Unable to repair - marked as unrepairable'
+                    description: 'Unable to repair - marked as unrepairable',
+                    key: 'unrepairable'
                 },
                 'Release Out': {
                     title: 'Released to Customer',
-                    description: 'Unit has been released out'
+                    description: 'Unit has been released out',
+                    key: 'release_out'
                 },
                 'Completed': {
                     title: 'Repair Completed',
-                    description: 'Service completed and ready for delivery'
+                    description: 'Service completed and ready for delivery',
+                    key: 'completed'
                 }
             };
 
-            const event = timelineEvents[status] || { title: 'Status Unknown', description: '' };
+            const event = timelineEvents[status] || { title: 'Status Unknown', description: '', key: 'unknown' };
 
+            // Current status item with comment section
             timelineHTML += `
-                <div class="timeline-item">
+                <div class="timeline-item" id="timeline-${event.key}">
                     <div class="timeline-dot"></div>
                     <div class="timeline-text">
                         <strong>${event.title}</strong><br>
                         <span>${event.description}</span><br>
                         <small style="color: #999;">${currentDate}</small>
+                        
+                        <!-- Comment Button for this progress -->
+                        <div style="margin-top: 10px;">
+                            <button type="button" class="comment-btn" onclick="openProgressCommentModal('${event.key}', '${event.title}')">
+                                <span class="material-icons" style="font-size: 14px;">add_comment</span>
+                                <span>Comment</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Comments Container for this progress -->
+                        <div id="comments-${event.key}" class="progress-comments-list" style="margin-top: 10px;">
+                            <div class="no-comments" style="font-size: 11px;">No comments</div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1642,18 +1655,34 @@ $userSession = $auth->requireAuth('admin');
             const reportId = $('#report_id').val();
             if (reportId) {
                 timelineHTML += `
-                    <div class="timeline-item" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                    <div class="timeline-item" id="timeline-report-created" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
                         <div class="timeline-dot"></div>
                         <div class="timeline-text">
                             <strong>Report Created</strong><br>
                             <span>Service report initiated</span><br>
                             <small style="color: #999;">Report ID: #${reportId}</small>
+                            
+                            <!-- Comment Button for report creation -->
+                            <div style="margin-top: 10px;">
+                                <button type="button" class="comment-btn" onclick="openProgressCommentModal('report_created', 'Report Created')">
+                                    <span class="material-icons" style="font-size: 14px;">add_comment</span>
+                                    <span>Comment</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Comments Container for report creation -->
+                            <div id="comments-report_created" class="progress-comments-list" style="margin-top: 10px;">
+                                <div class="no-comments" style="font-size: 11px;">No comments</div>
+                            </div>
                         </div>
                     </div>
                 `;
             }
 
             timelineContainer.html(timelineHTML);
+            
+            // Refresh comments display for all items
+            displayAllProgressComments();
         }
 
         function generateStatusProgressHTML(status) {
@@ -1717,9 +1746,14 @@ $userSession = $auth->requireAuth('admin');
         }
 
         // Progress Comment Functions
-        let progressComments = {};
+        let progressComments = {};  // Format: { reportId: { progressKey: [comments] } }
+        let currentProgressKey = null;
+        let currentProgressTitle = null;
 
-        function openProgressCommentModal() {
+        function openProgressCommentModal(progressKey, progressTitle) {
+            currentProgressKey = progressKey;
+            currentProgressTitle = progressTitle;
+            $('#progress-title-modal').text(progressTitle);
             $('#progress-comment-text').val('');
             $('#progressCommentModal').modal('show');
         }
@@ -1738,6 +1772,11 @@ $userSession = $auth->requireAuth('admin');
                 return;
             }
 
+            if (!currentProgressKey) {
+                showAlert('warning', 'Progress item not selected');
+                return;
+            }
+
             // Create comment object
             const comment = {
                 id: Date.now(),
@@ -1749,41 +1788,46 @@ $userSession = $auth->requireAuth('admin');
                     hour: '2-digit',
                     minute: '2-digit'
                 }),
-                author: '<?php echo isset($userSession['name']) ? htmlspecialchars($userSession['name']) : 'User'; ?>'
+                author: '<?php echo isset($userSession["name"]) ? htmlspecialchars($userSession["name"]) : "User"; ?>'
             };
 
-            // Store comments in sessionStorage (or local variable for persistence during session)
+            // Initialize storage if needed
             if (!progressComments[reportId]) {
-                progressComments[reportId] = [];
+                progressComments[reportId] = {};
             }
-            progressComments[reportId].push(comment);
+            if (!progressComments[reportId][currentProgressKey]) {
+                progressComments[reportId][currentProgressKey] = [];
+            }
 
-            // Update display
-            displayProgressComments(reportId);
+            // Add comment
+            progressComments[reportId][currentProgressKey].push(comment);
+
+            // Update display for this progress item
+            displayProgressItemComments(reportId, currentProgressKey);
 
             // Close modal and show success message
             $('#progressCommentModal').modal('hide');
-            showAlert('success', 'Comment added successfully!');
+            showAlert('success', `Comment added to ${currentProgressTitle}!`);
         }
 
-        function displayProgressComments(reportId) {
-            const container = $('#progress-comments-container');
-            const comments = progressComments[reportId] || [];
+        function displayProgressItemComments(reportId, progressKey) {
+            const container = $(`#comments-${progressKey}`);
+            const comments = (progressComments[reportId] && progressComments[reportId][progressKey]) || [];
 
             if (comments.length === 0) {
-                container.html('<div class="no-comments">No comments yet</div>');
+                container.html('<div class="no-comments" style="font-size: 11px;">No comments</div>');
                 return;
             }
 
             let html = '';
             comments.forEach(comment => {
                 html += `
-                    <div class="comment-item">
+                    <div class="comment-item" style="margin-bottom: 8px;">
                         <div class="comment-header">
-                            <span class="comment-author">${comment.author}</span>
-                            <span class="comment-time">${comment.timestamp}</span>
+                            <span class="comment-author" style="font-size: 11px;">${comment.author}</span>
+                            <span class="comment-time" style="font-size: 10px;">${comment.timestamp}</span>
                         </div>
-                        <div class="comment-text">${comment.text}</div>
+                        <div class="comment-text" style="font-size: 11px; margin-top: 4px;">${comment.text}</div>
                     </div>
                 `;
             });
@@ -1791,9 +1835,19 @@ $userSession = $auth->requireAuth('admin');
             container.html(html);
         }
 
+        function displayAllProgressComments() {
+            const reportId = $('#report_id').val();
+            if (!reportId || !progressComments[reportId]) return;
+
+            Object.keys(progressComments[reportId]).forEach(progressKey => {
+                displayProgressItemComments(reportId, progressKey);
+            });
+        }
+
         function loadProgressComments(reportId) {
-            // This would load comments from the database or sessionStorage
-            displayProgressComments(reportId);
+            // Load comments from storage (if implemented with database)
+            // For now, just display existing comments in memory
+            displayAllProgressComments();
         }
 
         async function initializeServiceReport() {
@@ -3323,14 +3377,19 @@ $userSession = $auth->requireAuth('admin');
 
             $('.staff-select').val('');
             $('input[type="checkbox"]').prop('checked', false);
+            const reportId = $('#report_id').val();
             $('#report_id').val('');
+            
+            // Clear comments for this report
+            if (reportId && progressComments[reportId]) {
+                delete progressComments[reportId];
+            }
+            
             // Clear visible customer search input
             $('#customer-search').val('');
         
             updateSubmitButton('', '');
             updateStatusProgress(''); // Reset status progress
-            progressComments = {};  // Reset comments
-            $('#progress-comments-container').html('<div class="no-comments">No comments yet</div>');  // Clear comment display
             calculateTotals();
             updateRemoveButtons();
         }
