@@ -2962,13 +2962,13 @@ try {
                 tempContainer.style.color = '#000';
                 
                 // Format dates
-                const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
-                const dop = report.dop ? new Date(report.dop).toLocaleDateString() : 'N/A';
-                const datePulledOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : 'N/A';
-                const dateRepaired = report.date_repaired ? new Date(report.date_repaired).toLocaleDateString() : 'N/A';
+                const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : '';
+                const dop = report.dop ? new Date(report.dop).toLocaleDateString() : '';
+                const datePulledOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : '';
+                const dateRepaired = report.date_repaired ? new Date(report.date_repaired).toLocaleDateString() : '';
 
                 // Format service types
-                let serviceTypes = 'N/A';
+                let serviceTypes = '';
                 if (report.service_types && Array.isArray(report.service_types)) {
                     serviceTypes = report.service_types.join(', ');
                 } else if (typeof report.service_types === 'string') {
@@ -2979,10 +2979,10 @@ try {
                 let partsHtml = '<table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #000;"><tr style="border-bottom: 2px solid #000;"><th style="text-align: left; padding: 6px; color: #000; font-weight: bold;">Part Name</th><th style="text-align: center; padding: 6px; color: #000; font-weight: bold;">Qty</th></tr>';
                 if (report.parts && Array.isArray(report.parts)) {
                     report.parts.forEach(part => {
-                        partsHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">${part.part_name || 'N/A'}</td><td style="text-align: center; padding: 6px; color: #000;">${part.quantity || 0}</td></tr>`;
+                        partsHtml += `<tr style="border-bottom: 1px solid #000;"><td style="padding: 6px; color: #000;">${part.part_name || ''}</td><td style="text-align: center; padding: 6px; color: #000;">${part.quantity || 0}</td></tr>`;
                     });
                 } else {
-                    partsHtml += '<tr><td colspan="2" style="padding: 6px; color: #000;">N/A</td></tr>';
+                    partsHtml += '<tr><td colspan="2" style="padding: 6px; color: #000;"></td></tr>';
                 }
                 partsHtml += '</table>';
 
@@ -3006,13 +3006,13 @@ try {
                                 <strong style="font-size: 13px; color: #000;">Date In:</strong><br><span style="font-size: 12px; color: #000;">${dateIn}</span>
                             </div>
                             <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
-                                <strong style="font-size: 13px; color: #000;">Status:</strong><br><span style="font-size: 12px; color: #000;">${report.status || 'N/A'}</span>
+                                <strong style="font-size: 13px; color: #000;">Status:</strong><br><span style="font-size: 12px; color: #000;">${report.status || ''}</span>
                             </div>
                             <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
-                                <strong style="font-size: 13px; color: #000;">Dealer:</strong><br><span style="font-size: 12px; color: #000;">${report.dealer || 'N/A'}</span>
+                                <strong style="font-size: 13px; color: #000;">Dealer:</strong><br><span style="font-size: 12px; color: #000;">${report.dealer || ''}</span>
                             </div>
                             <div style="display: table-cell; width: 25%; padding: 8px 10px; border: 2px solid #000; background: #ffffff; font-weight: bold; color: #000;">
-                                <strong style="font-size: 13px; color: #000;">Staff:</strong><br><span style="font-size: 12px; color: #000;">${report.staff_name || 'N/A'}</span>
+                                <strong style="font-size: 13px; color: #000;">Staff:</strong><br><span style="font-size: 12px; color: #000;">${report.staff_name || ''}</span>
                             </div>
                         </div>
                         
@@ -3021,13 +3021,13 @@ try {
                             <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">CUSTOMER INFORMATION</h4>
                             <div style="display: table; width: 100%; border-collapse: collapse;">
                                 <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
-                                    <strong style="font-size: 12px; color: #000;">Name:</strong> <span style="font-size: 12px; color: #000;">${report.customer_name || 'N/A'}</span><br>
-                                    <strong style="font-size: 12px; color: #000;">Contact:</strong> <span style="font-size: 12px; color: #000;">${report.customer_contact || 'N/A'}</span>
+                                    <strong style="font-size: 12px; color: #000;">Name:</strong> <span style="font-size: 12px; color: #000;">${report.customer_name || ''}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Contact:</strong> <span style="font-size: 12px; color: #000;">${report.customer_contact || ''}</span>
                                 </div>
                                 <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
-                                    <strong style="font-size: 12px; color: #000;">Appliance:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_name || 'N/A'}</span><br>
-                                    <strong style="font-size: 12px; color: #000;">Model:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_model || 'N/A'}</span><br>
-                                    <strong style="font-size: 12px; color: #000;">Serial:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_serial || 'N/A'}</span>
+                                    <strong style="font-size: 12px; color: #000;">Appliance:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_name || ''}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Model:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_model || ''}</span><br>
+                                    <strong style="font-size: 12px; color: #000;">Serial:</strong> <span style="font-size: 12px; color: #000;">${report.appliance_serial || ''}</span>
                                 </div>
                             </div>
                         </div>
@@ -3038,7 +3038,7 @@ try {
                             <div style="display: table; width: 100%; border-collapse: collapse;">
                                 <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
                                     <strong style="font-size: 12px; color: #000;">Service Type:</strong> <span style="font-size: 12px; color: #000;">${serviceTypes}</span><br>
-                                    <strong style="font-size: 12px; color: #000;">Findings:</strong> <span style="font-size: 12px; color: #000;">${report.findings || 'N/A'}</span>
+                                    <strong style="font-size: 12px; color: #000;">Findings:</strong> <span style="font-size: 12px; color: #000;">${report.findings || ''}</span>
                                 </div>
                                 <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
                                     <strong style="font-size: 12px; color: #000;">Date of Problem:</strong> <span style="font-size: 12px; color: #000;">${dop}</span><br>
@@ -3052,7 +3052,7 @@ try {
                         <div style="margin-bottom: 15px;">
                             <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">COMPLAINT</h4>
                             <div style="padding: 10px; border: 1px solid #000; min-height: 40px; background: #ffffff; font-size: 12px; color: #000;">
-                                ${report.complaint || 'N/A'}
+                                ${report.complaint || ''}
                             </div>
                         </div>
                         
@@ -3081,7 +3081,7 @@ try {
                         <div style="margin-bottom: 15px;">
                             <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px; color: #000;">REMARKS</h4>
                             <div style="padding: 10px; border: 1px solid #000; min-height: 40px; background: #ffffff; font-size: 12px; color: #000;">
-                                ${report.remarks || 'N/A'}
+                                ${report.remarks || ''}
                             </div>
                         </div>
                         
