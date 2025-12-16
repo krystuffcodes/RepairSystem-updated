@@ -1944,7 +1944,9 @@ try {
                             parts.forEach(function(part) {
                                 const pid = part.part_id || part.id || part.partId || part.ID;
                                 const price = part.price || part.part_price || 0;
-                                const label = part.description || part.part_no || part.name || part.part_name || `Part ${pid}`;
+                                const partName = part.part_no || part.name || part.part_name || `Part ${pid}`;
+                                const stock = part.quantity_stock || 0;
+                                const label = `${partName} (Stock: ${stock})`;
                                 $sel.append(`<option value="${pid}" data-price="${price}">${label}</option>`);
                             });
                         });
@@ -2246,7 +2248,9 @@ try {
             parts.forEach(function(part) {
                 const pid = part.part_id || part.id || part.partId || part.ID;
                 const price = part.price || part.part_price || 0;
-                const label = part.description || part.part_no || part.name || part.part_name || `Part ${pid}`;
+                const partName = part.part_no || part.name || part.part_name || `Part ${pid}`;
+                const stock = part.quantity_stock || 0;
+                const label = `${partName} (Stock: ${stock})`;
                 partSelect.append(`<option value="${pid}" data-price="${price}">${label}</option>`);
             });
 
