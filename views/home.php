@@ -973,9 +973,12 @@ try {
             canvas.style.opacity = '0.5';
             
             // Fetch data based on selected trend type
-            fetch(`../backend/api/dashboard_api.php?action=getTrendData&type=${trendType}`)
-                .then(response => response.json())
-                .then(data => {
+            $.ajax({
+                url: '../backend/api/dashboard_api.php',
+                method: 'GET',
+                data: { action: 'getTrendData', type: trendType },
+                dataType: 'json',
+                success: function(data) {
                     if (data.success) {
                         // Update chart title
                         let chartTitle = '';
@@ -1003,12 +1006,13 @@ try {
                         alert('Failed to load trend data');
                         canvas.style.opacity = '1';
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching trend data:', error);
+                },
+                error: function(xhr) {
+                    console.error('Error fetching trend data:', xhr.responseText || xhr.statusText);
                     alert('Error loading trend data');
                     canvas.style.opacity = '1';
-                });
+                }
+            });
         });
 
         // Service Status Breakdown
