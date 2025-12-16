@@ -1514,8 +1514,38 @@ try {
             // Update progress steps display
             updateProgressSteps(currentStatus.step, currentStatus.isCompleted);
 
-            // Update timeline
-            updateProgressTimeline(status);
+            // Load comments for this report before updating timeline
+            const reportId = $('#report_id').val();
+            if (reportId) {
+                // Load comments first, then update timeline
+                $.ajax({
+                    url: '../backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            progressComments = {};
+                            if (response.data && response.data.length > 0) {
+                                response.data.forEach(function(comment) {
+                                    if (!progressComments[comment.progress_key]) {
+                                        progressComments[comment.progress_key] = [];
+                                    }
+                                    progressComments[comment.progress_key].push(comment);
+                                });
+                            }
+                        }
+                        // Update timeline after comments are loaded
+                        updateProgressTimeline(status);
+                    },
+                    error: function() {
+                        // Even if error, still update timeline
+                        updateProgressTimeline(status);
+                    }
+                });
+            } else {
+                // No report ID, just update timeline
+                updateProgressTimeline(status);
+            }
         }
 
         function updateProgressSteps(currentStep, isCompleted) {
@@ -2365,17 +2395,19 @@ try {
                     const successMsg = reportId ? 'Service report updated successfully!' : 'Service report created successfully!';
                     showAlert('success', successMsg);
                     
-                    // If updating, reload comments for the updated report
+                    // If updating, reload the report and its comments to keep everything fresh
                     if (reportId) {
-                        loadProgressComments(reportId);
+                        // Reload the report for editing to keep it displayed with all comments
+                        loadReportForEditing(reportId);
+                    } else {
+                        // If creating new, clear the form
+                        $('#serviceReportForm')[0].reset();
+                        $('#report_id').val('');
+                        $('#submit-report-btn').text('Create Report').css('background-color', '#0066e6');
+                        loadCustomers();
+                        loadServiceReports(); // Refresh the list
+                        $('#appliance-select').empty().append('<option value="">Select Appliance</option>');
                     }
-                    
-                    $('#serviceReportForm')[0].reset();
-                    $('#report_id').val('');
-                    $('#submit-report-btn').text('Create Report').css('background-color', '#0066e6');
-                    loadCustomers();
-                    loadServiceReports(); // Refresh the list
-                    $('#appliance-select').empty().append('<option value="">Select Appliance</option>');
                     
                     // Update dashboard in real-time
                     updateDashboardData();
