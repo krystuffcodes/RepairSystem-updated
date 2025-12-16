@@ -91,8 +91,8 @@ function handleAddProgressComment($conn)
         sendResponse(false, null, 'Missing required fields: report_id=' . $report_id . ', progress_key=' . $progress_key . ', comment_text=' . strlen($comment_text), 400);
     }
 
-    // Check if table exists, if not create it
-    $tableCheckQuery = "
+    // Ensure table exists with proper schema
+    $ensureTableQuery = "
         CREATE TABLE IF NOT EXISTS service_progress_comments (
             id INT AUTO_INCREMENT PRIMARY KEY,
             report_id INT NOT NULL,
@@ -105,14 +105,14 @@ function handleAddProgressComment($conn)
             KEY idx_report_id (report_id),
             KEY idx_progress_key (progress_key),
             KEY idx_created_at (created_at)
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    if (!$conn->query($tableCheckQuery)) {
+    if (!$conn->query($ensureTableQuery)) {
         sendResponse(false, null, 'Failed to create comments table: ' . $conn->error, 500);
     }
 
-    // Insert comment (without FK constraint for now to avoid constraint errors)
+    // Insert comment
     $insertQuery = "
         INSERT INTO service_progress_comments 
         (report_id, progress_key, comment_text, created_by, created_by_name) 
@@ -124,8 +124,9 @@ function handleAddProgressComment($conn)
         sendResponse(false, null, 'Prepare failed: ' . $conn->error, 500);
     }
 
-    // Bind parameters: i=int, s=string, i=int, s=string
-    $stmt->bind_param('isiss', $report_id, $progress_key, $comment_text, $created_by, $created_by_name);
+    // Bind parameters: i=int, s=string, s=string, i=int, s=string
+    // Order: report_id(i), progress_key(s), comment_text(s), created_by(i), created_by_name(s)
+    $stmt->bind_param('issis', $report_id, $progress_key, $comment_text, $created_by, $created_by_name);
     
     if (!$stmt->execute()) {
         sendResponse(false, null, 'Failed to add comment: ' . $stmt->error, 500);
@@ -145,8 +146,8 @@ function handleGetProgressComments($conn)
         sendResponse(false, null, 'Missing report_id', 400);
     }
 
-    // Create table if not exists
-    $tableCreateQuery = "
+    // Ensure table exists with proper schema
+    $ensureTableQuery = "
         CREATE TABLE IF NOT EXISTS service_progress_comments (
             id INT AUTO_INCREMENT PRIMARY KEY,
             report_id INT NOT NULL,
@@ -159,10 +160,10 @@ function handleGetProgressComments($conn)
             KEY idx_report_id (report_id),
             KEY idx_progress_key (progress_key),
             KEY idx_created_at (created_at)
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    if (!$conn->query($tableCreateQuery)) {
+    if (!$conn->query($ensureTableQuery)) {
         // Table creation failed, but try to continue
         error_log('Failed to create comments table: ' . $conn->error);
     }
