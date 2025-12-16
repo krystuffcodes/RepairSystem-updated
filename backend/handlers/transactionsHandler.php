@@ -280,7 +280,7 @@ class transactionsHandlers {
                 throw new RuntimeException("Prepare failed: " . $this->conn->error);
             }
 
-            $stmt->bind_param("ssisssi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $transactionId);
+            $stmt->bind_param("ssissi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $transactionId);
             
             if(!$stmt->execute()) {
                 throw new RuntimeException("Failed to update payment status: " . $stmt->error);
