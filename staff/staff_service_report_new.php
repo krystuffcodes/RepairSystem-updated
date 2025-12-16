@@ -1928,6 +1928,9 @@ try {
         }
 
         function loadLatestCustomerDateIn(customerId) {
+            // Get customer name from the selected option
+            const customerName = $('#customer-select').find('option:selected').text();
+            
             // Fetch all service reports and find the latest one for this customer
             $.ajax({
                 url: '../backend/api/service_api.php?action=getAll&limit=1000',
@@ -1936,15 +1939,16 @@ try {
                 success: function(data) {
                     console.log('Service reports response:', data);
                     if (data.success && Array.isArray(data.data)) {
-                        // Filter reports for this customer and get the most recent one
+                        // Filter reports for this customer by matching customer name
                         const customerReports = data.data.filter(r => {
-                            const reportCustId = parseInt(r.customer_id);
-                            const selectedCustId = parseInt(customerId);
-                            console.log('Comparing customer IDs:', reportCustId, '===', selectedCustId, '?', reportCustId === selectedCustId);
-                            return reportCustId === selectedCustId;
+                            const reportCustName = (r.customer_name || '').trim();
+                            const selectedCustName = (customerName || '').trim();
+                            const nameMatch = reportCustName.toLowerCase() === selectedCustName.toLowerCase();
+                            console.log('Comparing customer names:', reportCustName, '===', selectedCustName, '?', nameMatch);
+                            return nameMatch;
                         });
                         
-                        console.log('Found', customerReports.length, 'reports for customer', customerId);
+                        console.log('Found', customerReports.length, 'reports for customer:', customerName);
                         
                         if (customerReports.length > 0) {
                             // Sort by date_in to get the most recent
