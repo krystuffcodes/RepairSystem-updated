@@ -560,6 +560,31 @@ ALTER TABLE `user_sessions`
   ADD CONSTRAINT `fk_user_sessions_staff` FOREIGN KEY (`staff_id`) REFERENCES `staffs` (`staff_id`) ON DELETE CASCADE;
 
 -- --------------------------------------------------------
+
+--
+-- Table structure for table `service_progress_comments`
+--
+
+CREATE TABLE `service_progress_comments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `report_id` int NOT NULL,
+  `progress_key` varchar(50) NOT NULL,
+  `comment_text` longtext NOT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_by_name` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_report_id` (`report_id`),
+  KEY `idx_progress_key` (`progress_key`),
+  KEY `idx_report_progress` (`report_id`, `progress_key`),
+  KEY `idx_created_by` (`created_by`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `fk_progress_comments_report` FOREIGN KEY (`report_id`) REFERENCES `service_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
 --
 -- Table structure for table `staff_comments`
 --

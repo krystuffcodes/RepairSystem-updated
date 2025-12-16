@@ -1,5 +1,10 @@
 <?php
 
+// Start session before any headers are sent
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require __DIR__ . '/../../backend/handlers/Database.php';
 
 header("Content-Type: application/json");
@@ -89,8 +94,9 @@ function handleAddProgressComment($conn)
             created_by_name VARCHAR(255),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (report_id) REFERENCES service_reports(id) ON DELETE CASCADE,
-            INDEX idx_report_progress (report_id, progress_key)
+            FOREIGN KEY (report_id) REFERENCES service_reports(report_id) ON DELETE CASCADE,
+            INDEX idx_report_progress (report_id, progress_key),
+            INDEX idx_created_at (created_at)
         )
     ";
 
@@ -110,7 +116,7 @@ function handleAddProgressComment($conn)
         sendResponse(false, null, 'Prepare failed: ' . $conn->error, 500);
     }
 
-    $stmt->bind_param('issss', $report_id, $progress_key, $comment_text, $created_by, $created_by_name);
+    $stmt->bind_param('issis', $report_id, $progress_key, $comment_text, $created_by, $created_by_name);
     
     if (!$stmt->execute()) {
         sendResponse(false, null, 'Failed to add comment: ' . $stmt->error, 500);
