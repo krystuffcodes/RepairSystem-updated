@@ -1847,18 +1847,19 @@ try {
                     if (customers.length > 0) {
                         customers.forEach(function(customer) {
                             const id = customer.customer_id || customer.id;
-                            const name = customer.FullName || customer.name || (customer.first_name + ' ' + customer.last_name);
+                            const name = customer.FullName || customer.full_name || customer.name || (customer.first_name ? customer.first_name + ' ' + customer.last_name : 'Unknown');
                             select.append(`<option value="${id}">${name}</option>`);
                         });
                     } else {
-                        showAlert('warning', 'No customers found in database');
                         console.warn('No customers in response:', data);
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading customers:', error);
                     console.error('Response:', xhr.responseText);
-                    showAlert('error', 'Error loading customers: ' + error);
+                    if (status !== 'abort') {
+                        console.warn('Customer API failed - continuing without customers');
+                    }
                 }
             });
         }
@@ -2674,7 +2675,30 @@ try {
                                         row = firstRow.clone(true, true);
                                         $('#parts-container').append(row);
                                     }
-                                    row.find('.part-select').val(part.part_id || part.id || '');
+                                    // Get the select element and populate it
+                                    const $partSelect = row.find('.part-select');
+                                    
+                                    // Ensure part options are populated
+                                    const storedParts = $('body').data('parts') || [];
+                                    if (storedParts.length === 0) {
+                                        console.warn('Parts list not populated yet, loading parts...');
+                                        // Rebuild part options from stored data or reload
+                                        loadParts();
+                                    }
+                                    
+                                    // Set the part value
+                                    $partSelect.val(part.part_id || part.id || '');
+                                    
+                                    // If value wasn't set, try to find by name
+                                    if (!$partSelect.val() && part.part_no) {
+                                        $partSelect.find('option').each(function() {
+                                            if ($(this).text().includes(part.part_no)) {
+                                                $(this).prop('selected', true);
+                                                return false;
+                                            }
+                                        });
+                                    }
+                                    
                                     row.find('.quantity-input').val(part.quantity || 0);
                                     row.find('.amount-input').val((part.quantity * (part.unit_price || part.price || 0)).toFixed(2));
                                 });
