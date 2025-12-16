@@ -884,26 +884,44 @@ try {
                     data: <?php echo json_encode($amounts); ?>,
                     borderColor: '#28a745',
                     backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    borderWidth: 3,
                     tension: 0.4,
-                    fill: true
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#28a745',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
                 }, {
                     label: 'Number of Services',
                     data: <?php echo json_encode($counts); ?>,
                     borderColor: '#17a2b8',
                     backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    borderWidth: 3,
                     tension: 0.4,
                     fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#17a2b8',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
                     yAxisID: 'y2'
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: 'Transaction Amount (₱)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
                         }
                     },
                     y2: {
@@ -921,12 +939,20 @@ try {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Monthly Service Trends'
+                        text: 'Monthly Service Trends',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
                     },
                     legend: {
                         display: true,
                         position: 'top'
                     }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
                 }
             }
         });
