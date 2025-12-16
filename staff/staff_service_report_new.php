@@ -1849,7 +1849,7 @@ try {
 
         function loadCustomers() {
             $.ajax({
-                url: '../backend/api/customer_appliance_api.php?action=getAllCustomers',
+                url: '../backend/api/customer_appliance_api.php?action=getAllCustomers&itemsPerPage=100',
                 method: 'GET',
                 dataType: 'json',
                 timeout: 10000,
@@ -1858,7 +1858,7 @@ try {
                     const select = $('#customer-select');
                     select.empty().append('<option value="">Select Customer</option>');
                     
-                    // Extract customers from nested data structure
+                    // Extract customers from nested data structure - handle paginated response
                     let customers = [];
                     if (data.success && data.data) {
                         if (Array.isArray(data.data)) {
@@ -1937,40 +1937,43 @@ try {
                     console.log('Service reports response:', data);
                     if (data.success && Array.isArray(data.data)) {
                         // Filter reports for this customer and get the most recent one
-                        const customerReports = data.data.filter(r => parseInt(r.customer_id) === parseInt(customerId));
+                        const customerReports = data.data.filter(r => {
+                            const reportCustId = parseInt(r.customer_id);
+                            const selectedCustId = parseInt(customerId);
+                            console.log('Comparing customer IDs:', reportCustId, '===', selectedCustId, '?', reportCustId === selectedCustId);
+                            return reportCustId === selectedCustId;
+                        });
+                        
+                        console.log('Found', customerReports.length, 'reports for customer', customerId);
                         
                         if (customerReports.length > 0) {
                             // Sort by date_in to get the most recent
                             customerReports.sort((a, b) => new Date(b.date_in) - new Date(a.date_in));
                             const latestReport = customerReports[0];
                             
-                            if (latestReport.date_in && !$('#date-in').val()) {
+                            if (latestReport.date_in) {
                                 // Use the date from the most recent report
                                 $('#date-in').val(latestReport.date_in);
                                 console.log('Date In filled from latest customer record:', latestReport.date_in);
                             }
                         } else {
                             // If no previous reports for this customer, use today's date
+                            console.log('No previous reports found, using today date');
                             const today = new Date().toISOString().split('T')[0];
-                            if (!$('#date-in').val()) {
-                                $('#date-in').val(today);
-                            }
+                            $('#date-in').val(today);
                         }
                     } else {
                         // Fallback to today's date if API fails
+                        console.warn('Invalid response from service reports API');
                         const today = new Date().toISOString().split('T')[0];
-                        if (!$('#date-in').val()) {
-                            $('#date-in').val(today);
-                        }
+                        $('#date-in').val(today);
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.warn('Could not load latest date_in, using today:', error);
+                    console.warn('Could not load service reports, using today:', error);
                     // Fallback to today's date if API fails
                     const today = new Date().toISOString().split('T')[0];
-                    if (!$('#date-in').val()) {
-                        $('#date-in').val(today);
-                    }
+                    $('#date-in').val(today);
                 }
             });
         }
