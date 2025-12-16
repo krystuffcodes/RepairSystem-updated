@@ -101,6 +101,7 @@ class transactionsHandlers {
                     t.report_id,
                     sr.customer_name,
                     sr.appliance_name,
+                    sr.status as service_status,
                     sd.total_amount,
                     t.payment_status,
                     t.payment_date,

@@ -304,6 +304,14 @@ $userSession = $auth->requireAuth('admin');
 .status-pending {
             color: #ffc107;
 }
+
+.status-completed {
+    color: #17a2b8;
+}
+
+.status-repair {
+    color: #fd7e14;
+}
     /* Pagination footer */
     .pagination .page-link {
         color: #242424ff;
@@ -433,6 +441,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <th>Customer</th>
                                                 <th>Appliance</th>
                                                 <th>Total Amount</th>
+                                                <th>Service Status</th>
                                                 <th>Payment Status</th>
                                                 <th>Payment Date</th>
                                                 <th>Received By</th>
@@ -1258,8 +1267,10 @@ $userSession = $auth->requireAuth('admin');
                     }
                     
                 const html = transactions.map(transaction => {
-                    const statusClass = transaction.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
+                    const paymentStatusClass = transaction.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
+                    const serviceStatusClass = transaction.service_status === 'Completed' ? 'status-completed' : (transaction.service_status === 'Under Repair' ? 'status-repair' : 'status-pending');
                     const paymentDate = transaction.payment_date || '-';
+                    const serviceStatus = transaction.service_status || 'N/A';
                         
                         return `
                             <tr>
@@ -1267,7 +1278,8 @@ $userSession = $auth->requireAuth('admin');
                         <td>${transaction.customer_name}</td>
                         <td>${transaction.appliance_name}</td>
                         <td>₱${parseFloat(transaction.total_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                        <td><span class="status-badge ${statusClass}">${transaction.payment_status}</span></td>
+                        <td><span class="status-badge ${serviceStatusClass}">${serviceStatus}</span></td>
+                        <td><span class="status-badge ${paymentStatusClass}">${transaction.payment_status}</span></td>
                                 <td>${paymentDate}</td>
                         <td>${transaction.received_by_name || transaction.received_by}</td>
                                 <td class="no-print">

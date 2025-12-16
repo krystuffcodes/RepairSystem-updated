@@ -222,6 +222,7 @@ $userSession = $auth->requireAuth('staff');
                                         <th>Customer</th>
                                         <th>Appliance</th>
                                         <th>Total Amount</th>
+                                        <th>Service Status</th>
                                         <th>Payment Status</th>
                                         <th>Payment Date</th>
                                         <th>Received By</th>
@@ -279,6 +280,10 @@ $userSession = $auth->requireAuth('staff');
                         <div class="form-group">
                             <label><strong>Total Amount</strong></label>
                             <input type="text" class="form-control" id="modal_total_amount" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><strong>Service Status</strong></label>
+                            <input type="text" class="form-control" id="modal_service_status" readonly>
                         </div>
                         <div class="form-group">
                             <label><strong>Payment Status</strong></label>
@@ -408,7 +413,7 @@ $userSession = $auth->requireAuth('staff');
             tbody.empty();
 
             if (transactions.length === 0) {
-                tbody.html('<tr><td colspan="8" class="text-center text-muted py-4">No transactions found</td></tr>');
+                tbody.html('<tr><td colspan="9" class="text-center text-muted py-4">No transactions found</td></tr>');
                 updatePagination(0);
                 return;
             }
@@ -421,6 +426,12 @@ $userSession = $auth->requireAuth('staff');
                 const statusBadge = tx.payment_status === 'Paid' 
                     ? '<span class="badge badge-paid">Paid</span>' 
                     : '<span class="badge badge-pending">Pending</span>';
+                
+                const serviceStatusBadge = tx.service_status === 'Completed'
+                    ? '<span class="badge badge-info">Completed</span>'
+                    : (tx.service_status === 'Under Repair'
+                        ? '<span class="badge badge-warning">Under Repair</span>'
+                        : '<span class="badge badge-secondary">' + (tx.service_status || 'N/A') + '</span>');
 
                 const row = `
                     <tr>
@@ -428,6 +439,7 @@ $userSession = $auth->requireAuth('staff');
                         <td>${tx.customer_name || 'N/A'}</td>
                         <td>${tx.appliance_name || 'N/A'}</td>
                         <td>₱${parseFloat(tx.total_amount || 0).toFixed(2)}</td>
+                        <td>${serviceStatusBadge}</td>
                         <td>${statusBadge}</td>
                         <td>${tx.payment_date ? new Date(tx.payment_date).toLocaleDateString() : 'N/A'}</td>
                         <td>${tx.received_by || 'N/A'}</td>
@@ -521,6 +533,7 @@ $userSession = $auth->requireAuth('staff');
             $('#modal_customer_name').val(transaction.customer_name || 'N/A');
             $('#modal_appliance_name').val(transaction.appliance_name || 'N/A');
             $('#modal_total_amount').val('₱' + parseFloat(transaction.total_amount || 0).toFixed(2));
+            $('#modal_service_status').val(transaction.service_status || 'N/A');
             $('#modal_payment_status').val(transaction.payment_status || 'N/A');
             $('#modal_payment_date').val(transaction.payment_date ? new Date(transaction.payment_date).toLocaleDateString() : 'N/A');
             $('#modal_received_by').val(transaction.received_by || 'N/A');
