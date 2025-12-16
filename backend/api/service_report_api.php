@@ -41,6 +41,14 @@ try {
     }
 
     $action = isset($_GET['action']) ? $_GET['action'] : (isset($_POST['action']) ? $_POST['action'] : '');
+    
+    // For JSON POST requests, also check the JSON body for action
+    if (empty($action)) {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if ($input && isset($input['action'])) {
+            $action = $input['action'];
+        }
+    }
 
     // Handle different actions
     switch ($action) {
@@ -54,7 +62,7 @@ try {
             handleDeleteProgressComment($conn);
             break;
         default:
-            sendResponse(false, null, 'Unknown action', 400);
+            sendResponse(false, null, 'Unknown action: ' . $action, 400);
     }
 
 } catch (Exception $e) {
@@ -73,14 +81,14 @@ function handleAddProgressComment($conn)
     }
 
     $report_id = isset($input['report_id']) ? intval($input['report_id']) : 0;
-    $progress_key = isset($input['progress_key']) ? $input['progress_key'] : '';
-    $comment_text = isset($input['comment_text']) ? $input['comment_text'] : '';
-    $created_by = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
-    $created_by_name = isset($_SESSION['name']) ? $_SESSION['name'] : 'Unknown User';
+    $progress_key = isset($input['progress_key']) ? trim($input['progress_key']) : '';
+    $comment_text = isset($input['comment_text']) ? trim($input['comment_text']) : '';
+    $created_by = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : NULL;
+    $created_by_name = isset($_SESSION['name']) ? trim($_SESSION['name']) : 'Unknown User';
 
     // Validation
     if (!$report_id || !$progress_key || !$comment_text) {
-        sendResponse(false, null, 'Missing required fields', 400);
+        sendResponse(false, null, 'Missing required fields: report_id=' . $report_id . ', progress_key=' . $progress_key . ', comment_text=' . strlen($comment_text), 400);
     }
 
     // Check if table exists, if not create it
@@ -90,13 +98,13 @@ function handleAddProgressComment($conn)
             report_id INT NOT NULL,
             progress_key VARCHAR(50) NOT NULL,
             comment_text LONGTEXT NOT NULL,
-            created_by INT,
+            created_by INT NULL,
             created_by_name VARCHAR(255),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (report_id) REFERENCES service_reports(report_id) ON DELETE CASCADE,
-            INDEX idx_report_progress (report_id, progress_key),
-            INDEX idx_created_at (created_at)
+            KEY idx_report_id (report_id),
+            KEY idx_progress_key (progress_key),
+            KEY idx_created_at (created_at)
         )
     ";
 
@@ -104,7 +112,7 @@ function handleAddProgressComment($conn)
         sendResponse(false, null, 'Failed to create comments table: ' . $conn->error, 500);
     }
 
-    // Insert comment
+    // Insert comment (without FK constraint for now to avoid constraint errors)
     $insertQuery = "
         INSERT INTO service_progress_comments 
         (report_id, progress_key, comment_text, created_by, created_by_name) 
@@ -116,7 +124,8 @@ function handleAddProgressComment($conn)
         sendResponse(false, null, 'Prepare failed: ' . $conn->error, 500);
     }
 
-    $stmt->bind_param('issis', $report_id, $progress_key, $comment_text, $created_by, $created_by_name);
+    // Bind parameters: i=int, s=string, i=int, s=string
+    $stmt->bind_param('isiss', $report_id, $progress_key, $comment_text, $created_by, $created_by_name);
     
     if (!$stmt->execute()) {
         sendResponse(false, null, 'Failed to add comment: ' . $stmt->error, 500);
