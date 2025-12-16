@@ -1775,11 +1775,8 @@ try {
                     // Load appliances for the customer
                     loadAppliances(customerId);
                     
-                    // Set today's date as date_in if not already set
-                    const today = new Date().toISOString().split('T')[0];
-                    if (!$('#date-in').val()) {
-                        $('#date-in').val(today);
-                    }
+                    // Load the latest service report's date_in for this customer
+                    loadLatestCustomerDateIn(customerId);
                     
                     // Load customer details
                     loadCustomerDetails(customerId);
@@ -1911,6 +1908,54 @@ try {
             } else {
                 console.warn('Customer not found in list:', customerId);
             }
+        }
+
+        function loadLatestCustomerDateIn(customerId) {
+            // Fetch all service reports and find the latest one for this customer
+            $.ajax({
+                url: '../backend/api/service_api.php?action=getAll&limit=1000',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    console.log('Service reports response:', data);
+                    if (data.success && Array.isArray(data.data)) {
+                        // Filter reports for this customer and get the most recent one
+                        const customerReports = data.data.filter(r => parseInt(r.customer_id) === parseInt(customerId));
+                        
+                        if (customerReports.length > 0) {
+                            // Sort by date_in to get the most recent
+                            customerReports.sort((a, b) => new Date(b.date_in) - new Date(a.date_in));
+                            const latestReport = customerReports[0];
+                            
+                            if (latestReport.date_in && !$('#date-in').val()) {
+                                // Use the date from the most recent report
+                                $('#date-in').val(latestReport.date_in);
+                                console.log('Date In filled from latest customer record:', latestReport.date_in);
+                            }
+                        } else {
+                            // If no previous reports for this customer, use today's date
+                            const today = new Date().toISOString().split('T')[0];
+                            if (!$('#date-in').val()) {
+                                $('#date-in').val(today);
+                            }
+                        }
+                    } else {
+                        // Fallback to today's date if API fails
+                        const today = new Date().toISOString().split('T')[0];
+                        if (!$('#date-in').val()) {
+                            $('#date-in').val(today);
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.warn('Could not load latest date_in, using today:', error);
+                    // Fallback to today's date if API fails
+                    const today = new Date().toISOString().split('T')[0];
+                    if (!$('#date-in').val()) {
+                        $('#date-in').val(today);
+                    }
+                }
+            });
         }
 
         function loadAppliances(customerId, applianceIdToSelect = null) {
