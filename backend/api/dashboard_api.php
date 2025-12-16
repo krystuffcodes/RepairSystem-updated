@@ -116,6 +116,81 @@ switch ($action) {
         ]);
         break;
     
+    case 'getTrendData':
+        $type = $_GET['type'] ?? 'monthly';
+        $labels = [];
+        $amounts = [];
+        $counts = [];
+        
+        try {
+            if ($type === 'weekly') {
+                // Get last 12 weeks of data
+                $stmt = $conn->prepare("
+                    SELECT 
+                        CONCAT('Week ', WEEK(payment_date, 1)) as period_label,
+                        YEARWEEK(payment_date, 1) as period_order,
+                        SUM(total_amount) as total_revenue,
+                        COUNT(*) as service_count
+                    FROM transactions 
+                    WHERE payment_status = 'Paid' 
+                    AND payment_date >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+                    GROUP BY YEARWEEK(payment_date, 1)
+                    ORDER BY period_order ASC
+                ");
+            } elseif ($type === 'yearly') {
+                // Get last 5 years of data
+                $stmt = $conn->prepare("
+                    SELECT 
+                        YEAR(payment_date) as period_label,
+                        YEAR(payment_date) as period_order,
+                        SUM(total_amount) as total_revenue,
+                        COUNT(*) as service_count
+                    FROM transactions 
+                    WHERE payment_status = 'Paid' 
+                    AND payment_date >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
+                    GROUP BY YEAR(payment_date)
+                    ORDER BY period_order ASC
+                ");
+            } else {
+                // Default monthly - last 12 months
+                $stmt = $conn->prepare("
+                    SELECT 
+                        DATE_FORMAT(payment_date, '%b %Y') as period_label,
+                        DATE_FORMAT(payment_date, '%Y-%m') as period_order,
+                        SUM(total_amount) as total_revenue,
+                        COUNT(*) as service_count
+                    FROM transactions 
+                    WHERE payment_status = 'Paid' 
+                    AND payment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                    GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
+                    ORDER BY period_order ASC
+                ");
+            }
+            
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            while ($row = $result->fetch_assoc()) {
+                $labels[] = $row['period_label'];
+                $amounts[] = floatval($row['total_revenue']);
+                $counts[] = intval($row['service_count']);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'labels' => $labels,
+                'amounts' => $amounts,
+                'counts' => $counts
+            ]);
+        } catch (Exception $e) {
+            error_log('Error fetching trend data: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Failed to fetch trend data'
+            ]);
+        }
+        break;
+    
     default:
         echo json_encode([
             'success' => false,

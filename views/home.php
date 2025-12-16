@@ -707,7 +707,14 @@ try {
 
                     <!-- Service Performance Overview -->
                     <div class="card-box div16">
-                        <div class="section-title">Service Performance Overview</div>
+                        <div class="section-title d-flex justify-content-between align-items-center">
+                            <span>Service Performance Overview</span>
+                            <select id="trendFilter" class="form-control" style="width: auto; font-size: 0.9rem;">
+                                <option value="monthly">Monthly Trends</option>
+                                <option value="weekly">Weekly Trends</option>
+                                <option value="yearly">Yearly Trends</option>
+                            </select>
+                        </div>
                         <div class="chart-container performance-chart">
                             <canvas id="revenueChart"></canvas>
                         </div>
@@ -955,6 +962,53 @@ try {
                     intersect: false
                 }
             }
+        });
+
+        // Trend Filter Handler
+        document.getElementById('trendFilter').addEventListener('change', function() {
+            const trendType = this.value;
+            
+            // Show loading state
+            const canvas = document.getElementById('revenueChart');
+            canvas.style.opacity = '0.5';
+            
+            // Fetch data based on selected trend type
+            fetch(`../backend/api/dashboard_api.php?action=getTrendData&type=${trendType}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update chart title
+                        let chartTitle = '';
+                        switch(trendType) {
+                            case 'weekly':
+                                chartTitle = 'Weekly Service Trends';
+                                break;
+                            case 'yearly':
+                                chartTitle = 'Yearly Service Trends';
+                                break;
+                            default:
+                                chartTitle = 'Monthly Service Trends';
+                        }
+                        
+                        // Update chart data
+                        revenueChart.data.labels = data.labels;
+                        revenueChart.data.datasets[0].data = data.amounts;
+                        revenueChart.data.datasets[1].data = data.counts;
+                        revenueChart.options.plugins.title.text = chartTitle;
+                        revenueChart.update();
+                        
+                        canvas.style.opacity = '1';
+                    } else {
+                        console.error('Failed to load trend data:', data.message);
+                        alert('Failed to load trend data');
+                        canvas.style.opacity = '1';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching trend data:', error);
+                    alert('Error loading trend data');
+                    canvas.style.opacity = '1';
+                });
         });
 
         // Service Status Breakdown
