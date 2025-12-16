@@ -965,7 +965,7 @@ $userSession = $auth->requireAuth('admin');
             // Load staff for payment modal - fixed version
             function loadStaffForPaymentModal() {
                 $.ajax({
-                    url: '../backend/api/staff_api.php?action=getStaffsByRole',
+                    url: '../backend/api/staff_api.php?action=getStaffsByRole&role=Secretary',
                     method: 'GET',
                     dataType: 'json',
                     success: function(response) {
