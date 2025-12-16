@@ -1519,7 +1519,7 @@ try {
             if (reportId) {
                 // Load comments first, then update timeline
                 $.ajax({
-                    url: '../backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
+                    url: '/backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
                     type: 'GET',
                     dataType: 'json',
                     success: function(response) {
@@ -1824,7 +1824,7 @@ try {
 
         function loadCustomers() {
             $.ajax({
-                url: '../backend/api/customer_appliance_api.php?action=getAllCustomers',
+                url: '/backend/api/customer_appliance_api.php?action=getAllCustomers',
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1865,7 +1865,7 @@ try {
 
         function loadAppliances(customerId, applianceIdToSelect = null) {
             return $.ajax({
-                url: '../backend/api/customer_appliance_api.php?action=getAppliancesByCustomerId&customerId=' + customerId,
+                url: '/backend/api/customer_appliance_api.php?action=getAppliancesByCustomerId&customerId=' + customerId,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1922,7 +1922,7 @@ try {
 
         function loadParts() {
             $.ajax({
-                url: '../backend/api/parts_api.php?action=getAllParts',
+                url: '/backend/api/parts_api.php?action=getAllParts',
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1961,7 +1961,7 @@ try {
 
         function loadStaff() {
             $.ajax({
-                url: '../backend/api/staff_api.php?action=getAllStaffs',
+                url: '/backend/api/staff_api.php?action=getAllStaffs',
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -1988,7 +1988,7 @@ try {
         // Load service reports and populate the modal table
         function loadServiceReports() {
             $.ajax({
-                url: '../backend/api/service_api.php?action=getAll',
+                url: '/backend/api/service_api.php?action=getAll',
                 method: 'GET',
                 dataType: 'json',
                 success: function(res) {
@@ -2023,7 +2023,7 @@ try {
         // Refresh reports without resetting filters
         window.refreshServiceReports = function() {
             return $.ajax({
-                url: '../backend/api/service_api.php?action=getAll',
+                url: '/backend/api/service_api.php?action=getAll',
                 method: 'GET',
                 dataType: 'json',
                 success: function(res) {
@@ -2193,7 +2193,7 @@ try {
             if (!confirm('Assign report #' + reportId + ' to you (' + techName + ')?')) return;
 
             $.ajax({
-                url: '../backend/api/service_api.php?action=assign',
+                url: '/backend/api/service_api.php?action=assign',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ report_id: reportId, technician: techName }),
@@ -2386,8 +2386,8 @@ try {
             const action = reportId ? 'update' : 'create';
             const method = reportId ? 'PUT' : 'POST';
             const url = reportId ? 
-                ('../backend/api/service_api.php?action=update&id=' + reportId) : 
-                '../backend/api/service_api.php?action=create';
+                ('/backend/api/service_api.php?action=update&id=' + reportId) : 
+                '/backend/api/service_api.php?action=create';
 
             $.ajax({
                 url: url,
@@ -2435,7 +2435,7 @@ try {
             console.log('Starting loadReportForEditing for reportId:', reportId);
             
             $.ajax({
-                url: '../backend/api/service_api.php?action=getById&id=' + reportId,
+                url: '/backend/api/service_api.php?action=getById&id=' + reportId,
                 method: 'GET',
                 dataType: 'json',
                 success: function(res) {
@@ -2857,7 +2857,7 @@ try {
         // Delete report
         function deleteReport(reportId) {
             $.ajax({
-                url: '../backend/api/service_api.php?action=delete&id=' + reportId,
+                url: '/backend/api/service_api.php?action=delete&id=' + reportId,
                 method: 'DELETE',
                 dataType: 'json',
                 success: function(res) {
@@ -2878,7 +2878,7 @@ try {
         // Function to update dashboard data in real-time
         function updateDashboardData() {
             $.ajax({
-                url: '../backend/api/dashboard_api.php?action=getAll',
+                url: '/backend/api/dashboard_api.php?action=getAll',
                 method: 'GET',
                 dataType: 'json',
                 success: function(res) {
@@ -3184,7 +3184,7 @@ try {
             showLoading(true, '#progressCommentModal');
             
             $.ajax({
-                url: '../backend/api/service_report_api.php',
+                url: '/backend/api/service_report_api.php',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
@@ -3219,7 +3219,7 @@ try {
         function loadProgressComments(reportId) {
             console.log('Loading progress comments for reportId:', reportId);
             $.ajax({
-                url: '../backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
+                url: '/backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -3301,7 +3301,7 @@ try {
             }
             
             $.ajax({
-                url: '../backend/api/service_report_api.php?action=deleteProgressComment&id=' + commentId,
+                url: '/backend/api/service_report_api.php?action=deleteProgressComment&id=' + commentId,
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {

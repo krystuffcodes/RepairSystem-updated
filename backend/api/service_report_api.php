@@ -145,13 +145,26 @@ function handleGetProgressComments($conn)
         sendResponse(false, null, 'Missing report_id', 400);
     }
 
-    // Check if table exists
-    $tableCheckQuery = "SHOW TABLES LIKE 'service_progress_comments'";
-    $result = $conn->query($tableCheckQuery);
-    
-    if ($result->num_rows == 0) {
-        // Table doesn't exist yet, return empty array
-        sendResponse(true, [], 'No comments found');
+    // Create table if not exists
+    $tableCreateQuery = "
+        CREATE TABLE IF NOT EXISTS service_progress_comments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            report_id INT NOT NULL,
+            progress_key VARCHAR(50) NOT NULL,
+            comment_text LONGTEXT NOT NULL,
+            created_by INT NULL,
+            created_by_name VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            KEY idx_report_id (report_id),
+            KEY idx_progress_key (progress_key),
+            KEY idx_created_at (created_at)
+        )
+    ";
+
+    if (!$conn->query($tableCreateQuery)) {
+        // Table creation failed, but try to continue
+        error_log('Failed to create comments table: ' . $conn->error);
     }
 
     // Fetch all comments for the report
