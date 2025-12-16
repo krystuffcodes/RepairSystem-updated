@@ -97,9 +97,9 @@ try {
                 sendResponse(false, null, 'Method not allowed', 405);
             }
 
-            $transactionId = $input['transaction_id'] ?? null;
+            $transactionId = isset($input['transaction_id']) ? intval($input['transaction_id']) : null;
             $paymentStatus = $input['payment_status'] ?? null;
-            $receivedById = $input['received_by'] ?? null;
+            $receivedById = isset($input['received_by']) ? intval($input['received_by']) : null;
             $paymentMethod = $input['payment_method'] ?? null;
             $referenceNumber = $input['reference_number'] ?? null;
 

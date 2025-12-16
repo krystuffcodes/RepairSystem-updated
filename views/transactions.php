@@ -995,7 +995,18 @@ $userSession = $auth->requireAuth('admin');
                     },
                     error: function(xhr, status, error) {
                         console.error('Error updating payment:', error);
-                        showAlert('danger', 'Failed to update payment status: ' + (xhr.responseJSON?.message || error));
+                        console.error('Response text:', xhr.responseText);
+                        console.error('Response JSON:', xhr.responseJSON);
+                        let errorMsg = 'Failed to update payment status';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg += ': ' + xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                const resp = JSON.parse(xhr.responseText);
+                                if (resp.message) errorMsg += ': ' + resp.message;
+                            } catch(e) {}
+                        }
+                        showAlert('danger', errorMsg);
                     },
                     complete: function() {
                         showLoading(false, '#updatePaymentModal .modal-body');
