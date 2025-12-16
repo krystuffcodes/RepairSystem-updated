@@ -974,7 +974,7 @@ try {
             
             // Fetch data based on selected trend type
             $.ajax({
-                url: '../backend/api/dashboard_api.php',
+                url: '/backend/api/dashboard_api.php',
                 method: 'GET',
                 data: { action: 'getTrendData', type: trendType },
                 dataType: 'json',
