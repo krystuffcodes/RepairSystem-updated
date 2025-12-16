@@ -1772,7 +1772,17 @@ try {
             $(document).on('change', '#customer-select', function() {
                 const customerId = $(this).val();
                 if (customerId) {
+                    // Load appliances for the customer
                     loadAppliances(customerId);
+                    
+                    // Set today's date as date_in if not already set
+                    const today = new Date().toISOString().split('T')[0];
+                    if (!$('#date-in').val()) {
+                        $('#date-in').val(today);
+                    }
+                    
+                    // Load customer details
+                    loadCustomerDetails(customerId);
                 }
             });
 
@@ -1884,6 +1894,23 @@ try {
                     }
                 }
             });
+        }
+
+        function loadCustomerDetails(customerId) {
+            // Find customer from the customersList
+            if (!window.customersList || window.customersList.length === 0) {
+                console.warn('Customer list not available');
+                return;
+            }
+            
+            const customer = window.customersList.find(c => c.id == customerId);
+            if (customer) {
+                console.log('Customer details found:', customer);
+                // Customer info could be displayed in other fields if needed
+                // For now, the dropdown already shows the customer is selected
+            } else {
+                console.warn('Customer not found in list:', customerId);
+            }
         }
 
         function loadAppliances(customerId, applianceIdToSelect = null) {
