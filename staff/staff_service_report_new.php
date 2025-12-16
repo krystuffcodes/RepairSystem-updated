@@ -3579,6 +3579,13 @@ try {
                 const reportData = response.data;
                 console.log('Report data loaded:', reportData);
 
+                // CHECK: Only create transaction if status is "Completed"
+                if (reportData.status !== 'Completed') {
+                    console.warn('⚠️ Transaction not created - Service report status is not Completed. Current status:', reportData.status);
+                    showAlert('warning', 'Transaction can only be created for Completed service reports. Current status: ' + reportData.status);
+                    return;
+                }
+
                 const totalAmt = parseFloat(reportData.total_amount || 0);
                 if (typeof totalAmt !== 'number' || isNaN(totalAmt)) {
                     throw new Error('Invalid total amount for this report');
@@ -3593,7 +3600,7 @@ try {
                     payment_status: 'Pending'
                 };
 
-                console.log('Creating transaction with data:', transactionData);
+                console.log('✅ Creating transaction for COMPLETED report with data:', transactionData);
 
                 const transactionResponse = await $.ajax({
                     url: '../backend/api/transaction_api.php?action=createFromReport',
