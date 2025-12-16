@@ -857,14 +857,30 @@ $userSession = $auth->requireAuth('admin');
                     const transactionId = $(this).data('id');
                     $('#update_transaction_id').val(transactionId);
                     
+                    // Store transaction ID for later use
+                    $('#updatePaymentModal').data('transactionId', transactionId);
+                });
+
+                // When modal is fully shown, load the current transaction data
+                $('#updatePaymentModal').on('shown.bs.modal', function() {
+                    const transactionId = $(this).data('transactionId');
+                    
+                    if (!transactionId) return;
+                    
+                    console.log('Loading current data for transaction:', transactionId);
+                    
                     // Get transaction data to populate current values
                     $.ajax({
                         url: '../backend/api/transaction_api.php?action=getById&id=' + transactionId,
                         method: 'GET',
                         dataType: 'json',
                         success: function(response) {
+                            console.log('Transaction data loaded:', response);
+                            
                             if (response.success && response.data) {
                                 const data = Array.isArray(response.data) ? response.data[0] : response.data;
+                                
+                                console.log('Setting form values:', data);
                                 
                                 // Set current payment status
                                 $('#update_payment_status').val(data.payment_status || 'Pending');
@@ -872,28 +888,35 @@ $userSession = $auth->requireAuth('admin');
                                 // Set current received by
                                 if (data.received_by) {
                                     $('#update_received_by').val(data.received_by);
+                                    console.log('Set received_by to:', data.received_by);
                                 }
                                 
                                 // Set current payment method
                                 if (data.payment_method) {
                                     $('#payment_method').val(data.payment_method);
+                                    console.log('Set payment_method to:', data.payment_method);
                                     
                                     // Show reference number field if GCash
                                     if (data.payment_method === 'GCash') {
-                                        $('#reference_number_group').show();
+                                        $('#reference_number_group').slideDown();
                                         $('#reference_number').val(data.reference_number || '');
+                                        $('#reference_number').prop('required', true);
+                                        console.log('Set reference_number to:', data.reference_number);
                                     } else {
                                         $('#reference_number_group').hide();
                                         $('#reference_number').val('');
+                                        $('#reference_number').prop('required', false);
                                     }
                                 } else {
                                     $('#payment_method').val('');
                                     $('#reference_number_group').hide();
+                                    $('#reference_number').prop('required', false);
                                 }
                             }
                         },
                         error: function(xhr, status, error) {
                             console.error('Error loading transaction data:', error);
+                            console.error('Response:', xhr.responseText);
                         }
                     });
                 });
@@ -948,7 +971,7 @@ $userSession = $auth->requireAuth('admin');
                     success: function(response) {
                         console.log('Staff API Response:', response);
 
-                        const $staffSelect = $('#updatePaymentForm select[name="received_by"]');
+                        const $staffSelect = $('#update_received_by');
                         $staffSelect.empty().append('<option value="">Select Staff</option>');
 
                         if (!response.success) {
