@@ -799,6 +799,29 @@ $userSession = $auth->requireAuth('admin');
                                             <input type="text" class="form-control" name="released_by" readonly>
                                         </div>
                                     </div>
+                                    <div class="row mb-2 mt-3">
+                                        <div class="col-md-12">
+                                            <h5 class="fw-bold mb-1">Payment Information</h5>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-3 pe-1 d-flex flex-column justify-content-end">
+                                            <label class="mb-1">Payment Status:</label>
+                                            <input type="text" class="form-control" name="payment_status" readonly>
+                                        </div>
+                                        <div class="col-md-3 px-1 d-flex flex-column justify-content-end">
+                                            <label class="mb-1">Payment Method:</label>
+                                            <input type="text" class="form-control" name="payment_method" readonly>
+                                        </div>
+                                        <div class="col-md-3 px-1 d-flex flex-column justify-content-end">
+                                            <label class="mb-1">Reference Number:</label>
+                                            <input type="text" class="form-control" name="reference_number" readonly>
+                                        </div>
+                                        <div class="col-md-3 ps-1 d-flex flex-column justify-content-end">
+                                            <label class="mb-1">Payment Date:</label>
+                                            <input type="text" class="form-control" name="payment_date" readonly>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -1352,6 +1375,12 @@ $userSession = $auth->requireAuth('admin');
                 $('input[name="manager"]').val(data.manager || '');
                 $('input[name="technician"]').val(data.technician || '');
                 $('input[name="released_by"]').val(data.released_by || '');
+
+                // Payment fields
+                $('input[name="payment_status"]').val(data.payment_status || 'Pending');
+                $('input[name="payment_method"]').val(data.payment_method || '');
+                $('input[name="reference_number"]').val(data.reference_number || '');
+                $('input[name="payment_date"]').val(data.payment_date || '');
 
                 $('#update_report_id').val(data.report_id);
 
