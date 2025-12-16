@@ -551,14 +551,14 @@ $userSession = $auth->requireAuth('admin');
                                 <input type="hidden" name="transaction_id" id="update_transaction_id">
                                 <div class="form-group">
                                     <label>Payment Status</label>
-                                    <select name="payment_status" class="form-control" required>
+                                    <select name="payment_status" id="update_payment_status" class="form-control" required>
                                         <option value="Paid">Paid</option>
                                         <option value="Pending">Pending</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Received By</label>
-                                    <select name="received_by" class="form-control" required>
+                                    <select name="received_by" id="update_received_by" class="form-control" required>
                                         <option value="">Select Staff</option>
                                         <!-- Staff options will be populated dynamically -->
                                     </select>
@@ -723,10 +723,10 @@ $userSession = $auth->requireAuth('admin');
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-md-8 pe-1">
-                                            <label>Total Service Charge</label>
+                                            <label>Total Amount</label>
                                             <div class="input-group mb-0">
                                                 <span class="input-group-text">₱</span>
-                                                <input type="text" class="form-control" id="total-serviceCharge-display" readonly>
+                                                <input type="text" class="form-control" name="total_amount" readonly>
                                             </div>
                                         </div>
                                         <div class="col-md-4 ps-1">
@@ -735,14 +735,7 @@ $userSession = $auth->requireAuth('admin');
                                         </div>
                                     </div>
                                     <div class="row mb-2">
-                                        <div class="col-md-8 pe-1">
-                                            <label>Total Amount</label>
-                                            <div class="input-group mb-0">
-                                                <span class="input-group-text">₱</span>
-                                                <input type="text" class="form-control" name="total_amount" readonly>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4 ps-1">
+                                        <div class="col-md-12">
                                             <label>Date Delivered</label>
                                             <input type="text" class="form-control" name="date_delivered" readonly>
                                         </div>
@@ -760,24 +753,32 @@ $userSession = $auth->requireAuth('admin');
                                     </div>
                                     <div class="row mb-2 align-items-end">
                                         <div class="col-md-3 pe-1 d-flex flex-column justify-content-end">
-                                            <span class="input-group-text">₱</span>
                                             <label class="mb-1">Labor:</label>
-                                            <input type="text" class="form-control" id="labor-amount" step="1" min="0" readonly>
+                                            <div class="input-group mb-0">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="text" class="form-control" id="labor-amount" step="1" min="0" readonly>
+                                            </div>
                                         </div>
                                         <div class="col-md-3 px-1 d-flex flex-column justify-content-end">
-                                            <span class="input-group-text">₱</span>
                                             <label class="mb-1">Pull-Out Delivery:</label>
-                                            <input type="text" class="form-control" id="pullout-delivery" step="1" min="0" readonly>
+                                            <div class="input-group mb-0">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="text" class="form-control" id="pullout-delivery" step="1" min="0" readonly>
+                                            </div>
                                         </div>
                                         <div class="col-md-3 px-1 d-flex flex-column justify-content-end">
-                                            <span class="input-group-text">₱</span>
                                             <label class="mb-1">Total:</label>
-                                            <input type="text" class="form-control" id="total-serviceCharge" step="1" min="0" readonly>
+                                            <div class="input-group mb-0">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="text" class="form-control" id="total-serviceCharge" step="1" min="0" readonly>
+                                            </div>
                                         </div>
                                         <div class="col-md-3 ps-1 d-flex flex-column justify-content-end">
-                                            <span class="input-group-text">₱</span>
                                             <label class="mb-1">Parts Charge:</label>
-                                            <input type="text" class="form-control" name="parts_charge" id="parts-charge" step="1" min="0" readonly>
+                                            <div class="input-group mb-0">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="text" class="form-control" name="parts_charge" id="parts-charge" step="1" min="0" readonly>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row mb-4"></div>
@@ -853,7 +854,48 @@ $userSession = $auth->requireAuth('admin');
 
                 // Set transaction ID for payment update
                 $('.update-payment').click(function() {
-                    $('#update_transaction_id').val($(this).data('id'));
+                    const transactionId = $(this).data('id');
+                    $('#update_transaction_id').val(transactionId);
+                    
+                    // Get transaction data to populate current values
+                    $.ajax({
+                        url: '../backend/api/transaction_api.php?action=getById&id=' + transactionId,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success && response.data) {
+                                const data = Array.isArray(response.data) ? response.data[0] : response.data;
+                                
+                                // Set current payment status
+                                $('#update_payment_status').val(data.payment_status || 'Pending');
+                                
+                                // Set current received by
+                                if (data.received_by) {
+                                    $('#update_received_by').val(data.received_by);
+                                }
+                                
+                                // Set current payment method
+                                if (data.payment_method) {
+                                    $('#payment_method').val(data.payment_method);
+                                    
+                                    // Show reference number field if GCash
+                                    if (data.payment_method === 'GCash') {
+                                        $('#reference_number_group').show();
+                                        $('#reference_number').val(data.reference_number || '');
+                                    } else {
+                                        $('#reference_number_group').hide();
+                                        $('#reference_number').val('');
+                                    }
+                                } else {
+                                    $('#payment_method').val('');
+                                    $('#reference_number_group').hide();
+                                }
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error loading transaction data:', error);
+                        }
+                    });
                 });
 
                 $('.view-transaction').click(function() {
@@ -1394,9 +1436,6 @@ $userSession = $auth->requireAuth('admin');
                 // Display the exact total amount from the database
                 $('input[name="total_amount"]').val(parseFloat(data.total_amount || 0).toFixed(2));
 
-                // Display the service charge in the Total Service Charge field (same as service report)
-                $('#total-serviceCharge-display').val(parseFloat(data.service_charge || 0).toFixed(2));
-
                 // Populate parts (this should not affect the total amount calculation)
                 populatePartsUsed(data.parts || []);
 
@@ -1747,9 +1786,6 @@ $userSession = $auth->requireAuth('admin');
                     parseFloat(serviceCharge.toFixed(2)) +
                     parseFloat(partsTotal.toFixed(2))
                 ).toFixed(2);
-
-                // Update the total service charge field
-                $('#total-serviceCharge-display').val(totalServiceCharge);
 
                 // Update the total amount field (grand total)
                 $('input[name="total_amount"]').val(grandTotal);
