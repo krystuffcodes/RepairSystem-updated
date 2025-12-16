@@ -196,7 +196,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <option value="">All</option>
                                                 <option value="manager">Manager</option>
                                                 <option value="technician">Technician</option>
-                                                <option value="cashier">Cashier</option>
+                                                <option value="secretary">Secretary</option>
                                             </select>
                                         </div>
                                     </div>
@@ -276,7 +276,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <select name="role" class="form-control" required>
                                                     <option value="">Select Role</option>
                                                     <option value="Technician">Technician</option>
-                                                    <option value="Cashier">Cashier</option>
+                                                    <option value="Secretary">Secretary</option>
                                                     <option value="Manager">Manager</option>
                                                 </select>
                                             </div>
@@ -342,7 +342,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <select name="role" id="edit_role" class="form-control">
                                                     <option value="">Select Role</option>
                                                     <option value="Technician">Technician</option>
-                                                    <option value="Cashier">Cashier</option>
+                                                    <option value="Secretary">Secretary</option>
                                                     <option value="Manager">Manager</option>
                                                 </select>
                                             </div>

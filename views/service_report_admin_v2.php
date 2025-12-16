@@ -1220,8 +1220,8 @@ $userSession = $auth->requireAuth('admin');
                                         <div class="row mb-2">
 
                                             <div class="col-md-3 pe-1 d-flex flex-column justify-content-end">
-                                                <label class="mb-1">Cashier:</label>
-                                                <select name="receptionist" id="receptionist-select" class="form-control staff-select" data-role="Cashier">
+                                                <label class="mb-1">Secretary:</label>
+                                                <select name="receptionist" id="receptionist-select" class="form-control staff-select" data-role="Secretary">
                                                     <option value="">Receptionist</option>
                                                 </select>
                                             </div>
@@ -1239,7 +1239,7 @@ $userSession = $auth->requireAuth('admin');
                                             </div>
                                             <div class="col-md-3 ps-1 d-flex flex-column justify-content-end">
                                                 <label class="mb-1">Released By:</label>
-                                                <select name="released_by" id="released-by-select" class="form-control staff-select" data-role="Cashier">
+                                                <select name="released_by" id="released-by-select" class="form-control staff-select" data-role="Secretary">
                                                     <option value="">Released By</option>
                                                 </select>
                                             </div>

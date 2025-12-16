@@ -284,7 +284,7 @@ class AuthHandler {
 
         if ($role === 'manager') {
             return 'admin';
-        } elseif (in_array($role, ['cashier', 'technician'])) {
+        } elseif (in_array($role, ['secretary', 'technician'])) {
             return 'staff';
         }
     }

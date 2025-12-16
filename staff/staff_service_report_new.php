@@ -1101,7 +1101,7 @@ try {
                                 <!-- Signature Fields Row -->
                                 <div class="row mb-2">
                                     <div class="col-md-3 pe-1 d-flex flex-column justify-content-end">
-                                       <select name="receptionist" id="receptionist-select" class="form-control staff-select" data-role="Cashier">
+                                       <select name="receptionist" id="receptionist-select" class="form-control staff-select" data-role="Secretary">
                                             <option value="">Receptionist</option>
                                         </select>
                                     </div>
@@ -1119,7 +1119,7 @@ try {
                                     </div>
                                     <div class="col-md-3 ps-1 d-flex flex-column justify-content-end">
                                         <label class="mb-1">Released By:</label>
-                                        <select name="released_by" id="released-by-select" class="form-control staff-select" data-role="Cashier">
+                                        <select name="released_by" id="released-by-select" class="form-control staff-select" data-role="Secretary">
                                             <option value="">Released By</option>
                                         </select>
                                     </div>
@@ -2080,10 +2080,10 @@ try {
 
         function populateStaffSelects(staffData) {
             const roles = {
-                'receptionist-select': 'Cashier',
+                'receptionist-select': 'Secretary',
                 'manager-select': 'Manager',
                 'technician-select': 'Technician',
-                'released-by-select': 'Cashier'
+                'released-by-select': 'Secretary'
             };
 
             Object.entries(roles).forEach(([selectId, role]) => {
