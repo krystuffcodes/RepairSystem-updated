@@ -2438,7 +2438,18 @@ $userSession = $auth->requireAuth('admin');
                         if (items.length === 0 && dependent) {
                             $dropdown.append('<option value="">No appliances found</option>');
                         } else {
-                            items.forEach(item => {
+                            // Deduplicate items by part_id/value for parts dropdown
+                            const seenIds = new Set();
+                            const dedupedItems = items.filter(item => {
+                                const id = item.part_id || item.appliance_id || item.staff_id || item.customer_id;
+                                if (seenIds.has(id)) {
+                                    return false;
+                                }
+                                seenIds.add(id);
+                                return true;
+                            });
+
+                            dedupedItems.forEach(item => {
                                 const optionData = transformFn(item);
                                 const $option = $('<option></option>')
                                     .val(optionData.value)
