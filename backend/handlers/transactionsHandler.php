@@ -266,6 +266,10 @@ class transactionsHandlers {
         try {
             $paymentDate = $paymentStatus === 'Paid' ? date('Y-m-d') : null;
             
+            // Ensure types are correct for binding
+            $receivedById = $receivedById ? intval($receivedById) : null;
+            $transactionId = intval($transactionId);
+            
             $stmt = $this->conn->prepare("
                 UPDATE {$this->transaction_table}
                 SET payment_status = ?,
