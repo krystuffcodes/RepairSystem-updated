@@ -2438,14 +2438,22 @@ $userSession = $auth->requireAuth('admin');
                         if (items.length === 0 && dependent) {
                             $dropdown.append('<option value="">No appliances found</option>');
                         } else {
-                            // Deduplicate items by part_id/value for parts dropdown
-                            const seenIds = new Set();
+                            // Deduplicate items by part_no/name for parts dropdown to prevent showing same part multiple times
+                            const seenNames = new Set();
                             const dedupedItems = items.filter(item => {
-                                const id = item.part_id || item.appliance_id || item.staff_id || item.customer_id;
-                                if (seenIds.has(id)) {
+                                // For parts, deduplicate by part_no (name) to avoid showing duplicates with same name
+                                // For other dropdowns, use ID
+                                let dedupeKey;
+                                if (type === 'parts') {
+                                    dedupeKey = (item.part_no || '').toLowerCase().trim();
+                                } else {
+                                    dedupeKey = item.part_id || item.appliance_id || item.staff_id || item.customer_id;
+                                }
+                                
+                                if (seenNames.has(dedupeKey)) {
                                     return false;
                                 }
-                                seenIds.add(id);
+                                seenNames.add(dedupeKey);
                                 return true;
                             });
 
