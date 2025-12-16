@@ -1457,19 +1457,45 @@ try {
             const $options = $dropdown.find('option');
 
             // Step 1: Extract the actual username/name (remove role in parentheses)
-            // Stored value might be "admin123 (Manager)" or just "admin123"
+            // Stored value might be "admin123 (Manager)" or "admin123 (Cashier)" - normalize old role names to new ones
             const storedNameMatch = value.match(/^([^(]+)/);
-            const cleanStoredName = storedNameMatch ? storedNameMatch[1].trim().toLowerCase() : value.toLowerCase();
+            let cleanStoredName = storedNameMatch ? storedNameMatch[1].trim() : value;
+            const storedRoleMatch = value.match(/\(([^)]+)\)/);
+            let storedRole = storedRoleMatch ? storedRoleMatch[1].trim() : '';
 
-            console.log(`Setting dropdown ${selector} - Original value: "${value}", Clean name: "${cleanStoredName}"`);
+            // Normalize old role names to new ones for backward compatibility
+            const roleMapping = {
+                'Cashier': 'Secretary',
+                'Accountant': 'Secretary',
+                'cashier': 'Secretary',
+                'accountant': 'Secretary'
+            };
+            if (roleMapping[storedRole]) {
+                storedRole = roleMapping[storedRole];
+            }
 
-            // Step 2: Try exact match on clean names
+            cleanStoredName = cleanStoredName.toLowerCase();
+
+            console.log(`Setting dropdown ${selector} - Original value: "${value}", Clean name: "${cleanStoredName}", Role: "${storedRole}"`);
+
+            // Step 2: Try exact match on clean names (with role normalization)
             let $option = $options.filter((i, el) => {
                 const optionText = $(el).text();
-                // Extract name from "Name (Role)" format
                 const optionNameMatch = optionText.match(/^([^(]+)/);
                 const cleanOptionName = optionNameMatch ? optionNameMatch[1].trim().toLowerCase() : optionText.toLowerCase();
-                return cleanOptionName === cleanStoredName;
+                const optionRoleMatch = optionText.match(/\(([^)]+)\)/);
+                const optionRole = optionRoleMatch ? optionRoleMatch[1].trim() : '';
+
+                // Match by name, and if roles are specified, they should match (after normalization)
+                if (cleanOptionName === cleanStoredName) {
+                    if (!storedRole || !optionRole) {
+                        // If either has no role specified, match on name alone
+                        return true;
+                    }
+                    // Both have roles - they should match or storedRole maps to optionRole
+                    return optionRole === storedRole || roleMapping[optionRole] === storedRole;
+                }
+                return false;
             });
 
             // Step 3: Try case-insensitive partial match if exact match failed
@@ -2525,12 +2551,20 @@ try {
                 data: JSON.stringify(payload),
                 contentType: 'application/json; charset=utf-8',
                 dataType: 'json',
-                success: function(response) {
+                success: async function(response) {
                     const successMsg = reportId ? 'Service report updated successfully!' : 'Service report created successfully!';
                     showAlert('success', successMsg);
                     
+                    const finalReportId = response.data ? (response.data.id || response.data.report_id || reportId) : reportId;
+                    const currentStatus = payload.status;
+                    
                     // If updating, reload the report and its comments to keep everything fresh
                     if (reportId) {
+                        // If status is Completed, create a transaction
+                        if (currentStatus === 'Completed') {
+                            console.log('Status is Completed, creating transaction...');
+                            await createTransactionFromReport(reportId);
+                        }
                         // Reload the report for editing to keep it displayed with all comments
                         loadReportForEditing(reportId);
                     } else {
@@ -3478,6 +3512,89 @@ try {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Create transaction from completed service report
+        async function createTransactionFromReport(reportId) {
+            try {
+                console.log('Creating transaction for report:', reportId);
+                
+                // First check if transaction already exists
+                const checkResponse = await $.ajax({
+                    url: '../backend/api/transaction_api.php?action=getAll',
+                    method: 'GET',
+                    dataType: 'json',
+                    timeout: 10000
+                });
+
+                if (checkResponse.success && checkResponse.data) {
+                    const transactionsList = Array.isArray(checkResponse.data) ? checkResponse.data : (checkResponse.data.transactions || []);
+                    const existingTransaction = transactionsList.find(t => t.report_id == reportId || t.reportId == reportId);
+                    if (existingTransaction) {
+                        console.log('Transaction already exists for this report');
+                        showAlert('info', 'Transaction already exists for this report');
+                        return;
+                    }
+                }
+
+                // Get the complete report data
+                const response = await $.ajax({
+                    url: '../backend/api/service_api.php?action=getById&id=' + reportId,
+                    method: 'GET',
+                    dataType: 'json',
+                    timeout: 10000
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error('Failed to load report data');
+                }
+
+                const reportData = response.data;
+                console.log('Report data loaded:', reportData);
+
+                const totalAmt = parseFloat(reportData.total_amount || 0);
+                if (typeof totalAmt !== 'number' || isNaN(totalAmt)) {
+                    throw new Error('Invalid total amount for this report');
+                }
+
+                const transactionData = {
+                    report_id: reportId,
+                    customer_name: reportData.customer_name,
+                    appliance_name: reportData.appliance_name,
+                    total_amount: totalAmt,
+                    service_types: reportData.service_types || [],
+                    payment_status: 'Pending'
+                };
+
+                console.log('Creating transaction with data:', transactionData);
+
+                const transactionResponse = await $.ajax({
+                    url: '../backend/api/transaction_api.php?action=createFromReport',
+                    method: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify(transactionData),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    timeout: 10000
+                });
+
+                if (!transactionResponse.success) {
+                    const errMsg = transactionResponse.message || 'Failed to create transaction';
+                    throw new Error(errMsg);
+                }
+
+                console.log('Transaction created successfully');
+                showAlert('success', 'Transaction created successfully and dashboard updated!');
+                
+                // Update the button appearance after transaction is created
+                $('#submit-report-btn').text('Update Report').css('background-color', '#0066e6');
+
+            } catch (error) {
+                console.error('Error creating transaction:', error);
+                showAlert('warning', 'Report updated but transaction creation encountered an issue: ' + (error.message || error));
+            }
         }
 
     </script>
