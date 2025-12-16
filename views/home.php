@@ -1170,13 +1170,13 @@ try {
             fetchDashboardData();
         });
 
-        // Auto-refresh dashboard every 5 seconds (reduced from 30 for real-time feel)
+        // Auto-refresh dashboard every 5 minutes to reduce server load
         setInterval(function() {
             // Only auto-refresh if tab is visible to save resources
             if (!document.hidden) {
                 fetchDashboardData();
             }
-        }, 5000);
+        }, 300000);
 
         // Initial load immediately
         fetchDashboardData();
