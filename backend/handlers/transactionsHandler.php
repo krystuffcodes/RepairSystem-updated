@@ -262,18 +262,20 @@ class transactionsHandlers {
         }
     }
 
-    public function updatePaymentStatus($transactionId, $paymentStatus, $receivedById) {
+    public function updatePaymentStatus($transactionId, $paymentStatus, $receivedById, $paymentMethod = null, $referenceNumber = null) {
         try {
             $stmt = $this->conn->prepare("
                 UPDATE {$this->transaction_table}
                 SET payment_status = ?,
                     received_by = ?,
-                    payment_date = ?
+                    payment_date = ?,
+                    payment_method = ?,
+                    reference_number = ?
                 WHERE transaction_id = ?
             ");
 
             $paymentDate = $paymentStatus === 'Paid' ? date('Y-m-d') : null;
-            $stmt->bind_param("sisi", $paymentStatus, $receivedById, $paymentDate, $transactionId);
+            $stmt->bind_param("ssissi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $transactionId);
             
             if(!$stmt->execute()) {
                 throw new RuntimeException("Failed to update payment status: " . $stmt->error);
@@ -296,7 +298,9 @@ class transactionsHandlers {
                 'payment_status' => $paymentStatus,
                 'received_by' => $receivedById,
                 'received_by_name' => $receivedByName,
-                'payment_date' => $paymentDate
+                'payment_date' => $paymentDate,
+                'payment_method' => $paymentMethod,
+                'reference_number' => $referenceNumber
             ], 'Payment status updated successfully');
 
         } catch (Exception $e) {

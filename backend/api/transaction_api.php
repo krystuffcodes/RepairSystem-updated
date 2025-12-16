@@ -100,16 +100,31 @@ try {
             $transactionId = $input['transaction_id'] ?? null;
             $paymentStatus = $input['payment_status'] ?? null;
             $receivedById = $input['received_by'] ?? null;
+            $paymentMethod = $input['payment_method'] ?? null;
+            $referenceNumber = $input['reference_number'] ?? null;
 
             if(!$transactionId || !$paymentStatus) {
-                sendResponse(false, null, 'Transaction ID and payment are required', 400);
+                sendResponse(false, null, 'Transaction ID and payment status are required', 400);
             }
 
             if(!in_array($paymentStatus, ['Paid', 'Pending'])) {
                 sendResponse(false, null, 'Invalid payment status', 400);
             }
 
-            $result = $transactionHandler->updatePaymentStatus($transactionId, $paymentStatus, $receivedById);
+            if(!$paymentMethod) {
+                sendResponse(false, null, 'Payment method is required', 400);
+            }
+
+            if(!in_array($paymentMethod, ['Cash', 'GCash'])) {
+                sendResponse(false, null, 'Invalid payment method', 400);
+            }
+
+            // Validate reference number if GCash
+            if($paymentMethod === 'GCash' && empty($referenceNumber)) {
+                sendResponse(false, null, 'Reference number is required for GCash payments', 400);
+            }
+
+            $result = $transactionHandler->updatePaymentStatus($transactionId, $paymentStatus, $receivedById, $paymentMethod, $referenceNumber);
             if (!$result['success']) {
                 sendResponse(false, null, $result['message'], 400);
             }

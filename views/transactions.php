@@ -553,6 +553,18 @@ $userSession = $auth->requireAuth('admin');
                                         <!-- Staff options will be populated dynamically -->
                                     </select>
                                 </div>
+                                <div class="form-group">
+                                    <label>Payment Method</label>
+                                    <select name="payment_method" id="payment_method" class="form-control" required>
+                                        <option value="">Select Payment Method</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="GCash">GCash</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="reference_number_group" style="display: none;">
+                                    <label>GCash Reference Number</label>
+                                    <input type="text" name="reference_number" id="reference_number" class="form-control" placeholder="Enter GCash reference number">
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -937,10 +949,26 @@ $userSession = $auth->requireAuth('admin');
 
             // Update payment status
             function updatePaymentStatus() {
+                const paymentMethod = $('select[name="payment_method"]').val();
+                const referenceNumber = $('#reference_number').val();
+
+                // Validation
+                if (!paymentMethod) {
+                    showAlert('danger', 'Please select a payment method');
+                    return;
+                }
+
+                if (paymentMethod === 'GCash' && !referenceNumber) {
+                    showAlert('danger', 'Please enter GCash reference number');
+                    return;
+                }
+
                 const formData = {
                     transaction_id: $('#update_transaction_id').val(),
                     payment_status: $('select[name="payment_status"]').val(),
-                    received_by: $('select[name="received_by"]').val()
+                    received_by: $('select[name="received_by"]').val(),
+                    payment_method: paymentMethod,
+                    reference_number: paymentMethod === 'GCash' ? referenceNumber : ''
                 };
 
                 if (!formData.received_by) {
@@ -974,6 +1002,17 @@ $userSession = $auth->requireAuth('admin');
                     }
                 });
             }
+
+            // Handle payment method change - show/hide reference number field
+            $(document).on('change', '#payment_method', function() {
+                if ($(this).val() === 'GCash') {
+                    $('#reference_number_group').slideDown();
+                    $('#reference_number').prop('required', true);
+                } else {
+                    $('#reference_number_group').slideUp();
+                    $('#reference_number').prop('required', false).val('');
+                }
+            });
 
             // Load paginated transactions
             function loadTransactions(page = 1) {
