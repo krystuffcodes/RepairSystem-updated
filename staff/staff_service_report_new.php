@@ -1798,14 +1798,18 @@ try {
             $(document).on('change', '#customer-select', function() {
                 const customerId = $(this).val();
                 if (customerId) {
+                    console.log('Customer selected:', customerId);
+                    
                     // Load appliances for the customer
                     loadAppliances(customerId);
                     
-                    // Load the latest service report's date_in for this customer
-                    loadLatestCustomerDateIn(customerId);
-                    
                     // Load customer details
                     loadCustomerDetails(customerId);
+                    
+                    // NOTE: Date In is now set based on the selected appliance,
+                    // not from previous service reports. This allows staff to
+                    // work with appliances added at different times.
+                    console.log('Date In will be set when appliance is selected');
                 }
             });
 
@@ -1820,14 +1824,37 @@ try {
 
             $(document).on('change', '#appliance-select', function() {
                 const applianceId = $(this).val();
+                console.log('Appliance selected:', applianceId);
+                
                 if (applianceId && window.appliancesData) {
-                    // Find the selected appliance
-                    const selectedAppliance = window.appliancesData.find(a => (a.appliance_id || a.id) == applianceId);
-                    if (selectedAppliance && selectedAppliance.date_created) {
-                        // Update date_in based on appliance's creation date
-                        $('#date-in').val(selectedAppliance.date_created);
-                        console.log('Date In updated from appliance creation date:', selectedAppliance.date_created);
+                    // Find the selected appliance by ID
+                    const selectedAppliance = window.appliancesData.find(a => {
+                        const aId = a.appliance_id || a.id;
+                        return aId == applianceId;
+                    });
+                    
+                    if (selectedAppliance) {
+                        console.log('Selected appliance data:', selectedAppliance);
+                        
+                        // Try multiple date field names since API might return different formats
+                        const applianceDate = selectedAppliance.date_in 
+                            || selectedAppliance.date_created 
+                            || selectedAppliance.dateIn
+                            || selectedAppliance.date_added
+                            || selectedAppliance.registration_date;
+                        
+                        if (applianceDate) {
+                            // Update date_in based on appliance's registration/creation date
+                            $('#date-in').val(applianceDate);
+                            console.log('✅ Date In auto-filled from appliance:', applianceDate);
+                        } else {
+                            console.warn('⚠️ No date field found in appliance data. Available fields:', Object.keys(selectedAppliance));
+                        }
+                    } else {
+                        console.warn('⚠️ Could not find selected appliance in data');
                     }
+                } else {
+                    console.log('No appliance selected or appliances data not available');
                 }
             });
 
