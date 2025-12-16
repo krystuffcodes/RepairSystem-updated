@@ -386,6 +386,16 @@ $userSession = $auth->requireAuth('admin');
                                         </select>
                                     </div>
                                     
+                                    <!-- Transaction ID -->
+                                    <div class="filter-group">
+                                        <label for="transactionIdSort">Transaction ID:</label>
+                                        <select id="transactionIdSort" class="form-control">
+                                            <option value="">Select</option>
+                                            <option value="ascending">Ascending</option>
+                                            <option value="descending">Descending</option>
+                                        </select>
+                                    </div>
+                                    
                                     <!-- Amount -->
                                     <div class="filter-group">
                                         <label for="amountSort">Amount:</label>
@@ -1123,6 +1133,14 @@ $userSession = $auth->requireAuth('admin');
                     // Apply sorting
                     const dateSortValue = $('#dateSort').val();
                     const amountSortValue = $('#amountSort').val();
+                    const transactionIdSortValue = $('#transactionIdSort').val();
+                    
+                    // Transaction ID sorting
+                    if (transactionIdSortValue === 'ascending') {
+                        filteredTransactions.sort((a, b) => a.id - b.id);
+                    } else if (transactionIdSortValue === 'descending') {
+                        filteredTransactions.sort((a, b) => b.id - a.id);
+                    }
                     
                     // Date sorting
                     if (dateSortValue === 'latest') {
@@ -1248,7 +1266,7 @@ $userSession = $auth->requireAuth('admin');
             }
 
             // Initialize sorting and filtering
-            $('#dateSort, #amountSort, #filterBy').change(function() {
+            $('#dateSort, #amountSort, #transactionIdSort, #filterBy').change(function() {
                 applySortingAndFiltering();
             });
 

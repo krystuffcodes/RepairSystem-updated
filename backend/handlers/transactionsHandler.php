@@ -266,7 +266,6 @@ class transactionsHandlers {
         try {
             $paymentDate = $paymentStatus === 'Paid' ? date('Y-m-d') : null;
             
-            // Try updating with new columns first (payment_method, reference_number)
             $stmt = $this->conn->prepare("
                 UPDATE {$this->transaction_table}
                 SET payment_status = ?,
@@ -276,22 +275,12 @@ class transactionsHandlers {
                     reference_number = ?
                 WHERE transaction_id = ?
             ");
-            
+
             if (!$stmt) {
-                // If columns don't exist, try without them (backward compatibility)
-                error_log("New columns not found, using backward compatible update");
-                $stmt = $this->conn->prepare("
-                    UPDATE {$this->transaction_table}
-                    SET payment_status = ?,
-                        received_by = ?,
-                        payment_date = ?
-                    WHERE transaction_id = ?
-                ");
-                
-                $stmt->bind_param("sisi", $paymentStatus, $receivedById, $paymentDate, $transactionId);
-            } else {
-                $stmt->bind_param("ssissi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $transactionId);
+                throw new RuntimeException("Prepare failed: " . $this->conn->error);
             }
+
+            $stmt->bind_param("ssisssi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $transactionId);
             
             if(!$stmt->execute()) {
                 throw new RuntimeException("Failed to update payment status: " . $stmt->error);
