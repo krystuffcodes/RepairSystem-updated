@@ -1724,6 +1724,51 @@ try {
             bindEventHandlers();
         });
 
+        function initializeServiceReport() {
+            // Load initial data
+            loadCustomers();
+            loadParts();
+            loadStaff();
+            loadServiceReports();
+        }
+
+        function bindEventHandlers() {
+            // Event handlers for form interactions
+            $(document).on('change', '#customer-select', function() {
+                const customerId = $(this).val();
+                if (customerId) {
+                    loadAppliances(customerId);
+                }
+            });
+
+            $(document).on('click', '#add-part-btn', function() {
+                addPartRow();
+            });
+
+            $(document).on('click', '.remove-part', function() {
+                $(this).closest('.parts-row').remove();
+                calculateTotals();
+            });
+
+            $(document).on('change', '.part-select, .quantity-input', function() {
+                const $row = $(this).closest('.parts-row');
+                const quantity = parseFloat($row.find('.quantity-input').val() || 0) || 0;
+                const unitPrice = parseFloat($row.find('.part-select option:selected').data('price') || 0) || 0;
+                const amount = quantity * unitPrice;
+                $row.find('.amount-input').val(amount.toFixed(2));
+                calculateTotals();
+            });
+
+            $(document).on('change', '#total-serviceCharge, #labor-amount, #pullout-delivery', function() {
+                calculateTotals();
+            });
+
+            $(document).on('click', '#submit-report-btn', function(e) {
+                e.preventDefault();
+                submitServiceReport();
+            });
+        }
+
         function showAlert(type, message) {
             try {
                 $('.alert-notification').remove();
@@ -2319,6 +2364,12 @@ try {
                 success: function(response) {
                     const successMsg = reportId ? 'Service report updated successfully!' : 'Service report created successfully!';
                     showAlert('success', successMsg);
+                    
+                    // If updating, reload comments for the updated report
+                    if (reportId) {
+                        loadProgressComments(reportId);
+                    }
+                    
                     $('#serviceReportForm')[0].reset();
                     $('#report_id').val('');
                     $('#submit-report-btn').text('Create Report').css('background-color', '#0066e6');
@@ -3067,7 +3118,7 @@ try {
 
         function openProgressCommentModal(progressKey, progressTitle) {
             currentProgressKey = progressKey;
-            currentReportId = $('#report-id').val();
+            currentReportId = $('#report_id').val();
             
             $('#progress-title-modal').text(progressTitle);
             $('#progress-comment-text').val('');
@@ -3087,6 +3138,12 @@ try {
                 return;
             }
 
+            console.log('Saving comment:', {
+                reportId: currentReportId,
+                progressKey: currentProgressKey,
+                commentText: commentText
+            });
+
             // Show loading state
             showLoading(true, '#progressCommentModal');
             
@@ -3102,6 +3159,8 @@ try {
                 }),
                 success: function(response) {
                     showLoading(false, '#progressCommentModal');
+                    
+                    console.log('Save comment response:', response);
                     
                     if (response.success) {
                         showAlert('success', 'Comment saved successfully!');
@@ -3122,30 +3181,38 @@ try {
         }
 
         function loadProgressComments(reportId) {
+            console.log('Loading progress comments for reportId:', reportId);
             $.ajax({
                 url: '../backend/api/service_report_api.php?action=getProgressComments&report_id=' + reportId,
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
+                    console.log('Progress comments response:', response);
                     if (response.success) {
                         progressComments = {};
                         
                         // Organize comments by progress key
                         if (response.data && response.data.length > 0) {
+                            console.log('Comments found:', response.data.length);
                             response.data.forEach(function(comment) {
                                 if (!progressComments[comment.progress_key]) {
                                     progressComments[comment.progress_key] = [];
                                 }
                                 progressComments[comment.progress_key].push(comment);
                             });
+                        } else {
+                            console.log('No comments found for this report');
                         }
                         
                         // Display all comments
                         displayAllProgressComments();
+                    } else {
+                        console.warn('Response not successful:', response.message);
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading progress comments:', error);
+                    console.error('XHR Response:', xhr.responseText);
                 }
             });
         }
