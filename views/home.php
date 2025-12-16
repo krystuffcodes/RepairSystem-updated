@@ -718,7 +718,7 @@ try {
                         <?php
                         require_once __DIR__ . '/../backend/handlers/partsHandler.php';
                         $partsHandler = new PartsHandler($conn);
-                        $lowStockParts = $partsHandler->getLowStockParts(5);
+                        $lowStockParts = $partsHandler->getLowStockParts(10);
                         $hasLowStock = !empty($lowStockParts);
                         ?>
                         <div class="section-title d-flex align-items-center justify-content-between">
@@ -759,8 +759,17 @@ try {
                                     if (!empty($lowStockParts)) {
                                         foreach ($lowStockParts as $row) {
                                             $stock = $row['quantity_stock'];
-                                            $statusClass = $stock == 0 ? 'text-danger' : ($stock <= 2 ? 'text-warning' : 'text-warning');
-                                            $statusText = $stock == 0 ? 'Out of Stock' : ($stock <= 2 ? 'Critical' : 'Low');
+                                            // Critical: stock < 5 = red, Low: stock 6-10 = orange, Out of Stock = red
+                                            if ($stock == 0) {
+                                                $statusClass = 'text-danger';
+                                                $statusText = 'Out of Stock';
+                                            } elseif ($stock < 5) {
+                                                $statusClass = 'text-danger';
+                                                $statusText = 'Critical';
+                                            } else {
+                                                $statusClass = 'text-warning';
+                                                $statusText = 'Low';
+                                            }
 
                                             echo "<tr>";
                                             echo "<td style='font-size: 0.9rem; font-weight: 500;'>" . htmlspecialchars($row['part_no']) . " - " . htmlspecialchars($row['description']) . "</td>";
