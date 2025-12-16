@@ -1760,6 +1760,11 @@ try {
             loadParts();
             loadStaff();
             loadServiceReports();
+            
+            // Initialize customer search after a brief delay to ensure DOM is ready
+            setTimeout(function() {
+                initCustomerSearch();
+            }, 100);
         }
 
         function bindEventHandlers() {
@@ -1844,15 +1849,32 @@ try {
                         }
                     }
                     
+                    // Also populate the search suggestions list
+                    window.customersList = [];
+                    
                     if (customers.length > 0) {
                         customers.forEach(function(customer) {
                             const id = customer.customer_id || customer.id;
                             const name = customer.FullName || customer.full_name || customer.name || (customer.first_name ? customer.first_name + ' ' + customer.last_name : 'Unknown');
+                            const phone = customer.phone_no || customer.phone || '';
+                            const address = customer.address || '';
+                            
+                            // Add to dropdown
                             select.append(`<option value="${id}">${name}</option>`);
+                            
+                            // Add to search suggestions list
+                            window.customersList.push({
+                                id: id,
+                                name: name,
+                                phone: phone,
+                                address: address
+                            });
                         });
                     } else {
                         console.warn('No customers in response:', data);
                     }
+                    
+                    console.log('Customers list populated:', window.customersList);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading customers:', error);
