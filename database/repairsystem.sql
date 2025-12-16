@@ -192,10 +192,10 @@ CREATE TABLE `service_details` (
 
 INSERT INTO `service_details` (`detail_id`, `report_id`, `service_types`, `service_charge`, `date_repaired`, `date_delivered`, `complaint`, `labor`, `pullout_delivery`, `parts_total_charge`, `total_amount`, `receptionist`, `manager`, `technician`, `released_by`) VALUES
 (9, 7, '[\"installation\"]', '500.00', NULL, NULL, NULL, NULL, NULL, '248.00', '748.00', 'ok (Technician)', 'ok (Technician)', 'ok (Technician)', 'okokoeoeoke (Technician)'),
-(14, 9, '[\"installation\", \"repair\", \"cleaning\"]', '1000.00', '2025-08-19', '2025-08-20', NULL, '3.00', '3.00', '1174.00', '2180.00', 'adminactivee (Cashier)', 'admin123 (Manager)', 'oklizz (Technician)', 'adminactivee (Cashier)'),
+(14, 9, '[\"installation\", \"repair\", \"cleaning\"]', '1000.00', '2025-08-19', '2025-08-20', NULL, '3.00', '3.00', '1174.00', '2180.00', 'adminactivee (Secretary)', 'admin123 (Manager)', 'oklizz (Technician)', 'adminactivee (Secretary)'),
 (18, 6, '[\"installation\"]', '500.00', NULL, NULL, NULL, NULL, NULL, '522.00', '1022.00', 'ok (Technician)', 'ok (Technician)', 'rennotoke (Technician)', 'ok (Technician)'),
-(25, 11, '[\"installation\"]', '500.00', NULL, NULL, NULL, '1.00', '1.00', '124.00', '626.00', 'staff (Cashier)', 'ren (Manager)', 'oklizz (Technician)', 'staff (Cashier)'),
-(27, 10, '[\"installation\", \"repair\"]', '800.00', '2025-08-22', '2025-08-25', 'okeoke', '7.00', '4.00', '770.00', '1581.00', 'renadmin (Cashier)', 'admin123 (Manager)', 'oklizz (Technician)', 'renadmin (Cashier)');
+(25, 11, '[\"installation\"]', '500.00', NULL, NULL, NULL, '1.00', '1.00', '124.00', '626.00', 'staff (Secretary)', 'ren (Manager)', 'oklizz (Technician)', 'staff (Secretary)'),
+(27, 10, '[\"installation\", \"repair\"]', '800.00', '2025-08-22', '2025-08-25', 'okeoke', '7.00', '4.00', '770.00', '1581.00', 'renadmin (Secretary)', 'admin123 (Manager)', 'oklizz (Technician)', 'renadmin (Secretary)');
 
 -- --------------------------------------------------------
 
@@ -278,15 +278,15 @@ CREATE TABLE `staffs` (
 INSERT INTO `staffs` (`staff_id`, `full_name`, `username`, `email`, `password`, `role`, `status`, `date_created`, `last_login`, `reset_token`, `reset_token_expiry`) VALUES
 (14, 'adminadmin', 'admin123', 'admin@email.com', '$2y$10$zAz2tZh5z94WpJbAAseVK.F65Pp4x6TE0M1O8HZkwhn8w9.vCVLTq', 'Manager', 'Active', '2025-07-03 00:00:00', '2025-10-07 18:01:15', NULL, NULL),
 (16, 'blah okee', 'rennotoke', 'oke@email.com', '$2y$10$HrdFqD1NxZEX5YSQM8aVJOZskmbOiaLkh.Vsmq3bZm.x.Q6QDbMx6', 'Technician', 'Active', '2025-07-03 04:11:52', '2025-07-03 04:11:52', NULL, NULL),
-(17, 'Admin Active', 'adminactivee', 'admin@email.com', '$2y$10$nANVu5BnGPM0v4eTHgE3rucUDe8uKLdhskZswutDdjSouwKf/IL1K', 'Cashier', 'Inactive', '2025-07-04 00:42:27', '2025-07-04 00:42:37', NULL, NULL),
-(18, 'admin', 'renadmin', 'admin@email.com', '$2y$10$akx4372XiPsoB320taPKCeRUoCEnCW0EI4UzqHs2e8ui2M20vJNWS', 'Cashier', 'Active', '2025-07-04 12:20:52', '2025-07-04 12:20:52', NULL, NULL),
+(17, 'Admin Active', 'adminactivee', 'admin@email.com', '$2y$10$nANVu5BnGPM0v4eTHgE3rucUDe8uKLdhskZswutDdjSouwKf/IL1K', 'Secretary', 'Inactive', '2025-07-04 00:42:27', '2025-07-04 00:42:37', NULL, NULL),
+(18, 'admin', 'renadmin', 'admin@email.com', '$2y$10$akx4372XiPsoB320taPKCeRUoCEnCW0EI4UzqHs2e8ui2M20vJNWS', 'Secretary', 'Active', '2025-07-04 12:20:52', '2025-07-04 12:20:52', NULL, NULL),
 (19, 'okokoeoeoke', 'rennotokee', 'admin@email.com', '$2y$10$dEEu92vvdh6VzkqXxKv6Y.zqExJuUU2ZqHJ7dDTs5VERd27CNVPPO', 'Technician', 'Active', '2025-07-04 12:22:47', '2025-07-04 12:22:47', NULL, NULL),
 (20, 'ok', 'oklizz', 'oke@email.com', '$2y$10$adAYFk9mDN/Df5TyPiHjpObVxuWZkFQnBm2biS46YPlwYa9Tk1YnC', 'Technician', 'Active', '2025-07-04 12:25:07', '2025-07-04 12:25:07', NULL, NULL),
-(21, 'lj', 'ljjjj', 'oke@email.com', '$2y$10$9mUAtcb2Fgnyztl2dmSzaOHJeu9W7layJZYDMBu6HhWaYAqVp4lNO', 'Cashier', 'Active', '2025-07-04 12:36:09', '2025-07-04 12:36:09', NULL, NULL),
+(21, 'lj', 'ljjjj', 'oke@email.com', '$2y$10$9mUAtcb2Fgnyztl2dmSzaOHJeu9W7layJZYDMBu6HhWaYAqVp4lNO', 'Secretary', 'Active', '2025-07-04 12:36:09', '2025-07-04 12:36:09', NULL, NULL),
 (22, 'blah blah oke', 'okegana', 'oke@email.com', '$2y$10$Y9x2Vlxwypr8112zUVLzVu9Cy7LyA5X1a3954IsXx9iY5UfXDiiii', 'Technician', 'Inactive', '2025-07-04 22:26:31', '2025-07-04 22:26:31', NULL, NULL),
 (23, 'era dumangcas', 'era123', 'eradumangcas7@gmail.com', '$2y$10$cp8ih5L.eI.psQieboJCh.HMuwTz3t9J6KU0LOBLq.dlzNH8efSOu', 'Manager', 'Active', '2025-10-02 23:35:41', '2025-10-03 00:03:10', NULL, NULL),
 (24, 'Ren Admin', 'ren', 'renindino02@gmail.com', '$2y$10$3Uw1mlyF/KieGw/Nxka1Cezdcif5l0VeAcw2Hr/rUXItf7wwEhqau', 'Manager', 'Active', '2025-10-03 00:57:16', '2025-10-03 17:04:04', NULL, NULL),
-(25, 'Staff User', 'staff', 'Staff@example.com', '$2y$10$/8phNgC6N2VhMqfIlpdf7.z5MWOd4VdEjpS29WUsbrAOEFDF.qdSW', 'Cashier', 'Active', '2025-10-03 17:07:10', '2025-10-05 18:46:36', NULL, NULL);
+(25, 'Staff User', 'staff', 'Staff@example.com', '$2y$10$/8phNgC6N2VhMqfIlpdf7.z5MWOd4VdEjpS29WUsbrAOEFDF.qdSW', 'Secretary', 'Active', '2025-10-03 17:07:10', '2025-10-05 18:46:36', NULL, NULL);
 
 -- --------------------------------------------------------
 
