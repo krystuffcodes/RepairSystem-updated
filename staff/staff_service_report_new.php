@@ -1792,6 +1792,19 @@ try {
                 calculateTotals();
             });
 
+            $(document).on('change', '#appliance-select', function() {
+                const applianceId = $(this).val();
+                if (applianceId && window.appliancesData) {
+                    // Find the selected appliance
+                    const selectedAppliance = window.appliancesData.find(a => (a.appliance_id || a.id) == applianceId);
+                    if (selectedAppliance && selectedAppliance.date_created) {
+                        // Update date_in based on appliance's creation date
+                        $('#date-in').val(selectedAppliance.date_created);
+                        console.log('Date In updated from appliance creation date:', selectedAppliance.date_created);
+                    }
+                }
+            });
+
             $(document).on('change', '.part-select, .quantity-input', function() {
                 const $row = $(this).closest('.parts-row');
                 const quantity = parseFloat($row.find('.quantity-input').val() || 0) || 0;
@@ -1839,6 +1852,7 @@ try {
                 url: '../backend/api/customer_appliance_api.php?action=getAllCustomers',
                 method: 'GET',
                 dataType: 'json',
+                timeout: 10000,
                 success: function(data) {
                     console.log('Customer API Response:', data);
                     const select = $('#customer-select');
@@ -1884,10 +1898,13 @@ try {
                     console.log('Customers list populated:', window.customersList);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error loading customers:', error);
+                    console.error('Error loading customers:', error, 'Status:', status);
                     console.error('Response:', xhr.responseText);
+                    
                     if (status !== 'abort') {
                         console.warn('Customer API failed - continuing without customers');
+                        // Initialize empty list so search doesn't break
+                        window.customersList = [];
                     }
                 }
             });
@@ -1980,6 +1997,9 @@ try {
                     }
                     
                     if (appliances.length > 0) {
+                        // Store appliances data globally for use in change handlers
+                        window.appliancesData = appliances;
+                        
                         appliances.forEach(function(appliance) {
                             const id = appliance.appliance_id || appliance.applianceId || appliance.id || appliance.applianceId;
                             // Build name to match format used in service reports: Brand - SerialNo (Category)
@@ -2003,14 +2023,18 @@ try {
                         if (applianceIdToSelect) {
                             select.val(applianceIdToSelect);
                             console.log('Auto-selected appliance ID:', applianceIdToSelect);
+                            // Trigger change event to update date if needed
+                            select.trigger('change');
                         }
                     } else {
-                        showAlert('warning', 'No appliances found for this customer');
+                        console.warn('No appliances found for this customer');
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading appliances:', error);
-                    showAlert('error', 'Error loading appliances: ' + error);
+                    if (status !== 'abort') {
+                        console.warn('Appliances API failed - continuing without appliances');
+                    }
                 }
             });
         }
