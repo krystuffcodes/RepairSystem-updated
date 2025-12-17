@@ -1071,7 +1071,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <input type="text" class="form-control" name="dealer">
                                             </div>
                                             <div class="col-md-3">
-                                                <label>DOP</label>
+                                                <label>Date of Purchase</label>
                                                 <input type="date" class="form-control" name="dop">
                                             </div>
                                             <div class="col-md-3">
