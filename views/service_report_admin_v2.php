@@ -1297,6 +1297,14 @@ $userSession = $auth->requireAuth('admin');
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
+                                                <label>Date Out (Auto-filled when Completed)</label>
+                                                <input type="date" name="date_pulled_out" id="edit_date_pulled_out" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
                                                 <label>Date Delivered</label>
                                                 <input type="date" name="date_delivered" id="edit_date_delivered" class="form-control">
                                             </div>
@@ -1473,6 +1481,30 @@ $userSession = $auth->requireAuth('admin');
                 $('#serviceReportListModal').modal('hide');
                 setTimeout(() => { $('.modal-backdrop').remove(); $('body').removeClass('modal-open'); }, 300);
                 deleteReport(reportId);
+            });
+
+            // Auto-fill date_pulled_out when status changes to "Completed"
+            $(document).on('change', '#status-select, #edit_status', function() {
+                const $statusSelect = $(this);
+                const selectedStatus = $statusSelect.val();
+                
+                // Determine which date_pulled_out field to fill based on which status select changed
+                let $datePulledOutField;
+                if ($statusSelect.attr('id') === 'status-select') {
+                    $datePulledOutField = $('input[name="date_pulled_out"]').not('#edit_date_pulled_out');
+                } else {
+                    $datePulledOutField = $('#edit_date_pulled_out');
+                }
+                
+                if (selectedStatus === 'Completed') {
+                    // Auto-fill with today's date
+                    const today = new Date().toISOString().split('T')[0];
+                    $datePulledOutField.val(today);
+                    console.log('Auto-filled date_pulled_out with today\'s date:', today);
+                } else {
+                    // Do not clear the date if status is changed away from Completed
+                    console.log('Status changed to:', selectedStatus);
+                }
             });
         });
 

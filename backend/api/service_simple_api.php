@@ -91,6 +91,15 @@ try {
                 sendResponse(false, null, 'Invalid date_in format (expected Y-m-d)', 400);
             }
 
+            // Parse optional date_pulled_out
+            $datePulledOut = null;
+            if (!empty($input['date_pulled_out'])) {
+                $datePulledOut = DateTime::createFromFormat('Y-m-d', $input['date_pulled_out']);
+                if (!$datePulledOut) {
+                    sendResponse(false, null, 'Invalid date_pulled_out format (expected Y-m-d)', 400);
+                }
+            }
+
             // Check for duplicate records before creating
             $checkDuplicateQuery = "
                 SELECT report_id FROM service_reports 
@@ -119,7 +128,7 @@ try {
                 $input['status'],
                 $input['dealer'] ?? '',
                 null, // dop
-                null, // date_pulled_out
+                $datePulledOut, // date_pulled_out (now populated from input)
                 $input['findings'] ?? '',
                 $input['remarks'] ?? '',
                 ['shop'], // default location
@@ -178,6 +187,15 @@ try {
                 sendResponse(false, null, 'Invalid date_in format (expected Y-m-d)', 400);
             }
 
+            // Parse optional date_pulled_out
+            $datePulledOut = null;
+            if (!empty($input['date_pulled_out'])) {
+                $datePulledOut = DateTime::createFromFormat('Y-m-d', $input['date_pulled_out']);
+                if (!$datePulledOut) {
+                    sendResponse(false, null, 'Invalid date_pulled_out format (expected Y-m-d)', 400);
+                }
+            }
+
             // Create updated report object
             $report = new Service_report(
                 $input['customer_name'],
@@ -186,7 +204,7 @@ try {
                 $input['status'],
                 $input['dealer'] ?? '',
                 null, // dop
-                null, // date_pulled_out
+                $datePulledOut, // date_pulled_out (now populated from input)
                 $input['findings'] ?? '',
                 $input['remarks'] ?? '',
                 ['shop'], // default location
