@@ -9,7 +9,7 @@ require_once __DIR__ . '/../handlers/transactionHandler.php';
 header('Content-Type: application/json');
 
 $auth = new AuthHandler();
-$userSession = $auth->requireAuth('staff');
+$userSession = $auth->requireAuth('both');
 
 // Initialize database connection
 $database = new Database();
