@@ -2023,6 +2023,32 @@ $userSession = $auth->requireAuth('admin');
                 return validateResponse(response, 'create');
             } catch (error) {
                 console.error('Create service error:', error);
+                
+                // Handle duplicate record error (HTTP 409 Conflict)
+                if (error.status === 409 && error.responseJSON) {
+                    const duplicateData = error.responseJSON.data || {};
+                    const existingReportId = duplicateData.existing_report_id;
+                    const errorMsg = error.responseJSON.message || 'This service report already exists';
+                    
+                    // Create a user-friendly notification for duplicate
+                    const fullMessage = `${errorMsg}\n\nClick "View Existing" to view the existing record instead of creating a duplicate.`;
+                    
+                    // Show a warning alert with action buttons
+                    showAlert('warning', `<strong>Duplicate Record Detected</strong><br>${errorMsg}`);
+                    
+                    // Log for debugging
+                    console.warn('Duplicate service report detected:', {
+                        existingReportId: existingReportId,
+                        message: errorMsg
+                    });
+                    
+                    // Create a custom error object to identify this as a duplicate error
+                    const duplicateError = new Error(errorMsg);
+                    duplicateError.isDuplicate = true;
+                    duplicateError.existingReportId = existingReportId;
+                    throw duplicateError;
+                }
+                
                 const errorMessage = error.responseJSON?.message || error.statusText || 'Failed to create service report';
                 throw new Error(errorMessage);
             }

@@ -91,6 +91,26 @@ try {
                 sendResponse(false, null, 'Invalid date_in format (expected Y-m-d)', 400);
             }
 
+            // Check for duplicate records before creating
+            $checkDuplicateQuery = "
+                SELECT report_id FROM service_reports 
+                WHERE customer_name = ? AND appliance_name = ? AND date_in = ?
+                LIMIT 1
+            ";
+            $stmt = $db->prepare($checkDuplicateQuery);
+            if ($stmt) {
+                $stmt->bind_param('sss', $input['customer_name'], $input['appliance_name'], $input['date_in']);
+                $stmt->execute();
+                $stmt->bind_result($existingReportId);
+                
+                if ($stmt->fetch()) {
+                    // Duplicate record found
+                    $stmt->close();
+                    sendResponse(false, ['existing_report_id' => $existingReportId], 'This service report already exists (Report ID: ' . $existingReportId . '). Cannot create duplicate records.', 409);
+                }
+                $stmt->close();
+            }
+
             // Create service report with minimal required data
             $report = new Service_report(
                 $input['customer_name'],
