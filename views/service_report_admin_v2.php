@@ -1355,6 +1355,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <th>Appliance</th>
                                                 <th>Service Type</th>
                                                 <th>Date In</th>
+                                                <th>Date Released Out</th>
                                                 <th>Status</th>
                                                 <th>Total</th>
                                                 <th>Actions</th>
@@ -1895,6 +1896,14 @@ $userSession = $auth->requireAuth('admin');
             $('select[name="status"]').on('change', function() {
                 const status = $(this).val();
                 updateStatusProgress(status);
+                
+                // Auto-fill date_pulled_out when status changes to 'Completed'
+                if (status === 'Completed') {
+                    const today = new Date().toISOString().split('T')[0];
+                    // Note: Date input field has been removed from form, but auto-fill logic preserved
+                    // for potential future use or if field is restored
+                }
+                
                 const reportId = $('#report_id').val();
                 if (reportId) {
                     updateSubmitButton(status, reportId);
@@ -3060,6 +3069,7 @@ $userSession = $auth->requireAuth('admin');
                 }
 
                 const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
+                const dateReleasedOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : '';
                 
                 // Map numeric status codes to text (for legacy data compatibility)
                 let statusText = report.status;
@@ -3104,6 +3114,7 @@ $userSession = $auth->requireAuth('admin');
                         <td>${report.appliance_name}</td>
                         <td>${serviceTypes}</td>
                         <td>${dateIn}</td>
+                        <td>${dateReleasedOut}</td>
                         <td>${statusBadge}</td>
                         <td>${totalAmount.toFixed(2)}</td>
                         <td class="actions-col">

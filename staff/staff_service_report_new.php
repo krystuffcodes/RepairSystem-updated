@@ -1204,6 +1204,7 @@ try {
                                     <th>Appliance</th>
                                     <th>Service Type</th>
                                     <th>Date In</th>
+                                    <th>Date Released Out</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -2419,6 +2420,13 @@ try {
         $(document).on('change', '#create_status, select[name="status"]', function() {
             const status = $(this).val();
             updateStatusProgress(status);
+            
+            // Auto-fill date_pulled_out when status changes to 'Completed'
+            if (status === 'Completed') {
+                const today = new Date().toISOString().split('T')[0];
+                // Note: Date input field has been removed from form, but auto-fill logic preserved
+                // for potential future use or if field is restored
+            }
         });
 
         $(document).on('change', '#service-report-filter', function() {
@@ -3019,6 +3027,7 @@ try {
             reports.forEach(function(report) {
                 const serviceTypes = Array.isArray(report.service_types) ? report.service_types.join(', ') : (report.service_types || 'N/A');
                 const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
+                const dateReleasedOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : '';
                 
                 // Map numeric status codes to text (for legacy data compatibility)
                 let statusText = report.status;
@@ -3068,6 +3077,7 @@ try {
                         <td>${report.appliance_name || ''}</td>
                         <td>${serviceTypes}</td>
                         <td>${dateIn}</td>
+                        <td>${dateReleasedOut}</td>
                         <td>${statusBadge}</td>
                         <td class="actions-col">
                             <a href="#" class="print-report" data-id="${report.report_id}" title="Print Report"><i class="material-icons text-success">print</i></a>
