@@ -944,10 +944,6 @@ try {
                                         <label>Date of Purchase</label>
                                         <input type="date" class="form-control" name="dop">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label>Date Pulled - Out</label>
-                                        <input type="date" class="form-control" name="date_pulled_out">
-                                    </div>
                                 </div>
                                 <!-- Findings Row -->
                                 <div class="row mb-0 align-items-end">
@@ -2514,7 +2510,6 @@ try {
             payload.status = $('#create_status').val() || $('select[name="status"]').first().val();
             payload.dealer = $('input[name="dealer"]').val() || '';
             payload.dop = $('input[name="dop"]').val() || null;
-            payload.date_pulled_out = $('input[name="date_pulled_out"]').val() || null;
             payload.findings = $('input[name="findings"]').val() || '';
             payload.remarks = $('input[name="remarks"]').val() || '';
             payload.location = ['shop'];
@@ -2711,7 +2706,6 @@ try {
                             
                             $('input[name="dealer"]').val(report.dealer || '');
                             $('input[name="dop"]').val(report.dop || '');
-                            $('input[name="date_pulled_out"]').val(report.date_pulled_out || '');
                             $('input[name="findings"]').val(report.findings || '');
                             $('input[name="remarks"]').val(report.remarks || '');
                             console.log('Basic fields populated');
@@ -3196,7 +3190,6 @@ try {
                 // Format dates
                 const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : '';
                 const dop = report.dop ? new Date(report.dop).toLocaleDateString() : '';
-                const datePulledOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : '';
                 const dateRepaired = report.date_repaired ? new Date(report.date_repaired).toLocaleDateString() : '';
 
                 // Format service types
@@ -3274,7 +3267,6 @@ try {
                                 </div>
                                 <div style="display: table-cell; width: 50%; padding: 8px 10px; border: 1px solid #000; color: #000;">
                                     <strong style="font-size: 12px; color: #000;">Date of Problem:</strong> <span style="font-size: 12px; color: #000;">${dop}</span><br>
-                                    <strong style="font-size: 12px; color: #000;">Date Pulled Out:</strong> <span style="font-size: 12px; color: #000;">${datePulledOut}</span><br>
                                     <strong style="font-size: 12px; color: #000;">Date Repaired:</strong> <span style="font-size: 12px; color: #000;">${dateRepaired}</span>
                                 </div>
                             </div>

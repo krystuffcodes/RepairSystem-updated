@@ -1073,10 +1073,6 @@ $userSession = $auth->requireAuth('admin');
                                                 <label>Date of Purchase</label>
                                                 <input type="date" class="form-control" name="dop">
                                             </div>
-                                            <div class="col-md-3">
-                                                <label>Date Released Out</label>
-                                                <input type="date" class="form-control" name="date_pulled_out">
-                                            </div>
                                         </div>
                                         <div class="row mb-0 align-items-end">
                                             <div class="col-md-7">
@@ -1360,7 +1356,6 @@ $userSession = $auth->requireAuth('admin');
                                                 <th>Service Type</th>
                                                 <th>Date In</th>
                                                 <th>Status</th>
-                                                <th>Date Released Out</th>
                                                 <th>Total</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -3066,9 +3061,6 @@ $userSession = $auth->requireAuth('admin');
 
                 const dateIn = report.date_in ? new Date(report.date_in).toLocaleDateString() : 'N/A';
                 
-                // Format date_pulled_out (Date Released Out)
-                const dateReleasedOut = report.date_pulled_out ? new Date(report.date_pulled_out).toLocaleDateString() : '-';
-                
                 // Map numeric status codes to text (for legacy data compatibility)
                 let statusText = report.status;
                 if (typeof statusText === 'number' || /^\d+$/.test(statusText)) {
@@ -3113,7 +3105,6 @@ $userSession = $auth->requireAuth('admin');
                         <td>${serviceTypes}</td>
                         <td>${dateIn}</td>
                         <td>${statusBadge}</td>
-                        <td>${dateReleasedOut}</td>
                         <td>${totalAmount.toFixed(2)}</td>
                         <td class="actions-col">
                             <a href="#" class="edit-report" data-id="${report.report_id}">
