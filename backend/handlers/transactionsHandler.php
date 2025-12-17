@@ -25,6 +25,12 @@ class transactionsHandlers {
 
     public function getAllTransactions() {
         try {
+            // Check if payment_due_date column exists
+            $columnCheck = $this->conn->query("SHOW COLUMNS FROM {$this->transaction_table} LIKE 'payment_due_date'");
+            $hasPaymentDueDate = $columnCheck && $columnCheck->num_rows > 0;
+            
+            $paymentDueDateField = $hasPaymentDueDate ? "t.payment_due_date," : "NULL as payment_due_date,";
+            
             $stmt = $this->conn->prepare("
                 SELECT 
                     t.transaction_id as id,
@@ -34,7 +40,7 @@ class transactionsHandlers {
                     sd.total_amount,
                     t.payment_status,
                     t.payment_date,
-                    t.payment_due_date,
+                    {$paymentDueDateField}
                     t.received_by,
                     s.full_name as received_by_name
                 FROM {$this->transaction_table} t
@@ -66,6 +72,12 @@ class transactionsHandlers {
             $page = max(1, intval($page));
             $itemsPerPage = max(1, intval($itemsPerPage));
             $offset = ($page - 1) * $itemsPerPage;
+
+            // Check if payment_due_date column exists
+            $columnCheck = $this->conn->query("SHOW COLUMNS FROM {$this->transaction_table} LIKE 'payment_due_date'");
+            $hasPaymentDueDate = $columnCheck && $columnCheck->num_rows > 0;
+            
+            $paymentDueDateField = $hasPaymentDueDate ? "t.payment_due_date," : "NULL as payment_due_date,";
 
             // Base FROM/JOIN clause reused for both count and data
             $fromJoin = " FROM {$this->transaction_table} t
@@ -105,7 +117,7 @@ class transactionsHandlers {
                     sd.total_amount,
                     t.payment_status,
                     t.payment_date,
-                    t.payment_due_date,
+                    {$paymentDueDateField}
                     t.received_by,
                     s.full_name as received_by_name" . $fromJoin . $where . "
                 ORDER BY t.payment_date DESC, t.transaction_id DESC
@@ -145,13 +157,19 @@ class transactionsHandlers {
 
     public function getTransactionById($transactionId) {
         try {
+            // Check if payment_due_date column exists
+            $columnCheck = $this->conn->query("SHOW COLUMNS FROM {$this->transaction_table} LIKE 'payment_due_date'");
+            $hasPaymentDueDate = $columnCheck && $columnCheck->num_rows > 0;
+            
+            $paymentDueDateField = $hasPaymentDueDate ? "t.payment_due_date," : "NULL as payment_due_date,";
+            
             $stmt = $this->conn->prepare("
                 SELECT 
                     t.transaction_id as id,
                     t.report_id,
                     t.payment_status,
                     t.payment_date,
-                    t.payment_due_date,
+                    {$paymentDueDateField}
                     t.received_by,
                     sr.customer_name, 
                     sr.appliance_name,
