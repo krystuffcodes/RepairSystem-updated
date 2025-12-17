@@ -1005,7 +1005,6 @@ $userSession = $auth->requireAuth('admin');
                                                     <option value="Pending">Pending</option>
                                                     <option value="Under Repair">Under Repair</option>
                                                     <option value="Unrepairable">Unrepairable</option>
-                                                    <option value="Release Out">Release Out</option>
                                                     <option value="Completed">Completed</option>
                                                 </select>
                                             </div>
@@ -1075,7 +1074,7 @@ $userSession = $auth->requireAuth('admin');
                                                 <input type="date" class="form-control" name="dop">
                                             </div>
                                             <div class="col-md-3">
-                                                <label>Date Pulled - Out</label>
+                                                <label>Date Released Out</label>
                                                 <input type="date" class="form-control" name="date_pulled_out">
                                             </div>
                                         </div>
@@ -1276,7 +1275,6 @@ $userSession = $auth->requireAuth('admin');
                                                     <option value="Pending">Pending</option>
                                                     <option value="Under Repair">Under Repair</option>
                                                     <option value="Unrepairable">Unrepairable</option>
-                                                    <option value="Release Out">Release Out</option>
                                                     <option value="Completed">Completed</option>
                                                 </select>
                                             </div>
@@ -1347,7 +1345,6 @@ $userSession = $auth->requireAuth('admin');
                                                         <option value="Pending">Pending</option>
                                                         <option value="Under Repair">Under Repair</option>
                                                         <option value="Unrepairable">Unrepairable</option>
-                                                        <option value="Release Out">Release Out</option>
                                                     </select>
                                                 </div>
                                             </div>
