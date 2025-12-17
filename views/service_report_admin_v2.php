@@ -2946,14 +2946,31 @@ $userSession = $auth->requireAuth('admin');
         function setCustomerFromSuggestion(id, name) {
             const $hiddenSelect = $('#customer-select');
             const $input = $('#customer-search');
+            
+            console.log('Setting customer from suggestion - ID:', id, 'Name:', name);
+            
+            // Update the visible input field
             $input.val(name);
-
+            console.log('Updated #customer-search to:', name);
+            
+            // Update or create option in hidden select
             let $option = $hiddenSelect.find(`option[value="${id}"]`);
             if ($option.length === 0) {
+                console.log('Creating new option for customer ID:', id);
                 $option = $(`<option></option>`).val(id).text(name);
                 $hiddenSelect.append($option);
             }
-            $hiddenSelect.val(id).trigger('change');
+            
+            // Set the value and trigger change event
+            $hiddenSelect.val(id);
+            console.log('Set #customer-select value to:', id);
+            console.log('Customer options in select:', $hiddenSelect.find('option').map((i, el) => $(el).val() + ':' + $(el).text()).get());
+            
+            // Trigger change to load appliances and other details
+            $hiddenSelect.trigger('change');
+            console.log('Triggered change event on #customer-select');
+            
+            // Hide suggestions
             $('#customer-suggestions').hide();
         }
 
