@@ -34,6 +34,7 @@ class transactionsHandlers {
                     sd.total_amount,
                     t.payment_status,
                     t.payment_date,
+                    t.payment_due_date,
                     t.received_by,
                     s.full_name as received_by_name
                 FROM {$this->transaction_table} t
@@ -101,10 +102,10 @@ class transactionsHandlers {
                     t.report_id,
                     sr.customer_name,
                     sr.appliance_name,
-                    sr.status as service_status,
                     sd.total_amount,
                     t.payment_status,
                     t.payment_date,
+                    t.payment_due_date,
                     t.received_by,
                     s.full_name as received_by_name" . $fromJoin . $where . "
                 ORDER BY t.payment_date DESC, t.transaction_id DESC
@@ -150,6 +151,7 @@ class transactionsHandlers {
                     t.report_id,
                     t.payment_status,
                     t.payment_date,
+                    t.payment_due_date,
                     t.received_by,
                     sr.customer_name, 
                     sr.appliance_name,
@@ -263,13 +265,14 @@ class transactionsHandlers {
         }
     }
 
-    public function updatePaymentStatus($transactionId, $paymentStatus, $receivedById, $paymentMethod = null, $referenceNumber = null) {
+    public function updatePaymentStatus($transactionId, $paymentStatus, $receivedById, $paymentMethod = null, $referenceNumber = null, $paymentDueDate = null) {
         try {
             $paymentDate = $paymentStatus === 'Paid' ? date('Y-m-d') : null;
             
             // Ensure types are correct for binding
             $receivedById = $receivedById ? intval($receivedById) : null;
             $transactionId = intval($transactionId);
+            $paymentDueDate = !empty($paymentDueDate) ? $paymentDueDate : null;
             
             $stmt = $this->conn->prepare("
                 UPDATE {$this->transaction_table}
@@ -277,7 +280,8 @@ class transactionsHandlers {
                     received_by = ?,
                     payment_date = ?,
                     payment_method = ?,
-                    reference_number = ?
+                    reference_number = ?,
+                    payment_due_date = ?
                 WHERE transaction_id = ?
             ");
 
@@ -285,7 +289,7 @@ class transactionsHandlers {
                 throw new RuntimeException("Prepare failed: " . $this->conn->error);
             }
 
-            $stmt->bind_param("sisssi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $transactionId);
+            $stmt->bind_param("sissisi", $paymentStatus, $receivedById, $paymentDate, $paymentMethod, $referenceNumber, $paymentDueDate, $transactionId);
             
             if(!$stmt->execute()) {
                 throw new RuntimeException("Failed to update payment status: " . $stmt->error);
@@ -309,6 +313,7 @@ class transactionsHandlers {
                 'received_by' => $receivedById,
                 'received_by_name' => $receivedByName,
                 'payment_date' => $paymentDate,
+                'payment_due_date' => $paymentDueDate,
                 'payment_method' => $paymentMethod,
                 'reference_number' => $referenceNumber
             ], 'Payment status updated successfully');
@@ -316,6 +321,45 @@ class transactionsHandlers {
         } catch (Exception $e) {
             error_log("TransactionsHandler Error: " . $e->getMessage());
             return $this->formatResponse(false, null, 'Failed to update payment status: ' . $e->getMessage());
+        }
+    }
+
+    public function setPaymentDueDate($transactionId, $paymentDueDate) {
+        try {
+            if (empty($paymentDueDate)) {
+                return $this->formatResponse(false, null, 'Payment due date is required');
+            }
+
+            // Validate date format (YYYY-MM-DD)
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $paymentDueDate)) {
+                return $this->formatResponse(false, null, 'Invalid date format. Use YYYY-MM-DD');
+            }
+
+            $transactionId = intval($transactionId);
+            $stmt = $this->conn->prepare("
+                UPDATE {$this->transaction_table}
+                SET payment_due_date = ?
+                WHERE transaction_id = ?
+            ");
+
+            if (!$stmt) {
+                throw new RuntimeException("Prepare failed: " . $this->conn->error);
+            }
+
+            $stmt->bind_param("si", $paymentDueDate, $transactionId);
+
+            if (!$stmt->execute()) {
+                throw new RuntimeException("Failed to set payment due date: " . $stmt->error);
+            }
+
+            return $this->formatResponse(true, [
+                'transaction_id' => $transactionId,
+                'payment_due_date' => $paymentDueDate
+            ], 'Payment due date set successfully');
+
+        } catch (Exception $e) {
+            error_log("TransactionsHandler Error: " . $e->getMessage());
+            return $this->formatResponse(false, null, 'Failed to set payment due date: ' . $e->getMessage());
         }
     }
 

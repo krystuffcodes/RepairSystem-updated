@@ -304,14 +304,6 @@ $userSession = $auth->requireAuth('admin');
 .status-pending {
             color: #ffc107;
 }
-
-.status-completed {
-    color: #17a2b8;
-}
-
-.status-repair {
-    color: #fd7e14;
-}
     /* Pagination footer */
     .pagination .page-link {
         color: #242424ff;
@@ -441,9 +433,9 @@ $userSession = $auth->requireAuth('admin');
                                                 <th>Customer</th>
                                                 <th>Appliance</th>
                                                 <th>Total Amount</th>
-                                                <th>Service Status</th>
                                                 <th>Payment Status</th>
                                                 <th>Payment Date</th>
+                                                <th>Payment Due</th>
                                                 <th>Received By</th>
                                                 <th class="no-print">Actions</th>
                                             </tr>
@@ -583,6 +575,10 @@ $userSession = $auth->requireAuth('admin');
                                 <div class="form-group" id="reference_number_group" style="display: none;">
                                     <label>GCash Reference Number</label>
                                     <input type="text" name="reference_number" id="reference_number" class="form-control" placeholder="Enter GCash reference number">
+                                </div>
+                                <div class="form-group">
+                                    <label>Payment Due Date</label>
+                                    <input type="date" name="payment_due_date" id="payment_due_date" class="form-control">
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -1058,6 +1054,7 @@ $userSession = $auth->requireAuth('admin');
             function updatePaymentStatus() {
                 const paymentMethod = $('select[name="payment_method"]').val();
                 const referenceNumber = $('#reference_number').val();
+                const paymentDueDate = $('#payment_due_date').val();
 
                 // Validation
                 if (!paymentMethod) {
@@ -1075,7 +1072,8 @@ $userSession = $auth->requireAuth('admin');
                     payment_status: $('select[name="payment_status"]').val(),
                     received_by: $('select[name="received_by"]').val(),
                     payment_method: paymentMethod,
-                    reference_number: paymentMethod === 'GCash' ? referenceNumber : ''
+                    reference_number: paymentMethod === 'GCash' ? referenceNumber : '',
+                    payment_due_date: paymentDueDate || null
                 };
 
                 if (!formData.received_by) {
@@ -1132,6 +1130,49 @@ $userSession = $auth->requireAuth('admin');
                 }
             });
 
+            // Set Payment Due Date function
+            function setPaymentDueDate(transactionId, paymentDueDate) {
+                if (!transactionId || !paymentDueDate) {
+                    showAlert('danger', 'Transaction ID and payment due date are required');
+                    return;
+                }
+
+                // Validate date format (YYYY-MM-DD)
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDueDate)) {
+                    showAlert('danger', 'Invalid date format. Use YYYY-MM-DD');
+                    return;
+                }
+
+                const formData = {
+                    transaction_id: transactionId,
+                    payment_due_date: paymentDueDate
+                };
+
+                $.ajax({
+                    url: '../backend/api/transaction_api.php?action=setPaymentDueDate',
+                    method: 'PUT',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert('success', 'Payment due date set successfully');
+                            loadTransactions();
+                        } else {
+                            throw new Error(response.message || 'Failed to set payment due date');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error setting payment due date:', error);
+                        let errorMsg = 'Failed to set payment due date';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg += ': ' + xhr.responseJSON.message;
+                        }
+                        showAlert('danger', errorMsg);
+                    }
+                });
+            }
+
             // Load paginated transactions
             function loadTransactions(page = 1) {
                 showLoading(true, '.card-body');
@@ -1173,7 +1214,7 @@ $userSession = $auth->requireAuth('admin');
                         console.error('Error loading transactions:', error);
                         console.error('Response:', xhr.responseText);
                         showAlert('danger', 'Failed to load transactions: ' + (xhr.responseJSON?.message || error));
-                        $('#transactionsTableBody').html('<tr><td colspan="8" class="text-center">Error loading transactions</td></tr>');
+                        $('#transactionsTableBody').html('<tr><td colspan="9" class="text-center">Error loading transactions</td></tr>');
                     },
                     complete: function() {
                         showLoading(false, '.card-body');
@@ -1262,15 +1303,14 @@ $userSession = $auth->requireAuth('admin');
                     $tableBody.empty();
                     
                 if (transactions.length === 0) {
-                        $tableBody.html('<tr><td colspan="8" class="text-center">No transactions found</td></tr>');
+                        $tableBody.html('<tr><td colspan="9" class="text-center">No transactions found</td></tr>');
                         return;
                     }
                     
                 const html = transactions.map(transaction => {
-                    const paymentStatusClass = transaction.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
-                    const serviceStatusClass = transaction.service_status === 'Completed' ? 'status-completed' : (transaction.service_status === 'Under Repair' ? 'status-repair' : 'status-pending');
+                    const statusClass = transaction.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
                     const paymentDate = transaction.payment_date || '-';
-                    const serviceStatus = transaction.service_status || 'N/A';
+                    const paymentDueDate = transaction.payment_due_date || '-';
                         
                         return `
                             <tr>
@@ -1278,9 +1318,9 @@ $userSession = $auth->requireAuth('admin');
                         <td>${transaction.customer_name}</td>
                         <td>${transaction.appliance_name}</td>
                         <td>₱${parseFloat(transaction.total_amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                        <td><span class="status-badge ${serviceStatusClass}">${serviceStatus}</span></td>
-                        <td><span class="status-badge ${paymentStatusClass}">${transaction.payment_status}</span></td>
+                        <td><span class="status-badge ${statusClass}">${transaction.payment_status}</span></td>
                                 <td>${paymentDate}</td>
+                                <td>${paymentDueDate}</td>
                         <td>${transaction.received_by_name || transaction.received_by}</td>
                                 <td class="no-print">
                                     <a href="#" class="update-payment" data-id="${transaction.id}" data-toggle="modal" data-target="#updatePaymentModal">

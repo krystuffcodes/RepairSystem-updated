@@ -102,6 +102,7 @@ try {
             $receivedById = isset($input['received_by']) ? intval($input['received_by']) : null;
             $paymentMethod = $input['payment_method'] ?? null;
             $referenceNumber = $input['reference_number'] ?? null;
+            $paymentDueDate = $input['payment_due_date'] ?? null;
 
             if(!$transactionId || !$paymentStatus) {
                 sendResponse(false, null, 'Transaction ID and payment status are required', 400);
@@ -124,7 +125,26 @@ try {
                 sendResponse(false, null, 'Reference number is required for GCash payments', 400);
             }
 
-            $result = $transactionHandler->updatePaymentStatus($transactionId, $paymentStatus, $receivedById, $paymentMethod, $referenceNumber);
+            $result = $transactionHandler->updatePaymentStatus($transactionId, $paymentStatus, $receivedById, $paymentMethod, $referenceNumber, $paymentDueDate);
+            if (!$result['success']) {
+                sendResponse(false, null, $result['message'], 400);
+            }
+            sendResponse(true, $result['data'], $result['message']);
+            break;
+
+        case 'setPaymentDueDate':
+            if($method !== 'PUT') {
+                sendResponse(false, null, 'Method not allowed', 405);
+            }
+
+            $transactionId = isset($input['transaction_id']) ? intval($input['transaction_id']) : null;
+            $paymentDueDate = isset($input['payment_due_date']) ? trim($input['payment_due_date']) : null;
+
+            if(!$transactionId || !$paymentDueDate) {
+                sendResponse(false, null, 'Transaction ID and payment due date are required', 400);
+            }
+
+            $result = $transactionHandler->setPaymentDueDate($transactionId, $paymentDueDate);
             if (!$result['success']) {
                 sendResponse(false, null, $result['message'], 400);
             }
