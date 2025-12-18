@@ -535,9 +535,9 @@ try {
 
         .div2 {
             grid-column: span 3 / span 3;
-            grid-row: span 3 / span 3;
-            grid-column-start: 7;
-            grid-row-start: 1;
+            grid-row: span 2 / span 2;
+            grid-column-start: 1;
+            grid-row-start: 6;
         }
 
         .div7 {
@@ -554,9 +554,9 @@ try {
 
         .div10 {
             grid-column: span 3 / span 3;
-            grid-row: span 2 / span 2;
-            grid-column-start: 1;
-            grid-row-start: 6;
+            grid-row: span 3 / span 3;
+            grid-column-start: 7;
+            grid-row-start: 1;
         }
 
         .div11 {
