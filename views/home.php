@@ -730,9 +730,12 @@ try {
                         ?>
                         <div class="section-title d-flex align-items-center justify-content-between">
                             <span>Low Stock Alert</span>
-                            <?php if ($hasLowStock): ?>
-                                <span class="material-icons" style="color: #dc3545; font-size: 28px; animation: pulse 2s infinite;">warning</span>
-                            <?php endif; ?>
+                            <div class="d-flex align-items-center gap-2">
+                                <?php if ($hasLowStock): ?>
+                                    <span class="material-icons" style="color: #dc3545; font-size: 28px; animation: pulse 2s infinite;">warning</span>
+                                    <span style="color: #dc3545; font-weight: 600; font-size: 0.9rem;">Need to Order</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <style>
                             @keyframes pulse {
